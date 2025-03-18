@@ -7,7 +7,7 @@ BEGIN
 END $$;
 
 -- Drop existing tables to start fresh
-DROP TABLE IF EXISTS "Session", "Slot", "Customer", "Employee" CASCADE;
+DROP TABLE IF EXISTS "Session", "Slot", "Customer", "Employee";
 
 -- Recreate the schema (from your revised version with fixes)
 CREATE TABLE "Employee" (
@@ -42,8 +42,10 @@ CREATE TABLE "Slot" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "Slot_pkey" PRIMARY KEY ("id"),
-    CONSTRAINT "Slot_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Slot_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Slot_unique_employee_start_time" UNIQUE ("employeeId", "startTime")
 );
+
 
 CREATE TABLE "Session" (    
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
@@ -113,57 +115,6 @@ BEGIN
                         CURRENT_TIMESTAMP
                     );
                 END LOOP;
-            END IF;
-        END LOOP;
-    END LOOP;
-END $$;
-
--- Insert Sessions: 5-20 random sessions per employee
-DO $$
-DECLARE
-    emp_ids UUID ARRAY;
-    cust_ids UUID ARRAY;
-    slot_count INT;
-    emp_id UUID;
-    cust_id UUID;
-    slot_id UUID;
-BEGIN
-    -- Store employee and customer UUIDs in arrays
-    SELECT array_agg("id") INTO emp_ids FROM "Employee";
-    SELECT array_agg("id") INTO cust_ids FROM "Customer";
-
-    FOR emp_idx IN 1..10 LOOP
-        emp_id := emp_ids[emp_idx];
-        -- Random number of sessions between 5 and 20
-        FOR i IN 1..(5 + ROUND(RANDOM() * 15)) LOOP
-            -- Pick a random available slot for this employee
-            SELECT COUNT(*) INTO slot_count 
-            FROM "Slot" 
-            WHERE "employeeId" = emp_id AND "type" = 'AVAILABLE';
-            
-            IF slot_count > 0 THEN
-                SELECT "id" INTO slot_id 
-                FROM "Slot" 
-                WHERE "employeeId" = emp_id AND "type" = 'AVAILABLE' 
-                ORDER BY RANDOM() LIMIT 1;
-                
-                -- Pick a random customer
-                cust_id := cust_ids[1 + ROUND(RANDOM() * 99)::INT];
-                
-                -- Insert session
-                INSERT INTO "Session" ("id", "slotId", "employeeId", "customerId", "message", "createdAt", "updatedAt")
-                VALUES (
-                    gen_random_uuid(),
-                    slot_id,
-                    emp_id,
-                    cust_id,
-                    'Session with employee and customer',
-                    CURRENT_TIMESTAMP,
-                    CURRENT_TIMESTAMP
-                );
-                
-                -- Mark slot as booked
-                UPDATE "Slot" SET "type" = 'BOOKED' WHERE "id" = slot_id;
             END IF;
         END LOOP;
     END LOOP;
