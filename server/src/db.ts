@@ -9,4 +9,3 @@ export const createPool = () => {
     port: parseInt(process.env.DB_PORT || "5432"),
   });
 };
-

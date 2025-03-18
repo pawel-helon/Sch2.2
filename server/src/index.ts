@@ -7,25 +7,18 @@ dotenv.config();
 import { createPool } from "./db";
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 app.use(compression());
 
+// Connecting and disconnecting data base
 const pool = createPool();
-pool.connect((err, client, release) => {
+pool.connect((err, _, release) => {
   if (err) {
     return console.error("Error acquiring client", err.stack);
   }
   console.debug("Database connected successfully");
   release();
-})
-
-app.use("/api/slots", slotsRouter);
-
-const PORT = process.env.PORT || 5002;
-app.listen(PORT, () => {
-  console.debug(`Server running on port ${PORT}`);
 })
 
 process.on("SIGTERM", () => {
@@ -34,3 +27,21 @@ process.on("SIGTERM", () => {
     process.exit(0);
   })
 })
+
+// Connecting API routes
+app.use("/api/slots", slotsRouter);
+
+// Starting and shutting down the server
+const server = app.listen(process.env.PORT, () => {
+  console.debug(`Server running on port ${process.env.PORT}`);
+})
+
+const serverShutDown = () => {
+  console.log("Shutting down server...");
+  server.close(() => {
+    console.log("Server closed.");
+    process.exit(0);
+  })
+}
+
+setTimeout(serverShutDown, 1000 * 60 * 10);
