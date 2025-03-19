@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(compression());
 
 // Connecting and disconnecting data base
-const pool = createPool();
+export const pool = createPool();
 pool.connect((err, _, release) => {
   if (err) {
     return console.error("Error acquiring client", err.stack);
@@ -37,9 +37,9 @@ const server = app.listen(process.env.PORT, () => {
 })
 
 const serverShutDown = () => {
-  console.log("Shutting down server...");
+  console.debug("Shutting down server...");
   server.close(() => {
-    console.log("Server closed.");
+    console.debug("Server closed.");
     process.exit(0);
   })
 }

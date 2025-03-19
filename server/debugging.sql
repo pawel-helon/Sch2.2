@@ -1,5 +1,3 @@
-SELECT generate_series(
-  '2025-10-10'::date,
-  '2025-12-31'::date,
-  interval '7 days'
-)::date
+-- psql -U postgres -d scheduling -h 127.0.0.1 -f debugging.sql
+
+SELECT pg_reload_conf();

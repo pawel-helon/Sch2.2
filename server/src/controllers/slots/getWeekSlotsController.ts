@@ -1,18 +1,50 @@
 import { Request, Response } from "express";
-import { createPool } from "../../db";
+import { Slot } from "../../lib/types";
+import { pool } from "../../index";
+
+function createResponse(res: Response, message: string, slot: Slot[] | null = null) {
+  res.format({"application/json": () => {
+    res.send({
+      message,
+      slot
+    });
+  }});
+}
 
 export async function getWeekSlotsController(req: Request, res: Response) {
-  const { start, end } = req.query as { start: string, end: string };
-  const value = `
-    SELECT *
-    FROM "Slot"
-    WHERE "startTime" >= '${start} 00:00:00.000'
-      AND "startTime" <= '${end} 23:59:59.999'
-  `;
+  const { employeeId, start, end } = req.body as { employeeId: string, start: string, end: string };
+  
+  if (!employeeId || !start || !end) {
+    return createResponse(res, "Start and end dates are required");
+  }
+
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!UUID_REGEX.test(employeeId)) {
+    return createResponse(res, "Invalid UUID format");
+  }
+  
+  const DATE_REGEX = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/;
+  if (!DATE_REGEX.test(start) || !DATE_REGEX.test(end)) {
+    return createResponse(res, "Invalid date format");
+  }
+  
   try {
-    const pool = createPool();
-    const result = await pool.query(value);
-    res.json(result.rows);
+    const queryValue = `
+      SELECT *
+      FROM "Slot"
+      WHERE "startTime" >= ($1::date || ' 00:00:00.000')::timestamp
+        AND "startTime" <= ($2::date || ' 23:59:59.999')::timestamp
+    `;
+    const findingSlots = await pool.query(queryValue, [
+      start,
+      end
+    ]);
+    
+    if (!findingSlots.rows.length) {
+      return createResponse(res, "Failed to fetch slots");
+    }
+
+    createResponse(res, "Slots have been fetched", findingSlots.rows);
   } catch (error) {
     console.error("Failed to fetch slots:", error);
     res.status(500).json({ error: "Internal server error" });
