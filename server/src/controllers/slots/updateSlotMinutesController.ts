@@ -2,8 +2,7 @@ import { Request, Response } from "express";
 import { Slot } from "../../lib/types";
 import { pool } from "../../index";
 
-
-function createResponse(res: Response, message: string, slot: Slot | null = null) {
+const createResponse = (res: Response, message: string, slot: Slot | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -12,7 +11,7 @@ function createResponse(res: Response, message: string, slot: Slot | null = null
   }});
 }
 
-export async function updateSlotMinutesController(req: Request, res: Response) {
+export const updateSlotMinutesController = async (req: Request, res: Response) => {
   const { employeeId, slotId, minutes } = req.body as { employeeId: string, slotId: string, minutes: string };
   
   if (!employeeId || !slotId || !minutes) {
@@ -63,20 +62,19 @@ export async function updateSlotMinutesController(req: Request, res: Response) {
             AND s2."id" != $2::uuid
         )
       RETURNING "id", "employeeId", "type", "startTime", "duration", "recurring", "createdAt", "updatedAt"
-     
     `;
 
-    const updatingSlotMinutes = await pool.query(queryValue, [
+    const result = await pool.query(queryValue, [
       employeeId,
       slotId,
       minutes
     ])
     
-    if (!updatingSlotMinutes.rows.length) {
+    if (!result.rows.length) {
       return createResponse(res, "Failed to update slot");
     }
 
-    createResponse(res, "Slot time has been updated", updatingSlotMinutes.rows[0]);
+    createResponse(res, "Slot time has been updated", result.rows[0]);
 
   } catch (error) {
     console.error("Failed to add slot:", error);

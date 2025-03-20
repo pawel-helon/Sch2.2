@@ -11,31 +11,31 @@ const createResponse = (res: Response, message: string, slot: Slot | null = null
   }});
 }
 
-export async function addSlotController(req: Request, res: Response) {
+export const addSlotController = async (req: Request, res: Response) => {
   const { employeeId, day } = req.body as { employeeId: string, day: string };
-
+  
   if (!employeeId || !day) {
     return createResponse(res, "EmployeeId and day are required");
   }
-
+  
   const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (!UUID_REGEX.test(employeeId)) {
     return createResponse(res, "Invalid UUID format");
   }
-
+  
   const DATE_REGEX = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/;
   if (!DATE_REGEX.test(day)) {
     return createResponse(res, "Invalid date format");
   }  
-  
+
   try {
     const queryValue = `
       WITH available_time AS (
         WITH all_times AS (
           SELECT generate_series(
-            ($2::date || ' 08:00:00.000')::timestamp,
-            ($2::date || ' 20:00:00.000')::timestamp,
-            interval '15 minutes'
+            ($2::date || ' ' || '08:00:00.000'::time)::timestamp,
+            ($2::date || ' ' || '20:00:00.000'::time)::timestamp,
+            INTERVAL '15 minutes'
           ) AS possible_time
         )
         SELECT possible_time::time AS time
@@ -45,8 +45,8 @@ export async function addSlotController(req: Request, res: Response) {
             SELECT 1
             FROM "Slot"
             WHERE "startTime" = possible_time
-              AND "startTime" >= ($2::date || ' 00:00:00.000')::timestamp
-              AND "startTime" <= ($2::date || ' 23:59:59.999')::timestamp
+              AND "startTime" >= ($2::date || ' ' || '00:00:00.000'::time)::timestamp
+              AND "startTime" <= ($2::date || ' ' || '23:59:59.999'::time)::timestamp
           )
         ORDER BY possible_time
         LIMIT 1
@@ -63,19 +63,19 @@ export async function addSlotController(req: Request, res: Response) {
         NOW() AS "createdAt",
         NOW() AS "updatedAt"
       FROM available_time
-      RETURNING *;
+      RETURNING *
     `;
 
-    const addingSlot = await pool.query(queryValue, [
+    const result = await pool.query(queryValue, [
       employeeId,
       day
     ]);
-    
-    if (!addingSlot.rows.length) {
+
+    if (!result.rows.length) {
       return createResponse(res, "Failed to add slot");
     }
 
-    createResponse(res, "New slot has been added", addingSlot.rows[0]);
+    createResponse(res, "New slot has been added", result.rows[0]);
 
   } catch (error) {
     console.error("Failed to add slot:", error);

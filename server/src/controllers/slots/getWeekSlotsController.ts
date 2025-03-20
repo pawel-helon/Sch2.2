@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { Slot } from "../../lib/types";
 import { pool } from "../../index";
 
-function createResponse(res: Response, message: string, slot: Slot[] | null = null) {
+const createResponse = (res: Response, message: string, slot: Slot[] | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -11,7 +11,7 @@ function createResponse(res: Response, message: string, slot: Slot[] | null = nu
   }});
 }
 
-export async function getWeekSlotsController(req: Request, res: Response) {
+export const getWeekSlotsController = async (req: Request, res: Response) => {
   const { employeeId, start, end } = req.body as { employeeId: string, start: string, end: string };
   
   if (!employeeId || !start || !end) {
@@ -35,16 +35,16 @@ export async function getWeekSlotsController(req: Request, res: Response) {
       WHERE "startTime" >= ($1::date || ' 00:00:00.000')::timestamp
         AND "startTime" <= ($2::date || ' 23:59:59.999')::timestamp
     `;
-    const findingSlots = await pool.query(queryValue, [
+    const result = await pool.query(queryValue, [
       start,
       end
     ]);
     
-    if (!findingSlots.rows.length) {
+    if (!result.rows.length) {
       return createResponse(res, "Failed to fetch slots");
     }
 
-    createResponse(res, "Slots have been fetched", findingSlots.rows);
+    createResponse(res, "Slots have been fetched", result.rows);
   } catch (error) {
     console.error("Failed to fetch slots:", error);
     res.status(500).json({ error: "Internal server error" });

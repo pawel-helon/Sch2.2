@@ -46,7 +46,6 @@ CREATE TABLE "Slot" (
     CONSTRAINT "Slot_unique_employee_start_time" UNIQUE ("employeeId", "startTime")
 );
 
-
 CREATE TABLE "Session" (    
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "slotId" UUID NOT NULL,

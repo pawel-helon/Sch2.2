@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { Slot } from "../../lib/types";
 import { pool } from "../../index";
 
-function createResponse(res: Response, message: string, slot: Slot | null = null) {
+const  createResponse = (res: Response, message: string, slot: Slot | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -11,7 +11,7 @@ function createResponse(res: Response, message: string, slot: Slot | null = null
   }});
 }
 
-export async function addRecurringSlotController(req: Request, res: Response) {
+export const addRecurringSlotController = async (req: Request, res: Response) => {
   const { employeeId, day } = req.body as { employeeId: string, day: string };
   
   if (!employeeId || !day) {
@@ -88,17 +88,17 @@ export async function addRecurringSlotController(req: Request, res: Response) {
       RETURNING *;
     `;
 
-    const addingRecurringSlots = await pool.query(queryValue, [
+    const result = await pool.query(queryValue, [
       employeeId,
       day,
       year
     ]);
     
-    if (!addingRecurringSlots.rows.length) {
+    if (!result.rows.length) {
       return createResponse(res, "Failed to add slots");
     }
 
-    createResponse(res, "New recurring slots have been added", addingRecurringSlots.rows[0]);
+    createResponse(res, "New recurring slots have been added", result.rows[0]);
 
   } catch (error) {
     console.error("Failed to add slot:", error);
