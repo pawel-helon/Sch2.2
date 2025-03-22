@@ -1,17 +1,24 @@
 import express from "express";
+import http from 'http';
 import compression from "compression";
 import cors from "cors";
 import dotenv from "dotenv";
+import { Server } from "socket.io";
+import { createPool, setupDatabaseListeners } from "./db";
 import slotsRouter from "./routes/slots";
+
 dotenv.config();
-import { createPool } from "./db";
 
 const app = express();
+const server = http.createServer(app);
+export const io = new Server(server, {
+  cors: { origin: true },
+});
 app.use(cors());
 app.use(express.json());
 app.use(compression());
 
-// Connecting and disconnecting data base
+// Connect database
 export const pool = createPool();
 pool.connect((err, _, release) => {
   if (err) {
@@ -19,29 +26,31 @@ pool.connect((err, _, release) => {
   }
   console.debug("Database connected successfully");
   release();
-})
+});
 
-process.on("SIGTERM", () => {
-  pool.end(() => {
-    console.debug("Database pool has ended");
-    process.exit(0);
-  })
-})
-
-// Connecting API routes
+// Connect API routes
 app.use("/api/slots", slotsRouter);
 
-// Starting and shutting down the server
-const server = app.listen(process.env.PORT, () => {
-  console.debug(`Server running on port ${process.env.PORT}`);
-})
+// Start server and setup listeners
+server.listen(process.env.PORT || 5000, async () => {
+  try {
+    await setupDatabaseListeners();
+    console.debug(`Server running on port ${process.env.PORT || 5000}`);
+  } catch (error) {
+    console.error('Server startup error:', error);
+  }
+});
 
-const serverShutDown = () => {
-  console.debug("Shutting down server...");
-  server.close(() => {
-    console.debug("Server closed.");
-    process.exit(0);
-  })
-}
-
-setTimeout(serverShutDown, 1000 * 60 * 10);
+// Cleanup on shutdown
+process.on('SIGTERM', async () => {
+  try {
+    await pool.end();
+    server.close(() => {
+      console.debug('Server and database connections closed');
+      process.exit(0);
+    });
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+    process.exit(1);
+  }
+});

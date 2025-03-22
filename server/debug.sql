@@ -22,6 +22,6 @@
 
 SELECT *
 FROM "Slot"
-WHERE "id" = 'f17d0fc4-48bc-48e4-aedf-23ece294fbe4'::uuid
-  OR "id" = '8af706e4-4eb2-4331-9253-9bddba9b18e8'::uuid
+-- WHERE "id" = 'f17d0fc4-48bc-48e4-aedf-23ece294fbe4'::uuid
+--   OR "id" = '8af706e4-4eb2-4331-9253-9bddba9b18e8'::uuid
 

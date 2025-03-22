@@ -88,33 +88,3 @@ SELECT
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 FROM generate_series(1, 100) AS n;
-
--- Insert Slots: Mon-Fri, 9 AM-5 PM for each employee (March 3-28, 2025)
-DO $$
-DECLARE
-    emp_ids UUID ARRAY;
-    emp_id UUID;
-BEGIN
-    -- Store employee UUIDs in an array
-    SELECT array_agg("id") INTO emp_ids FROM "Employee";
-    FOR emp_idx IN 1..10 LOOP
-        emp_id := emp_ids[emp_idx];
-        FOR day IN 3..28 LOOP -- March 3-28, skipping weekends
-            IF EXTRACT(DOW FROM DATE '2025-03-01' + day) BETWEEN 1 AND 5 THEN -- Mon-Fri
-                FOR hour IN 9..16 LOOP -- 9 AM to 4 PM (last slot starts at 4 PM)
-                    INSERT INTO "Slot" ("id", "employeeId", "type", "startTime", "duration", "recurring", "createdAt", "updatedAt")
-                    VALUES (
-                        gen_random_uuid(),
-                        emp_id,
-                        'AVAILABLE',
-                        TIMESTAMP '2025-03-01' + (day || ' days ' || hour || ' hours')::INTERVAL,
-                        '30 minutes'::INTERVAL,
-                        false,
-                        CURRENT_TIMESTAMP,
-                        CURRENT_TIMESTAMP
-                    );
-                END LOOP;
-            END IF;
-        END LOOP;
-    END LOOP;
-END $$;
