@@ -20,7 +20,6 @@ export const createPool = (): Pool => {
 };
 
 // Setup listeners
-
 export async function setupDatabaseListeners() {
   const client = await pool.connect();
   

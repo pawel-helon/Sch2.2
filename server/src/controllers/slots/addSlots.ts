@@ -11,7 +11,7 @@ const createResponse = (res: Response, message: string, slot: Slot[] | null = nu
   }});
 }
 
-export const addSlotsController = async (req: Request, res: Response) => {
+export const addSlots = async (req: Request, res: Response) => {
   const { slots } = req.body as { slots: Slot[] };
   
   if (!Array.isArray(slots) || !slots.length) {

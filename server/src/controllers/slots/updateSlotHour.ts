@@ -11,7 +11,7 @@ const createResponse = (res: Response, message: string, slot: Slot | null = null
   }});
 }
 
-export const updateSlotHourController = async (req: Request, res: Response) => {
+export const updateSlotHour = async (req: Request, res: Response) => {
   const { employeeId, slotId, hour } = req.body as { employeeId: string, slotId: string, hour: string };
   
   if (!employeeId || !slotId || !hour) {

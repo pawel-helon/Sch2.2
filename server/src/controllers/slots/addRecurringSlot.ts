@@ -11,7 +11,7 @@ const  createResponse = (res: Response, message: string, slot: Slot | null = nul
   }});
 }
 
-export const addRecurringSlotController = async (req: Request, res: Response) => {
+export const addRecurringSlot = async (req: Request, res: Response) => {
   const { employeeId, day } = req.body as { employeeId: string, day: string };
   
   if (!employeeId || !day) {

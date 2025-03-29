@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import { Server } from "socket.io";
 import { createPool, setupDatabaseListeners } from "./db";
 import slotsRouter from "./routes/slots";
+import sessionsRouter from "./routes/sessions";
 
 dotenv.config();
 
@@ -30,12 +31,13 @@ pool.connect((err, _, release) => {
 
 // Connect API routes
 app.use("/api/slots", slotsRouter);
+app.use("/api/sessions", sessionsRouter)
 
 // Start server and setup listeners
-server.listen(process.env.PORT || 5000, async () => {
+server.listen(process.env.PORT, async () => {
   try {
     await setupDatabaseListeners();
-    console.debug(`Server running on port ${process.env.PORT || 5000}`);
+    console.debug(`Server running on port ${process.env.PORT}`);
   } catch (error) {
     console.error('Server startup error:', error);
   }
@@ -54,3 +56,16 @@ process.on('SIGTERM', async () => {
     process.exit(1);
   }
 });
+
+// Testing route
+const testingRoute = async () => {
+  const sessionId = "b3bd5c8b-31e3-4e04-a579-b407134679ee";
+  const slotId = "581aa521-187e-4778-99b1-b5f861cd3d1a";
+  await fetch("http://localhost:5000/api/sessions/update-session", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sessionId, slotId })
+  })
+}
+
+testingRoute();

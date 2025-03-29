@@ -11,10 +11,10 @@ const createResponse = (res: Response, message: string, slot: Slot | null = null
   }});
 }
 
-export const updateRecurringSlotHourController = async (req: Request, res: Response) => {
-  const { employeeId, slotId, hour } = req.body as { employeeId: string, slotId: string, hour: string };
+export const updateSlotMinutes = async (req: Request, res: Response) => {
+  const { employeeId, slotId, minutes } = req.body as { employeeId: string, slotId: string, minutes: string };
   
-  if (!employeeId || !slotId || !hour) {
+  if (!employeeId || !slotId || !minutes) {
     return createResponse(res, "employeeId, slotId and hour are required");
   }
 
@@ -23,9 +23,9 @@ export const updateRecurringSlotHourController = async (req: Request, res: Respo
     return createResponse(res, "Invalid UUID format");
   }
 
-  const HOUR_REGEX = /^([0-1][0-9]|2[0-3])$/
-  if (!HOUR_REGEX.test(hour)) {
-    return createResponse(res, "Hour must be a number between 0 and 23");
+  const REGEX_MINUTES = /^[0-5][0-9]$/;
+  if (!REGEX_MINUTES.test(minutes)) {
+    return createResponse(res, "Minutes must be a number between 0 and 59");
   }
 
   try {
@@ -34,43 +34,30 @@ export const updateRecurringSlotHourController = async (req: Request, res: Respo
         SELECT 
           "startTime" AS current_start_time,
           EXTRACT(HOUR FROM "startTime") AS current_hour,
-          EXTRACT(MINUTE FROM "startTime") AS current_minutes,
-          EXTRACT(YEAR FROM "startTime") AS current_year
+          EXTRACT(MINUTE FROM "startTime") AS current_minutes
         FROM "Slot"
         WHERE "employeeId" = $1::uuid
           AND "id" = $2::uuid
-      ),
-      recurring_dates AS (
-        SELECT generate_series(
-          (SELECT current_start_time::date FROM slot_info),
-          ((SELECT current_year FROM slot_info)::text || '-12-31')::date,
-          INTERVAL '7 days'
-        )::date AS date
       )
       UPDATE "Slot"
       SET
         "startTime" = (
-          recurring_dates.date::date || ' ' ||
-          LPAD($3::text, 2, '0') || ':' ||
-          LPAD((SELECT current_minutes FROM slot_info)::text, 2, '0') || ':00.000'
+          slot_info.current_start_time::date || ' ' ||
+          LPAD(slot_info.current_hour::text, 2, '0') || ':' ||
+          LPAD($3::text, 2, '0') || ':00.000'
         )::timestamp,
         "updatedAt" = NOW()
       FROM slot_info
-      CROSS JOIN recurring_dates
-      WHERE "Slot"."employeeId" = $1::uuid
-        AND "Slot"."startTime" = (
-          recurring_dates.date::date || ' ' ||
-          LPAD((SELECT current_hour FROM slot_info)::text, 2, '0') || ':' ||
-          LPAD((SELECT current_minutes FROM slot_info)::text, 2, '0') || ':00.000'
-        )::timestamp
+      WHERE "employeeId" = $1::uuid
+        AND "id" = $2::uuid
         AND NOT EXISTS (
           SELECT 1
           FROM "Slot" s2
           WHERE s2."employeeId" = $1::uuid
             AND s2."startTime" = (
-              recurring_dates.date::date || ' ' ||
-              LPAD($3::text, 2, '0') || ':' ||
-              LPAD((SELECT current_minutes FROM slot_info)::text, 2, '0') || ':00.000'
+              slot_info.current_start_time::date || ' ' || 
+              LPAD(slot_info.current_hour::text, 2, '0') || ':' ||
+              LPAD($3::text, 2, '0') || ':00.000'
             )::timestamp
             AND s2."id" != $2::uuid
         )
@@ -80,7 +67,7 @@ export const updateRecurringSlotHourController = async (req: Request, res: Respo
     const result = await pool.query(queryValue, [
       employeeId,
       slotId,
-      hour
+      minutes
     ])
     
     if (!result.rows.length) {
@@ -88,7 +75,7 @@ export const updateRecurringSlotHourController = async (req: Request, res: Respo
     }
 
     createResponse(res, "Slot time has been updated", result.rows[0]);
-    
+
   } catch (error) {
     console.error("Failed to add slot:", error);
     res.status(500).json({ message: "Server Error", error: String(error) });

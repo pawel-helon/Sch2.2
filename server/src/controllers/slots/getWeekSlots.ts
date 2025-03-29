@@ -2,16 +2,16 @@ import { Request, Response } from "express";
 import { Slot } from "../../lib/types";
 import { pool } from "../../index";
 
-const createResponse = (res: Response, message: string, slot: Slot[] | null = null) => {
+const createResponse = (res: Response, message: string, slots: Slot[] | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
-      slot
+      slots
     });
   }});
 }
 
-export const getWeekSlotsController = async (req: Request, res: Response) => {
+export const getWeekSlots = async (req: Request, res: Response) => {
   const { employeeId, start, end } = req.body as { employeeId: string, start: string, end: string };
   
   if (!employeeId || !start || !end) {
@@ -32,10 +32,12 @@ export const getWeekSlotsController = async (req: Request, res: Response) => {
     const queryValue = `
       SELECT *
       FROM "Slot"
-      WHERE "startTime" >= ($1::date || ' 00:00:00.000')::timestamp
-        AND "startTime" <= ($2::date || ' 23:59:59.999')::timestamp
+      WHERE "employeeId" = $1::uuid 
+        AND "startTime" >= ($2::date || ' 00:00:00.000')::timestamp
+        AND "startTime" <= ($3::date || ' 23:59:59.999')::timestamp
     `;
     const result = await pool.query(queryValue, [
+      employeeId,
       start,
       end
     ]);

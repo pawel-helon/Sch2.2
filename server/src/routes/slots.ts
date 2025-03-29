@@ -1,24 +1,24 @@
 import express from "express";
-import { getWeekSlotsController } from "../controllers/slots/getWeekSlotsController";
-import { addSlotController } from "../controllers/slots/addSlotController";
-import { addRecurringSlotController } from "../controllers/slots/addRecurringSlotController";
-import { addSlotsController } from "../controllers/slots/addSlotsController";
-import { updateSlotHourController } from "../controllers/slots/updateSlotHourController";
-import { updateRecurringSlotHourController } from "../controllers/slots/updateRecurringSlotHourController";
-import { updateSlotMinutesController } from "../controllers/slots/updateSlotMinutesController";
-import { updateRecurringSlotMinutesController } from "../controllers/slots/updateRecurringSlotMinutesController";
-import { deleteSlotsController } from "../controllers/slots/deleteSlotsController";
+import { getWeekSlots } from "../controllers/slots/getWeekSlots";
+import { addSlot } from "../controllers/slots/addSlot";
+import { addRecurringSlot } from "../controllers/slots/addRecurringSlot";
+import { addSlots } from "../controllers/slots/addSlots";
+import { updateSlotHour } from "../controllers/slots/updateSlotHour";
+import { updateRecurringSlotHour } from "../controllers/slots/updateRecurringSlotHour";
+import { updateSlotMinutes } from "../controllers/slots/updateSlotMinutes";
+import { updateRecurringSlotMinutes } from "../controllers/slots/updateRecurringSlotMinutes";
+import { deleteSlots } from "../controllers/slots/deleteSlots";
 
 const router = express.Router();
 
-router.post("/get-week-slots", getWeekSlotsController);
-router.post("/add-slot", addSlotController);
-router.post("/add-recurring-slot", addRecurringSlotController);
-router.post("/add-slots", addSlotsController);
-router.put("/update-slot-hour", updateSlotHourController);
-router.put("/update-recurring-slot-hour", updateRecurringSlotHourController);
-router.put("/update-slot-minutes", updateSlotMinutesController);
-router.put("/update-recurring-slot-minutes", updateRecurringSlotMinutesController);
-router.delete("/delete-slots", deleteSlotsController);
+router.post("/get-week-slots", getWeekSlots);
+router.post("/add-slot", addSlot);
+router.post("/add-recurring-slot", addRecurringSlot);
+router.post("/add-slots", addSlots);
+router.put("/update-slot-hour", updateSlotHour);
+router.put("/update-recurring-slot-hour", updateRecurringSlotHour);
+router.put("/update-slot-minutes", updateSlotMinutes);
+router.put("/update-recurring-slot-minutes", updateRecurringSlotMinutes);
+router.delete("/delete-slots", deleteSlots);
 
 export default router;
