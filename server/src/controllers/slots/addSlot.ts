@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Slot } from "../../lib/types";
 import { pool } from "../../index";
+import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
 
 const createResponse = (res: Response, message: string, slot: Slot | null = null) => {
   res.format({"application/json": () => {
@@ -18,12 +19,10 @@ export const addSlot = async (req: Request, res: Response) => {
     return createResponse(res, "EmployeeId and day are required");
   }
   
-  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (!UUID_REGEX.test(employeeId)) {
     return createResponse(res, "Invalid UUID format");
   }
   
-  const DATE_REGEX = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/;
   if (!DATE_REGEX.test(day)) {
     return createResponse(res, "Invalid date format");
   }  

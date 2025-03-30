@@ -59,12 +59,11 @@ process.on('SIGTERM', async () => {
 
 // Testing route
 const testingRoute = async () => {
-  const sessionId = "b3bd5c8b-31e3-4e04-a579-b407134679ee";
-  const slotId = "581aa521-187e-4778-99b1-b5f861cd3d1a";
-  await fetch("http://localhost:5000/api/sessions/update-session", {
-    method: "PUT",
+  const slotId = "a277bf66-e752-4d02-afbe-10eefb76a77a"
+  await fetch("http://localhost:5000/api/slots/disable-slot-recurrence", {
+    method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sessionId, slotId })
+    body: JSON.stringify({ slotId })
   })
 }
 

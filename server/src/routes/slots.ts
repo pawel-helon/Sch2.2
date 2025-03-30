@@ -8,6 +8,9 @@ import { updateRecurringSlotHour } from "../controllers/slots/updateRecurringSlo
 import { updateSlotMinutes } from "../controllers/slots/updateSlotMinutes";
 import { updateRecurringSlotMinutes } from "../controllers/slots/updateRecurringSlotMinutes";
 import { deleteSlots } from "../controllers/slots/deleteSlots";
+import { duplicateDay } from "../controllers/slots/duplicateDay";
+import { setSlotRecurrence } from "../controllers/slots/setSlotRecurrence";
+import { disableSlotRecurrence } from "../controllers/slots/disableSlotRecurrence";
 
 const router = express.Router();
 
@@ -20,5 +23,8 @@ router.put("/update-recurring-slot-hour", updateRecurringSlotHour);
 router.put("/update-slot-minutes", updateSlotMinutes);
 router.put("/update-recurring-slot-minutes", updateRecurringSlotMinutes);
 router.delete("/delete-slots", deleteSlots);
+router.post("/duplicate-day", duplicateDay);
+router.post("/set-slot-recurrence", setSlotRecurrence);
+router.post("/disable-slot-recurrence", disableSlotRecurrence);
 
 export default router;

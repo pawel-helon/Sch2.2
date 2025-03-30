@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Slot } from "../../lib/types";
 import { pool } from "../../index";
+import { HOUR_REGEX, UUID_REGEX } from "../../lib/constants";
 
 const createResponse = (res: Response, message: string, slot: Slot | null = null) => {
   res.format({"application/json": () => {
@@ -17,13 +18,11 @@ export const updateSlotHour = async (req: Request, res: Response) => {
   if (!employeeId || !slotId || !hour) {
     return createResponse(res, "employeeId, slotId and hour are required");
   }
-
-  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  
   if (!UUID_REGEX.test(employeeId) || !UUID_REGEX.test(slotId)) {
     return createResponse(res, "Invalid UUID format");
   }
 
-  const HOUR_REGEX = /^([0-1][0-9]|2[0-3])$/
   if (!HOUR_REGEX.test(hour)) {
     return createResponse(res, "Hour must be a number between 0 and 23");
   }

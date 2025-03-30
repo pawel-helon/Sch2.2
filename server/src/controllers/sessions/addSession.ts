@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Session } from "../../lib/types";
 import { pool } from "../../index";
+import { UUID_REGEX } from "../../lib/constants";
 
 const createResponse = (res: Response, message: string, slot: Session | null = null) => {
   res.format({"application/json": () => {
@@ -21,8 +22,7 @@ export const addSession = async (req: Request, res: Response) => {
   if (typeof session !== "object" || Object.keys(session).length === 0) {
     return createResponse(res, "Invalid input data: session must be a non-empty object");
   }
-
-  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  
   if (!UUID_REGEX.test(session.id) ||
       !UUID_REGEX.test(session.slotId) ||
       !UUID_REGEX.test(session.employeeId) ||
