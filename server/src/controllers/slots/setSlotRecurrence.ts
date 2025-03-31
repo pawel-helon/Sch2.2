@@ -22,12 +22,12 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
   if (!UUID_REGEX.test(slotId)) {
     return createResponse(res, "Invalid UUID format");
   }
-  
+
   try {
     await pool.query("BEGIN");
     // Updating inital slot recurrence
     const updatingInitalSlotQueryValue = `
-      UPDATE "Slot"
+      UPDATE "Slots"
       SET "recurring" = true
       WHERE "id" = $1::uuid
       RETURNING *
@@ -46,7 +46,7 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
           "startTime"::date AS slot_start_date,
           EXTRACT(YEAR FROM "startTime") as slot_year,
           "duration" AS slot_duration
-        FROM "Slot"
+        FROM "Slots"
         WHERE "id" = $1::uuid
       ),
       recurring_dates AS (
@@ -56,7 +56,7 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
           INTERVAL '7 days'
         )::date AS recurring_date
       )
-      INSERT INTO "Slot" (
+      INSERT INTO "Slots" (
         "employeeId", "startTime", "duration", "recurring"
       )
       SELECT
@@ -68,12 +68,13 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
       CROSS JOIN recurring_dates
       WHERE NOT EXISTS (
         SELECT 1
-        FROM "Slot"
+        FROM "Slots"
         WHERE "employeeId" = slot_info.slot_employee_id::uuid
         AND "startTime" = (recurring_dates.recurring_date::date || ' ' || slot_info.slot_start_time::time)::timestamp
       )
       ON CONFLICT ("employeeId", "startTime")
-      DO NOTHING
+      DO UPDATE
+      SET "recurring" = true
       RETURNING *;
     `;
 

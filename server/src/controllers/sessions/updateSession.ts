@@ -28,10 +28,10 @@ export const updateSession = async (req: Request, res: Response) => {
       WITH slot_info AS (
         SELECT
           "startTime" AS slot_start_time
-        FROM "Slot"
+        FROM "Slots"
         WHERE "id" = $1::uuid
       )
-      UPDATE "Session"
+      UPDATE "Sessions"
       SET "slotId" = $1::uuid
       FROM slot_info
       WHERE "id" = $2::uuid

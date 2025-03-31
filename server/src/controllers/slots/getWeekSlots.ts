@@ -30,7 +30,7 @@ export const getWeekSlots = async (req: Request, res: Response) => {
   try {
     const queryValue = `
       SELECT *
-      FROM "Slot"
+      FROM "Slots"
       WHERE "employeeId" = $1::uuid 
         AND "startTime" >= ($2::date || ' 00:00:00.000')::timestamp
         AND "startTime" <= ($3::date || ' 23:59:59.999')::timestamp

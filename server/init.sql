@@ -7,10 +7,10 @@ BEGIN
 END $$;
 
 -- Drop existing tables to start fresh
-DROP TABLE IF EXISTS "Session", "Slot", "Customer", "Employee";
+DROP TABLE IF EXISTS "Sessions", "Slots", "Customers", "Employees";
 
 -- Recreate the schema (from your revised version with fixes)
-CREATE TABLE "Employee" (
+CREATE TABLE "Employees" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
@@ -18,10 +18,10 @@ CREATE TABLE "Employee" (
     "phoneNumber" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "Employee_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Employees_pkey" PRIMARY KEY ("id")
 );
 
-CREATE TABLE "Customer" (
+CREATE TABLE "Customers" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
@@ -29,10 +29,10 @@ CREATE TABLE "Customer" (
     "phoneNumber" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "Customer_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Customers_pkey" PRIMARY KEY ("id")
 );
 
-CREATE TABLE "Slot" (
+CREATE TABLE "Slots" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "employeeId" UUID NOT NULL,
     "type" TEXT NOT NULL DEFAULT 'AVAILABLE',
@@ -41,12 +41,12 @@ CREATE TABLE "Slot" (
     "recurring" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "Slot_pkey" PRIMARY KEY ("id"),
-    CONSTRAINT "Slot_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Slot_unique_employee_start_time" UNIQUE ("employeeId", "startTime")
+    CONSTRAINT "Slots_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "Slots_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employees"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Slots_unique_employee_start_time" UNIQUE ("employeeId", "startTime")
 );
 
-CREATE TABLE "Session" (    
+CREATE TABLE "Sessions" (    
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "slotId" UUID NOT NULL,
     "employeeId" UUID NOT NULL,
@@ -54,17 +54,17 @@ CREATE TABLE "Session" (
     "message" VARCHAR(140),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "Session_pkey" PRIMARY KEY ("id"),
-    CONSTRAINT "Session_slotId_fkey" FOREIGN KEY ("slotId") REFERENCES "Slot"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Session_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Session_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Sessions_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "Sessions_slotId_fkey" FOREIGN KEY ("slotId") REFERENCES "Slots"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Sessions_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employees"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Sessions_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customers"("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
-CREATE UNIQUE INDEX "Session_slotId_key" ON "Session"("slotId");
-CREATE INDEX "Slot_startTime_idx" ON "Slot"("startTime");
+CREATE UNIQUE INDEX "Sessions_slotId_key" ON "Sessions"("slotId");
+CREATE INDEX "Slots_startTime_idx" ON "Slots"("startTime");
 
 -- Insert 10 Employees
-INSERT INTO "Employee" ("id", "firstName", "lastName", "email", "phoneNumber", "createdAt", "updatedAt")
+INSERT INTO "Employees" ("id", "firstName", "lastName", "email", "phoneNumber", "createdAt", "updatedAt")
 VALUES
 (gen_random_uuid(), 'Alice', 'Johnson', 'alice.j@example.com', '555-0101', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 (gen_random_uuid(), 'Bob', 'Smith', 'bob.s@example.com', '555-0102', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
@@ -78,7 +78,7 @@ VALUES
 (gen_random_uuid(), 'Jack', 'Wilson', 'jack.w@example.com', '555-0110', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- Insert 100 Customers
-INSERT INTO "Customer" ("id", "firstName", "lastName", "email", "phoneNumber", "createdAt", "updatedAt")
+INSERT INTO "Customers" ("id", "firstName", "lastName", "email", "phoneNumber", "createdAt", "updatedAt")
 SELECT 
     gen_random_uuid(),
     'CustFirst' || n,

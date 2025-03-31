@@ -33,7 +33,7 @@ export const addSession = async (req: Request, res: Response) => {
 
   try {
     const queryValue = `
-      INSERT INTO "Session" (
+      INSERT INTO "Sessions" (
         "id", "slotId", "employeeId", "customerId", "message", "createdAt", "updatedAt"
       )
       SELECT

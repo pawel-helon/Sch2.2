@@ -33,7 +33,7 @@ export const getWeekSessions = async (req: Request, res: Response) => {
         SELECT
           "startTime" AS slot_start_time,
           "id" AS slot_id
-        FROM "Slot"
+        FROM "Slots"
         WHERE "employeeId" = $1::uuid
       )
       SELECT
@@ -45,7 +45,7 @@ export const getWeekSessions = async (req: Request, res: Response) => {
         "message",
         "createdAt",
         "updatedAt"
-      FROM "Session"
+      FROM "Sessions"
       INNER JOIN employee_slots_info
         ON "slotId" = employee_slots_info.slot_id
       WHERE "employeeId" = $1::uuid

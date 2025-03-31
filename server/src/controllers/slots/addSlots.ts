@@ -35,7 +35,7 @@ export const addSlots = async (req: Request, res: Response) => {
           unnest($6::boolean[]) AS recurring,
           unnest($7::timestamp[]) AS created_at
       )
-      INSERT INTO "Slot" (
+      INSERT INTO "Slots" (
         "id", "employeeId", "type", "startTime", "duration", "recurring", "createdAt", "updatedAt"
       )
       SELECT

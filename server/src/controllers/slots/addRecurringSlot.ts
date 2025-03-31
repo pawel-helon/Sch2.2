@@ -27,19 +27,18 @@ export const addRecurringSlot = async (req: Request, res: Response) => {
     return createResponse(res, "Invalid date format");
   } 
   
-  const year = day.split("-")[0];
-  if (parseInt(year) < 2000 || parseInt(year) > 2050) {
-    return createResponse(res, "Year not in 2000-2050 range");
-  }
-
   try {
     const queryValue = `
       WITH recurring_dates AS (
+        WITH recurring_dates_year AS (
+          SELECT EXTRACT (YEAR FROM $2::date) as year
+        )
         SELECT generate_series(
           $2::date,
-          ($3::text || '-12-31')::date,
+          (year || '-12-31')::date,
           interval '7 days'
         )::date AS date
+        FROM recurring_dates_year
       ),
       available_time AS (
         WITH all_times AS (
@@ -54,7 +53,7 @@ export const addRecurringSlot = async (req: Request, res: Response) => {
         WHERE possible_time > CURRENT_TIMESTAMP
           AND NOT EXISTS (
             SELECT 1
-            FROM "Slot"
+            FROM "Slots"
             WHERE "startTime" = possible_time
               AND "startTime" >= ($2::date || ' 00:00:00.000')::timestamp
               AND "startTime" <= ($2::date || ' 23:59:59.999')::timestamp
@@ -62,7 +61,7 @@ export const addRecurringSlot = async (req: Request, res: Response) => {
         ORDER BY possible_time
         LIMIT 1
       )
-      INSERT INTO "Slot" (
+      INSERT INTO "Slots" (
         "employeeId", "type", "startTime", "duration", "recurring", "createdAt", "updatedAt"
       )
       SELECT
@@ -77,20 +76,20 @@ export const addRecurringSlot = async (req: Request, res: Response) => {
       CROSS JOIN available_time
       WHERE NOT EXISTS (
         SELECT 1
-        FROM "Slot"
-        WHERE "Slot"."employeeId" = $1::uuid
-        AND "Slot"."startTime" = (date::date || ' ' || time::time)::timestamp
+        FROM "Slots"
+        WHERE "Slots"."employeeId" = $1::uuid
+        AND "Slots"."startTime" = (date::date || ' ' || time::time)::timestamp
       )
       ORDER BY "startTime"
       ON CONFLICT ("employeeId", "startTime")
-      DO NOTHING
+      DO UPDATE
+      SET "recurring" = true
       RETURNING *;
     `;
 
     const result = await pool.query(queryValue, [
       employeeId,
       day,
-      year
     ]);
     
     if (!result.rows.length) {

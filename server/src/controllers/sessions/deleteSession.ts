@@ -25,7 +25,7 @@ export const deleteSession = async (req: Request, res: Response) => {
   try {
     const queryValue = `
       DELETE
-      FROM "Session"
+      FROM "Sessions"
       WHERE "id" = $1::uuid
       RETURNING "id"
     `;

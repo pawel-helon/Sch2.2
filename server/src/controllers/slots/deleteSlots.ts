@@ -34,7 +34,7 @@ export const deleteSlots = async (req: Request, res: Response) => {
         SELECT unnest($1::uuid[]) AS slot_id
       )
       DELETE
-      FROM "Slot"
+      FROM "Slots"
       WHERE "id" IN (SELECT slot_id FROM slot_ids)
         AND "employeeId" = $2::uuid 
       RETURNING "id"

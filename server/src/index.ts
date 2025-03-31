@@ -56,15 +56,3 @@ process.on('SIGTERM', async () => {
     process.exit(1);
   }
 });
-
-// Testing route
-const testingRoute = async () => {
-  const slotId = "a277bf66-e752-4d02-afbe-10eefb76a77a"
-  await fetch("http://localhost:5000/api/slots/disable-slot-recurrence", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ slotId })
-  })
-}
-
-testingRoute();

@@ -34,11 +34,11 @@ export const updateSlotHour = async (req: Request, res: Response) => {
           "startTime" AS current_start_time,
           EXTRACT(HOUR FROM "startTime") AS current_hour,
           EXTRACT(MINUTE FROM "startTime") AS current_minutes
-        FROM "Slot"
+        FROM "Slots"
         WHERE "employeeId" = $1::uuid
           AND "id" = $2::uuid
       )
-      UPDATE "Slot"
+      UPDATE "Slots"
       SET
         "startTime" = (
           slot_info.current_start_time::date || ' ' ||
@@ -51,7 +51,7 @@ export const updateSlotHour = async (req: Request, res: Response) => {
         AND "id" = $2::uuid
         AND NOT EXISTS (
           SELECT 1
-          FROM "Slot" s2
+          FROM "Slots" s2
           WHERE s2."employeeId" = $1::uuid
             AND s2."startTime" = (
               slot_info.current_start_time::date || ' ' || 

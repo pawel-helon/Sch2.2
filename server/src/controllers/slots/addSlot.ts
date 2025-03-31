@@ -42,7 +42,7 @@ export const addSlot = async (req: Request, res: Response) => {
         WHERE possible_time > CURRENT_TIMESTAMP
           AND NOT EXISTS (
             SELECT 1
-            FROM "Slot"
+            FROM "Slots"
             WHERE "startTime" = possible_time
               AND "startTime" >= ($2::date || ' ' || '00:00:00.000'::time)::timestamp
               AND "startTime" <= ($2::date || ' ' || '23:59:59.999'::time)::timestamp
@@ -50,7 +50,7 @@ export const addSlot = async (req: Request, res: Response) => {
         ORDER BY possible_time
         LIMIT 1
       )
-      INSERT INTO "Slot" (
+      INSERT INTO "Slots" (
         "employeeId", "type", "startTime", "duration", "recurring", "createdAt", "updatedAt"
       )
       SELECT

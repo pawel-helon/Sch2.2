@@ -27,7 +27,7 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
     await pool.query("BEGIN");
     // Updating inital slot recurrence
     const updatingInitalSlotQueryValue = `
-      UPDATE "Slot"
+      UPDATE "Slots"
       SET "recurring" = false
       WHERE "id" = $1::uuid
       RETURNING *
@@ -45,7 +45,7 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
           "startTime"::date AS slot_start_date,
           EXTRACT(YEAR FROM "startTime") as slot_year,
           "duration" AS slot_duration
-        FROM "Slot"
+        FROM "Slots"
         WHERE "id" = $1::uuid
       ),
       recurring_dates AS (
@@ -55,7 +55,7 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
           INTERVAL '7 days'
         )::date AS recurring_date
       )
-      DELETE FROM "Slot"
+      DELETE FROM "Slots"
       WHERE "employeeId" = (SELECT slot_employee_id FROM slot_info)::uuid
       AND "startTime" IN (
         SELECT (recurring_date::date || ' ' || slot_info.slot_start_time::time)::timestamp

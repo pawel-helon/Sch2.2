@@ -35,7 +35,7 @@ export const updateRecurringSlotHour = async (req: Request, res: Response) => {
           EXTRACT(HOUR FROM "startTime") AS current_hour,
           EXTRACT(MINUTE FROM "startTime") AS current_minutes,
           EXTRACT(YEAR FROM "startTime") AS current_year
-        FROM "Slot"
+        FROM "Slots"
         WHERE "employeeId" = $1::uuid
           AND "id" = $2::uuid
       ),
@@ -46,7 +46,7 @@ export const updateRecurringSlotHour = async (req: Request, res: Response) => {
           INTERVAL '7 days'
         )::date AS date
       )
-      UPDATE "Slot"
+      UPDATE "Slots"
       SET
         "startTime" = (
           recurring_dates.date::date || ' ' ||
@@ -56,15 +56,15 @@ export const updateRecurringSlotHour = async (req: Request, res: Response) => {
         "updatedAt" = NOW()
       FROM slot_info
       CROSS JOIN recurring_dates
-      WHERE "Slot"."employeeId" = $1::uuid
-        AND "Slot"."startTime" = (
+      WHERE "Slots"."employeeId" = $1::uuid
+        AND "Slots"."startTime" = (
           recurring_dates.date::date || ' ' ||
           LPAD((SELECT current_hour FROM slot_info)::text, 2, '0') || ':' ||
           LPAD((SELECT current_minutes FROM slot_info)::text, 2, '0') || ':00.000'
         )::timestamp
         AND NOT EXISTS (
           SELECT 1
-          FROM "Slot" s2
+          FROM "Slots" s2
           WHERE s2."employeeId" = $1::uuid
             AND s2."startTime" = (
               recurring_dates.date::date || ' ' ||

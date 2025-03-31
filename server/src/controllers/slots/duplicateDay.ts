@@ -40,7 +40,7 @@ export const duplicateDay = async (req: Request, res: Response) => {
           "startTime"::time AS slot_start_time,
           "duration" AS slot_duration,
           "recurring" AS slot_recurring
-        FROM "Slot"
+        FROM "Slots"
         WHERE "employeeId" = $1::uuid
           AND "startTime" >= ($2::date || ' 00:00:00.000')::timestamp
           AND "startTime" <= ($2::date || ' 23:59:59.999')::timestamp
@@ -48,7 +48,7 @@ export const duplicateDay = async (req: Request, res: Response) => {
       selected_days AS (
         SELECT unnest($3::text[]) AS selected_day
       )
-      INSERT INTO "Slot" (
+      INSERT INTO "Slots" (
         "employeeId", "startTime", "duration", "recurring"
       )
       SELECT
@@ -60,7 +60,7 @@ export const duplicateDay = async (req: Request, res: Response) => {
       CROSS JOIN selected_days
       WHERE NOT EXISTS (
         SELECT 1
-        FROM "Slot"
+        FROM "Slots"
         WHERE "employeeId" = $1::uuid
         AND "startTime" = (selected_day::date || ' ' || slots_info.slot_start_time::time)::timestamp
       )

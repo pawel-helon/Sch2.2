@@ -49,9 +49,9 @@ export async function setupDatabaseListeners() {
       END;
       $$ LANGUAGE plpgsql;
 
-      DROP TRIGGER IF EXISTS slot_change_trigger ON "Slot";
+      DROP TRIGGER IF EXISTS slot_change_trigger ON "Slots";
       CREATE TRIGGER slot_change_trigger
-      AFTER INSERT OR UPDATE OR DELETE ON "Slot"
+      AFTER INSERT OR UPDATE OR DELETE ON "Slots"
       FOR EACH ROW EXECUTE FUNCTION notify_slot_change();
     `);
 
@@ -80,9 +80,9 @@ export async function setupDatabaseListeners() {
       END;
       $$ LANGUAGE plpgsql;
 
-      DROP TRIGGER IF EXISTS session_change_trigger ON "Session";
+      DROP TRIGGER IF EXISTS session_change_trigger ON "Sessions";
       CREATE TRIGGER session_change_trigger
-      AFTER INSERT OR UPDATE OR DELETE ON "Session"
+      AFTER INSERT OR UPDATE OR DELETE ON "Sessions"
       FOR EACH ROW EXECUTE FUNCTION notify_session_change();
     `);
 
@@ -109,5 +109,7 @@ export async function setupDatabaseListeners() {
 
   } catch (error) {
     console.error('Error setting up database listeners:', error);
+  } finally {
+    client.release();
   }
 }
