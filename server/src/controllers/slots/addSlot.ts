@@ -14,7 +14,7 @@ const createResponse = (res: Response, message: string, slot: Slot | null = null
 
 export const addSlot = async (req: Request, res: Response) => {
   const { employeeId, day } = req.body as { employeeId: string, day: string };
-  
+
   if (!employeeId || !day) {
     return createResponse(res, "EmployeeId and day are required");
   }
@@ -26,6 +26,10 @@ export const addSlot = async (req: Request, res: Response) => {
   if (!DATE_REGEX.test(day)) {
     return createResponse(res, "Invalid date format");
   }  
+
+  if (new Date() > new Date(day)) {
+    return createResponse(res, "Invalid date")
+  }
 
   try {
     const queryValue = `

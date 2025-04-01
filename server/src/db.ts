@@ -22,7 +22,6 @@ export const createPool = (): Pool => {
 // Setup listeners
 export async function setupDatabaseListeners() {
   const client = await pool.connect();
-  
   try {
     // Create triggers for slots table
     await client.query(`
@@ -87,19 +86,19 @@ export async function setupDatabaseListeners() {
     `);
 
     // Setup listeners
-    await client.query('LISTEN slot_changes');
-    await client.query('LISTEN session_changes');
+    await client.query("LISTEN slot_changes");
+    await client.query("LISTEN session_changes");
 
-    client.on('notification', (msg) => {
+    client.on("notification", (msg) => {
       if (msg.payload) {
         const payload = JSON.parse(msg.payload);
-        if (msg.channel === 'slot_changes') {
-          io.sockets.emit('slots', {
+        if (msg.channel === "slot_changes") {
+          io.sockets.emit("slots", {
             eventAction: payload.action,
             data: payload.data
           });
-        } else if (msg.channel === 'session_changes') {
-          io.sockets.emit('sessions', {
+        } else if (msg.channel === "session_changes") {
+          io.sockets.emit("sessions", {
             eventAction: payload.action,
             data: payload.data
           });
@@ -108,7 +107,7 @@ export async function setupDatabaseListeners() {
     });
 
   } catch (error) {
-    console.error('Error setting up database listeners:', error);
+    console.error("Error setting up database listeners:", error);
   } finally {
     client.release();
   }

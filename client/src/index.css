@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@theme {
+  --font-inter: 'Inter';
+  --font-poppins: 'Poppins';
+  --breakpoint-xs: 30rem;
+
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0
+  }
+
+  to {
+    height: var(--radix-accordion-content-height)
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height)
+  }
+
+  to {
+    height: 0
+  }
+}
+
+@keyframes caret-blink {
+  0%,
+  70%,
+  100% {
+    opacity: 1
+  }
+
+  20%,
+  50% {
+    opacity: 0
+  }
+}
+
+:root {
+  --background: oklch(0.985 0.001 106.423);
+  --background-hover: oklch(93.14% 0.001 106.423);
+  --border: oklch(82.75% 0.001 106.423);
+  --shadow: oklch(93.14% 0.001 106.423);
+  
+  --text-primary: oklch(6.49% 0.004 49.25);
+  --text-secondary: oklch(0.216 0.006 56.043);
+  --text-tertiary: oklch(0.444 0.011 73.639);
+  --text-button: oklch(0.985 0.001 106.423);
+  
+  --accent-primary: oklch(0.488 0.243 264.376);
+  --accent-primary-hover: oklch(0.424 0.199 265.638);
+  --accent-secondary: oklch(0.511 0.096 186.391);
+  --accent-secondary-hover: oklch(0.437 0.078 188.216);
+
+  --success: oklch(0.527 0.154 150.069);
+  --success-hover: oklch(0.448 0.119 151.328);
+  --alert: oklch(0.505 0.213 27.518);
+  --alert-hover: oklch(0.444 0.177 26.899);
+}
+
+.dark {
+  --background: oklch(0.147 0.004 49.25);
+  --background-hover: oklch(7.08% 0.004 49.25);
+  --border: oklch(0.268 0.007 34.298);
+  --shadow: oklch(0% 0.004 49.25);
+
+  --text-primary: oklch(99.7% 0.001 106.423);
+  --text-secondary: oklch(0.97 0.001 106.424);
+  --text-tertiary: oklch(0.709 0.01 56.259);
+  --text-button: oklch(0.985 0.001 106.423);
+  
+  --accent-primary: oklch(0.546 0.245 262.881);
+  --accent-primary-hover: oklch(0.488 0.243 264.376);
+  --accent-secondary: oklch(0.6 0.118 184.704);
+  --accent-secondary-hover: oklch(0.511 0.096 186.391);
+  
+  --success: oklch(0.627 0.194 149.214);
+  --success-hover: oklch(0.527 0.154 150.069);
+  --alert: oklch(0.577 0.245 27.325);
+  --alert-hover: oklch(0.505 0.213 27.518);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-hover: var(--background-hover);
+  --color-border: var(--border);
+  --color-shadow: var(--shadow);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-button: var(--text-button);
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-primary-hover: var(--accent-primary-hover);
+  --color-accent-secondary: var(--accent-secondary);
+  --color-accent-secondary-hover: var(--accent-secondary-hover);
+  --color-success: var(--success);
+  --color-success-hover: var(--success-hover);
+  --color-alert: var(--alert);
+  --color-alert-hover: var(--alert-hover);
+}
+
+@plugin 'tailwind-scrollbar' {
+  nocompatible: true;
+  preferredStrategy: 'pseudoelements';
+}

@@ -3,7 +3,7 @@ import { Slot } from "../../lib/types";
 import { pool } from "../../index";
 import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
 
-const  createResponse = (res: Response, message: string, slot: Slot | null = null) => {
+const createResponse = (res: Response, message: string, slot: Slot | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -22,10 +22,14 @@ export const addRecurringSlot = async (req: Request, res: Response) => {
   if (!UUID_REGEX.test(employeeId)) {
     return createResponse(res, "Invalid UUID format");
   }
-
+  
   if (!DATE_REGEX.test(day)) {
     return createResponse(res, "Invalid date format");
   } 
+  
+  if (new Date() > new Date(day)) {
+    return createResponse(res, "Invalid date")
+  }
   
   try {
     const queryValue = `
@@ -103,4 +107,3 @@ export const addRecurringSlot = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Server Error" });
   }
 }
- 
