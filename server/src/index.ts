@@ -65,3 +65,16 @@ process.on("SIGTERM", async () => {
     process.exit(1);
   }
 });
+
+const getWeekSlotRoute = async () => {
+  const employeeId = '054ffd34-6faa-4f45-80ff-2219dd3e06a8';
+  const start = '2025-03-31';
+  const end = '2025-04-06';
+  await fetch("http://localhost:5000/api/slots/get-week-slots", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ employeeId, start, end })
+  });
+}
+
+getWeekSlotRoute();

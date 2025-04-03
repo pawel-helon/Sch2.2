@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { Slot } from "../../lib/types";
+import { Slot, SlotsAccumulator } from "../../lib/types";
 import { pool } from "../../index";
 
-const createResponse = (res: Response, message: string, slot: Slot[] | null = null) => {
+const createResponse = (res: Response, message: string, data: SlotsAccumulator | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
-      slot
+      data
     });
   }});
 }
@@ -65,7 +65,16 @@ export const addSlots = async (req: Request, res: Response) => {
       return createResponse(res, "Failed to add slots");
     }
 
-    createResponse(res, "Slots have been restored", result.rows);
+    const normalizedResult = result.rows.reduce(
+      (acc: SlotsAccumulator, slot) => {
+        acc.byId[slot.id] = slot
+        acc.allIds.push(slot.id)
+        return acc;
+      },
+      { byId: {}, allIds: [] }
+    );
+
+    createResponse(res, "Slots have been restored", normalizedResult);
 
   } catch (error) {
     console.error("Failed to add slots:", error);

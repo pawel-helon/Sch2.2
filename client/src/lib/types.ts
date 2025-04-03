@@ -1,5 +1,7 @@
-export interface SlotsAccumulator {
-  byId: Record<string, Slot>;
+export interface NormalizedSlots {
+  byId: {
+    [key: string]: Slot
+  },
   allIds: string[]
 }
 
@@ -14,8 +16,10 @@ export interface Slot {
   updatedAt: Date;
 }
 
-export interface SessionsAccumulator {
-  byId: Record<string, Session>;
+export interface NormalizedSessions {
+  byId: {
+    [key: string]: Session
+  },
   allIds: string[]
 }
 

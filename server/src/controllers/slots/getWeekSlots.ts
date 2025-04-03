@@ -1,20 +1,20 @@
 import { Request, Response } from "express";
-import { Slot } from "../../lib/types";
+import { SlotsAccumulator } from "../../lib/types";
 import { pool } from "../../index";
 import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, slots: Slot[] | null = null) => {
+const createResponse = (res: Response, message: string, data: SlotsAccumulator | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
-      slots
+      data
     });
   }});
 }
 
 export const getWeekSlots = async (req: Request, res: Response) => {
   const { employeeId, start, end } = req.body as { employeeId: string, start: string, end: string };
-  
+
   if (!employeeId || !start || !end) {
     return createResponse(res, "Start and end dates are required");
   }
@@ -45,7 +45,16 @@ export const getWeekSlots = async (req: Request, res: Response) => {
       return createResponse(res, "Failed to fetch slots");
     }
 
-    createResponse(res, "Slots have been fetched", result.rows);
+    const normalizedResult = result.rows.reduce(
+      (acc: SlotsAccumulator, slot) => {
+        acc.byId[slot.id] = slot
+        acc.allIds.push(slot.id)
+        return acc;
+      },
+      { byId: {}, allIds: [] }
+    );
+
+    createResponse(res, "Slots have been fetched", normalizedResult);
   } catch (error) {
     console.error("Failed to fetch slots:", error);
     res.status(500).json({ error: "Internal server error" });

@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
-import { Slot } from "../../lib/types";
+import { SlotsAccumulator } from "../../lib/types";
 import { pool } from "../../index";
 import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, slots: Slot[] | null = null) => {
+const createResponse = (res: Response, message: string, data: SlotsAccumulator | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
-      slots
+      data
     });
   }});
 }
@@ -79,7 +79,16 @@ export const duplicateDay = async (req: Request, res: Response) => {
       return createResponse(res, "Failed to duplicate day");
     }
 
-    createResponse(res, "Day has been duplicated", result.rows);
+    const normalizedResult = result.rows.reduce(
+      (acc: SlotsAccumulator, slot) => {
+        acc.byId[slot.id] = slot
+        acc.allIds.push(slot.id)
+        return acc;
+      },
+      { byId: {}, allIds: [] }
+    );
+
+    createResponse(res, "Day has been duplicated", normalizedResult);
 
   } catch (error) {
     console.error("Failed to duplicate day:", error);
