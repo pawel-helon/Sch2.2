@@ -2,11 +2,11 @@ import { Request, Response } from "express";
 import { pool } from "../../index";
 import { UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, sessionId: string | null = null) => {
+const createResponse = (res: Response, message: string, data: string | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
-      sessionId
+      data
     });
   }});
 }

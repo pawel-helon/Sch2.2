@@ -3,11 +3,11 @@ import { Session } from "../../lib/types";
 import { pool } from "../../index";
 import { UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, slot: Session | null = null) => {
+const createResponse = (res: Response, message: string, data: Session | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
-      slot
+      data
     });
   }});
 }

@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { Session } from "../../lib/types";
+import { SessionsAccumulator } from "../../lib/types";
 import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, meetings: Session[] | null = null) => {
+const createResponse = (res: Response, message: string, data: SessionsAccumulator | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
-      meetings
+      data
     });
   }});
 }
@@ -63,7 +63,16 @@ export const getWeekSessions = async (req: Request, res: Response) => {
       return createResponse(res, "Failed to fetch sessions");
     }
 
-    createResponse(res, "Sessions have been fetched", result.rows);
+    const normalizedResult = result.rows.reduce(
+      (acc: SessionsAccumulator, session) => {
+        acc.byId[session.id] = session
+        acc.allIds.push(session.id)
+        return acc;
+      },
+      { byId: {}, allIds: [] }
+    );
+
+    createResponse(res, "Sessions have been fetched", normalizedResult);
     
   } catch (error) {
     console.error("Failed to fetch sessions:", error);
