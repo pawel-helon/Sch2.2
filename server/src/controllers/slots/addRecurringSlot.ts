@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { SlotsAccumulator } from "../../lib/types";
+import { Slot } from "../../lib/types";
 import { pool } from "../../index";
 import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: SlotsAccumulator | null = null) => {
+const createResponse = (res: Response, message: string, data: Slot | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -100,16 +100,7 @@ export const addRecurringSlot = async (req: Request, res: Response) => {
       return createResponse(res, "Failed to add slots");
     }
 
-    const normalizedResult = result.rows.reduce(
-      (acc: SlotsAccumulator, slot) => {
-        acc.byId[slot.id] = slot
-        acc.allIds.push(slot.id)
-        return acc;
-      },
-      { byId: {}, allIds: [] }
-    );
-
-    createResponse(res, "New recurring slots have been added", normalizedResult);
+    createResponse(res, "New recurring slots have been added", result.rows[0]);
 
   } catch (error) {
     console.error("Failed to add slot:", error);
