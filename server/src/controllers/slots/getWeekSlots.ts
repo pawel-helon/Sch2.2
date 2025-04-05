@@ -27,6 +27,10 @@ export const getWeekSlots = async (req: Request, res: Response) => {
     return createResponse(res, "Invalid date format");
   }
   
+  if (new Date() > new Date(start) || new Date() > new Date(end)) {
+    return createResponse(res, "Invalid start and/or end dates");
+  }
+
   try {
     const queryValue = `
       SELECT *

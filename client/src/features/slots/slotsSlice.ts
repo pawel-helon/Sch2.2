@@ -47,7 +47,7 @@ export const slotsSlice = schedulingApi.injectEndpoints({
      * @param {string} body.employeeId - The ID of the employee.
      * @param {string} body.day - The day to add the slot in YYYY-MM-DD format.
      * @returns {Slot} The added slot object.
-     */
+    */
     addSlot: builder.mutation<Slot, { employeeId: string, day: string }>({
       query: (body) => {
         validateAddSlotInput(body);
