@@ -12,24 +12,30 @@ const createResponse = (res: Response, message: string, data: Slot | null = null
   }});
 }
 
-export const addSlot = async (req: Request, res: Response) => {
-  const { employeeId, day } = req.body as { employeeId: string, day: string };
-
+export const validateRequestBody = ( res: Response, body: { employeeId: string, day: string }) => {
+  const { employeeId, day } = body;
+  
   if (!employeeId || !day) {
-    return createResponse(res, "EmployeeId and day are required");
+    createResponse(res, "All fields are required: employeeId, day.");
   }
-  
+
   if (!UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Invalid UUID format");
+    createResponse(res, "Invalid employeeId format. Expected UUID.");
   }
-  
+
   if (!DATE_REGEX.test(day)) {
-    return createResponse(res, "Invalid date format");
-  }  
+    createResponse(res, "Invalid day format. Expected YYYY-MM-DD.");
+  }
 
   if (new Date() > new Date(day)) {
-    return createResponse(res, "Invalid date")
+    createResponse(res, "Invalid date. Expected non-past date.");
   }
+
+  return { employeeId, day }
+}
+
+export const addSlot = async (req: Request, res: Response) => {
+  const { employeeId, day } = validateRequestBody(res, req.body);
 
   try {
     const queryValue = `
@@ -82,6 +88,6 @@ export const addSlot = async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error("Failed to add slot:", error);
-    res.status(500).json({ error: "Server Error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 }

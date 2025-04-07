@@ -44,6 +44,10 @@ export const validateAddSlotInput = (input: { employeeId: string, day: string })
   if (!DATE_REGEX.test(day)) {
     throw new Error('Invalid day format. Expected YYYY-MM-DD.');
   }
+
+  if (new Date() > new Date(day)) {
+    throw new Error('Invalid date');
+  }
 }
 
 export const validateAddRecurringSlotInput = (input: { employeeId: string, day: string }): void => {
@@ -64,6 +68,10 @@ export const validateAddRecurringSlotInput = (input: { employeeId: string, day: 
   if (!DATE_REGEX.test(day)) {
     throw new Error('Invalid day format. Expected YYYY-MM-DD.');
   }
+
+  if (new Date() > new Date(day)) {
+    throw new Error('Invalid date');
+  }
 }
 
 export const validateAddSlotsInput = (input: { slots: Slot[] }): void => {
@@ -81,36 +89,36 @@ export const validateAddSlotsInput = (input: { slots: Slot[] }): void => {
     throw new Error('Each slot must be a valid object.');
   }
 
-  if (!slots.every(slot => slot.id && !UUID_REGEX.test(slot.id))) {
-    throw new Error('Invalid start date format in slots. Expected YYYY-MM-DD.');
+  if (!slots.every(slot => slot.id && UUID_REGEX.test(slot.id))) {
+    throw new Error('Invalid id format in slots. Expected UUID.');
   }
 
-  if (!slots.every(slot => slot.employeeId && !UUID_REGEX.test(slot.employeeId))) {
+  if (!slots.every(slot => slot.employeeId && UUID_REGEX.test(slot.employeeId))) {
     throw new Error('Invalid employeeId format in slots. Expected UUID.');
   }
 
-  if (!slots.every(slot => slot.type && slot.type !== 'AVAILABLE' && slot.type !== 'BLOCKED' && slot.type !== 'BOOKED')) {
+  if (!slots.every(slot => slot.type && (slot.type === 'AVAILABLE' || slot.type === 'BLOCKED' || slot.type !== 'BOOKED'))) {
     throw new Error('Invalid type in slots. Expected AVAILABLE, BLOCKED or BOOKED.');
   }
 
   if (!slots.every(slot => slot.startTime && slot.startTime instanceof Date)) {
-    throw new Error('Invalid startTime format in slots. Expected YYYY-MM-DD.');
+    throw new Error('Invalid startTime format in slots.');
   }
 
   if (!slots.every(slot => slot.duration && typeof slot.duration === 'string')) {
     throw new Error('Invalid duration format in slots. Expected string.');
   }
 
-  if (!slots.every(slot => slot.recurring && typeof slot.recurring !== 'boolean')) {
+  if (!slots.every(slot => slot.recurring && typeof slot.recurring === 'boolean')) {
     throw new Error('Invalid recurring format in slots. Expected boolean.');
   }
 
   if (!slots.every(slot => slot.createdAt && slot.createdAt instanceof Date)) {
-    throw new Error('Invalid createdAt format in slots. Expected YYYY-MM-DD.');
+    throw new Error('Invalid createdAt format in slots.');
   }
 
   if (!slots.every(slot => slot.updatedAt && slot.updatedAt instanceof Date)) {
-    throw new Error('Invalid updatedAt format in slots. Expected YYYY-MM-DD.');
+    throw new Error('Invalid updatedAt format in slots.');
   }
 }
 

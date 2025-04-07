@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { pool } from "../../../index";
 import { getWeekSlots } from "../../../controllers/slots/getWeekSlots";
 import { SlotsAccumulator } from "../../../lib/types";
+import { getTestDates } from "../../../lib/helpers";
 
 // Mock the pool.query method
 jest.mock("../../../index", () => ({
@@ -15,7 +16,8 @@ describe("getWeekSlots", () => {
   let mockResponse: Partial<Response>;
   let json: jest.Mock;
   let status: jest.Mock;
-
+  const { pastDate, futureStartDate, futureEndDate } = getTestDates();
+  
   beforeEach(() => {
     // Reset mocks before each test
     mockRequest = { body: {} };
@@ -44,11 +46,11 @@ describe("getWeekSlots", () => {
     });
   });
 
-  test("returns error if employeeId is not a valid UUID", async () => {
+  test("returns error if employeeId is an invalid UUID", async () => {
     mockRequest.body = {
       employeeId: "invalid-uuid",
-      start: "2025-04-06",
-      end: "2025-04-12",
+      start: futureStartDate,
+      end: futureEndDate,
     };
     setupResponseFormat();
 
@@ -64,7 +66,7 @@ describe("getWeekSlots", () => {
     mockRequest.body = {
       employeeId: "123e4567-e89b-12d3-a456-426614174000",
       start: "invalid-date",
-      end: "2025-04-12",
+      end: futureEndDate,
     };
     setupResponseFormat();
 
@@ -76,18 +78,51 @@ describe("getWeekSlots", () => {
     });
   });
 
-  test("returns error if dates are in the past", async () => {
+  test('returns error if end date is in the past', async () => {
     mockRequest.body = {
-      employeeId: "123e4567-e89b-12d3-a456-426614174000",
-      start: "2024-03-01",
-      end: "2024-03-07",
+      employeeId: '123e4567-e89b-12d3-a456-426614174000',
+      start: futureStartDate,
+      end: pastDate,
     };
     setupResponseFormat();
 
     await getWeekSlots(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
-      message: "Invalid start and/or end dates",
+      message: 'Invalid end date',
+      data: null,
+    });
+  });
+
+  test('returns error if date range is not exactly 6 days', async () => {
+    mockRequest.body = {
+      employeeId: 'c4c52f7b-7fdb-4ada-bf4e-7c4fa386052e',
+      start: futureStartDate,
+      end: futureStartDate,
+    };
+    setupResponseFormat();
+
+    await getWeekSlots(mockRequest as Request, mockResponse as Response);
+
+    expect(mockResponse.send).toHaveBeenCalledWith({
+      message: 'Start and end dates must be exactly 6 days apart',
+      data: null,
+    });
+  });
+  
+  test("returns error if no slots are found", async () => {
+    mockRequest.body = {
+      employeeId: "123e4567-e89b-12d3-a456-426614174000",
+      start: futureStartDate,
+      end: futureEndDate,
+    };
+    (pool.query as jest.Mock).mockResolvedValue({ rows: [] });
+    setupResponseFormat();
+
+    await getWeekSlots(mockRequest as Request, mockResponse as Response);
+
+    expect(mockResponse.send).toHaveBeenCalledWith({
+      message: "Failed to fetch slots",
       data: null,
     });
   });
@@ -95,12 +130,12 @@ describe("getWeekSlots", () => {
   test("returns normalized slots on successful fetch", async () => {
     mockRequest.body = {
       employeeId: "123e4567-e89b-12d3-a456-426614174000",
-      start: "2025-04-06",
-      end: "2025-04-12",
+      start: futureStartDate,
+      end: futureEndDate,
     };
     const mockRows = [
-      { id: "c3d4e5f6-7a8b-9c0d-1e2f-3a4b5c6d7e8f", employeeId: "c4c52f7b-7fdb-4ada-bf4e-7c4fa386052e", type: "AVAILABLE" as "AVAILABLE", startTime: new Date("2025-04-06"), duration: "00:30:00", recurring: false, createdAt: new Date("2025-04-06"), updatedAt: new Date("2025-04-06") },
-      { id: "9f8e7d6c-5b4a-3f2e-1d0c-9b8a7f6e5d4c", employeeId: "c4c52f7b-7fdb-4ada-bf4e-7c4fa386052e", type: "AVAILABLE" as "AVAILABLE", startTime: new Date("2025-04-12"), duration: "00:30:00", recurring: false, createdAt: new Date("2025-04-12"), updatedAt: new Date("2025-04-12") },
+      { id: "c3d4e5f6-7a8b-9c0d-1e2f-3a4b5c6d7e8f", employeeId: "c4c52f7b-7fdb-4ada-bf4e-7c4fa386052e", type: "AVAILABLE" as "AVAILABLE", startTime: new Date(futureStartDate), duration: "00:30:00", recurring: false, createdAt: new Date(futureStartDate), updatedAt: new Date(futureStartDate) },
+      { id: "9f8e7d6c-5b4a-3f2e-1d0c-9b8a7f6e5d4c", employeeId: "c4c52f7b-7fdb-4ada-bf4e-7c4fa386052e", type: "AVAILABLE" as "AVAILABLE", startTime: new Date(futureEndDate), duration: "00:30:00", recurring: false, createdAt: new Date(futureEndDate), updatedAt: new Date(futureEndDate) },
     ];
     (pool.query as jest.Mock).mockResolvedValue({ rows: mockRows });
     setupResponseFormat();
@@ -124,28 +159,11 @@ describe("getWeekSlots", () => {
     });
   });
 
-  test("returns failure message if no slots are found", async () => {
-    mockRequest.body = {
-      employeeId: "123e4567-e89b-12d3-a456-426614174000",
-      start: "2025-04-06",
-      end: "2025-04-12",
-    };
-    (pool.query as jest.Mock).mockResolvedValue({ rows: [] });
-    setupResponseFormat();
-
-    await getWeekSlots(mockRequest as Request, mockResponse as Response);
-
-    expect(mockResponse.send).toHaveBeenCalledWith({
-      message: "Failed to fetch slots",
-      data: null,
-    });
-  });
-
   test("returns 500 on database error", async () => {
     mockRequest.body = {
       employeeId: "123e4567-e89b-12d3-a456-426614174000",
-      start: "2025-04-06",
-      end: "2025-04-12",
+      start: futureStartDate,
+      end: futureEndDate,
     };
     (pool.query as jest.Mock).mockRejectedValue(new Error("DB error"));
 

@@ -18,3 +18,11 @@ export function getNameOfDay(day: string | Date) {
 export function getHoursAndMinutes(dateTime: Date) {
   return `${String(dateTime.getHours()).padStart(2, "0")}:${String(dateTime.getMinutes()).padStart(2, "0")}`;
 }
+
+export function getTestDates() {
+  const currentYear = new Date().getFullYear();
+  const pastDate = new Date(new Date().setFullYear(currentYear - 1)).toISOString().split("T")[0];
+  const futureStartDate = new Date(new Date().setFullYear(currentYear + 1)).toISOString().split("T")[0];
+  const futureEndDate = new Date(new Date().setFullYear(currentYear + 1) + 518400000).toISOString().split("T")[0];
+  return { pastDate, futureStartDate, futureEndDate };
+}

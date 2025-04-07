@@ -26,9 +26,13 @@ export const getWeekSlots = async (req: Request, res: Response) => {
   if (!DATE_REGEX.test(start) || !DATE_REGEX.test(end)) {
     return createResponse(res, "Invalid date format");
   }
-  
-  if (new Date() > new Date(start) || new Date() > new Date(end)) {
-    return createResponse(res, "Invalid start and/or end dates");
+
+  if (new Date() > new Date(end)) {
+    return createResponse(res, "Invalid end date");
+  }
+
+  if (new Date(end).getTime() - new Date(start).getTime() !== 518400000) {
+    return createResponse(res, "Start and end dates must be exactly 6 days apart")
   }
 
   try {

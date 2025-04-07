@@ -7,6 +7,7 @@ import { Server } from "socket.io";
 import { createPool, setupDatabaseListeners } from "./db";
 import slotsRouter from "./routes/slots";
 import sessionsRouter from "./routes/sessions";
+import { getTestDates } from "./lib/helpers";
 
 dotenv.config();
 
