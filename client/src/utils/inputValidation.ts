@@ -109,7 +109,7 @@ export const validateAddSlotsInput = (input: { slots: Slot[] }): void => {
     throw new Error('Invalid duration format in slots. Expected string.');
   }
 
-  if (!slots.every(slot => slot.recurring && typeof slot.recurring === 'boolean')) {
+  if (!slots.every(slot => typeof slot.recurring === 'boolean')) {
     throw new Error('Invalid recurring format in slots. Expected boolean.');
   }
 

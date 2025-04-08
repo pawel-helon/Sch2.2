@@ -30,7 +30,7 @@ describe("addRecurringSlot", () => {
     })
   }
 
-  test("returns error if required fields are missing", async () => {
+  test("Returns error if required fields are missing.", async () => {
     mockRequest.body = { day: firstFutureDate };
     setupResponseFormat();
 
@@ -42,7 +42,7 @@ describe("addRecurringSlot", () => {
     });
   });
 
-  test("returns error if employeeId is an invalid UUID", async () => {
+  test("Returns error if employeeId is an invalid UUID.", async () => {
     mockRequest.body = { employeeId: "invalid-uuid", day: firstFutureDate };
     setupResponseFormat();
 
@@ -54,7 +54,7 @@ describe("addRecurringSlot", () => {
     })
   });
 
-  test("returns error if date is in invalid date format", async () => {
+  test("Returns error if date is in invalid date format.", async () => {
     mockRequest.body = { employeeId: "123e4567-e89b-12d3-a456-426614174000", day: "invalid-date" };
     setupResponseFormat();
 
@@ -66,7 +66,7 @@ describe("addRecurringSlot", () => {
     });
   });
 
-  test("returns error if date is in the past", async () => {
+  test("Returns error if date is in the past.", async () => {
     mockRequest.body = { employeeId: "123e4567-e89b-12d3-a456-426614174000", day: pastDate };
     setupResponseFormat();
 
@@ -78,7 +78,7 @@ describe("addRecurringSlot", () => {
     });
   });
 
-  test("returns error if slots have not been added", async () => {
+  test("Returns error on failed database mutation.", async () => {
     mockRequest.body = { employeeId: "123e4567-e89b-12d3-a456-426614174000", day: firstFutureDate };
     (pool.query as jest.Mock).mockResolvedValue({ rows: [] });
     setupResponseFormat();
@@ -86,16 +86,16 @@ describe("addRecurringSlot", () => {
     await addRecurringSlot(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
-      message: "Failed to add slots",
+      message: "Failed to add slots.",
       data: null,
     })
   });
 
-  test("returns slots on successful addition", async () => {
+  test("Returns slots on successful database mutation.", async () => {
     mockRequest.body = { employeeId: "123e4567-e89b-12d3-a456-426614174000", day: firstFutureDate };
     const expectedData = [
       {
-        id: "c3d4e5f6-7a8b-9c0d-1e2f-3a4b5c6d7e8f",
+        id: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
         employeeId: "123e4567-e89b-12d3-a456-426614174000",
         type: "AVAILABLE" as "AVAILABLE",
         startTime: new Date(firstFutureDate),
@@ -121,12 +121,12 @@ describe("addRecurringSlot", () => {
     await addRecurringSlot(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
-      message: "New recurring slots have been added",
+      message: "New recurring slots have been added.",
       data: expectedData
     });
   });
   
-  test("returns 500 on database error", async () => {
+  test("Returns 500 on database error.", async () => {
     mockRequest.body = {
       employeeId: "123e4567-e89b-12d3-a456-426614174000",
       day: firstFutureDate,
@@ -136,6 +136,6 @@ describe("addRecurringSlot", () => {
     await addRecurringSlot(mockRequest as Request, mockResponse as Response);
 
     expect(status).toHaveBeenCalledWith(500);
-    expect(json).toHaveBeenCalledWith({ error: "Internal server error" });
+    expect(json).toHaveBeenCalledWith({ error: "Internal server error." });
   });
 });

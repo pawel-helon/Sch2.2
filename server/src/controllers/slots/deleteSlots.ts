@@ -14,18 +14,20 @@ const createResponse = (res: Response, message: string, data: string[] | null = 
 export const deleteSlots = async (req: Request, res: Response) => {
   const { employeeId, slotIds } = req.body as { employeeId: string, slotIds: string[] };
   
+  if (!employeeId || !slotIds) {
+    return createResponse(res, "All fields are required: employeeId, slotIds.");
+  }
+  
   if (!UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Invalid UUID format");
+    return createResponse(res, "Invalid employeeId format. Expected UUID.");
   }
 
-  if (!Array.isArray(slotIds) || slotIds.length === 0) {
-    return createResponse(res, "slotIds must be a non-empty array");
+  if (!Array.isArray(slotIds) || !slotIds.length) {
+    return createResponse(res, "Slot ids must be a non-empty array.");
   }
 
-  for (const slotId of slotIds) {
-    if (!UUID_REGEX.test(slotId)) {
-      return createResponse(res, "Invalid UUID format");
-    }
+  if (!slotIds.every(slotId => slotId && UUID_REGEX.test(slotId))) {
+    return createResponse(res, "Invalid slotId format. Expected UUID.")
   }
 
   try {
@@ -46,13 +48,13 @@ export const deleteSlots = async (req: Request, res: Response) => {
     ]);
 
     if (!result.rows.length) {
-      return createResponse(res, "Failed to delete slots");
+      return createResponse(res, "Failed to delete slots.");
     }
 
-    createResponse(res, "Slots have been deleted", result.rows);
+    createResponse(res, "Slots have been deleted.", result.rows);
 
   } catch (error) {
     console.error("Failed to delete slots:", error);
-    res.status(500).json({ error: "Server Error" });
+    res.status(500).json({ error: "Internal server error." });
   }
 }

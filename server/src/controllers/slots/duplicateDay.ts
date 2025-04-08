@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { SlotsAccumulator } from "../../lib/types";
 import { pool } from "../../index";
 import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
+import { resolveMx } from "dns";
 
 const createResponse = (res: Response, message: string, data: SlotsAccumulator | null = null) => {
   res.format({"application/json": () => {
@@ -16,21 +17,23 @@ export const duplicateDay = async (req: Request, res: Response) => {
   const { employeeId, day, selectedDays } = req.body as { employeeId: string, day: string, selectedDays: string[] };
   
   if (!employeeId || !day || !selectedDays) {
-    return createResponse(res, "EmployeeId, day, and selectedDays are required");
+    return createResponse(res, "All fields are required: employeeId, day, selectedDays.");
   }
   
   if (!UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Invalid UUID format");
+    return createResponse(res, "Invalid employeeId format. Expected UUID.");
   }
   
   if (!DATE_REGEX.test(day)) {
-    return createResponse(res, "Invalid date format");
+    return createResponse(res, "Invalid day format. Expected YYYY-MM-DD.");
   }  
 
-  for (const day of selectedDays) {
-    if (!DATE_REGEX.test(day)) {
-      return createResponse(res, "Invalid date format");
-    }
+  if (!Array.isArray(selectedDays) || !selectedDays.length) {
+    return createResponse(res, "selectedDays must be a non-empty array.")
+  }
+
+  if (!selectedDays.every(day => day && DATE_REGEX.test(day))) {
+    return createResponse(res, "Invalid day format in selectedDays array. Expected YYYY-MM-DD.");
   }
 
   try {
@@ -76,7 +79,7 @@ export const duplicateDay = async (req: Request, res: Response) => {
     ]);
 
     if (!result.rows.length) {
-      return createResponse(res, "Failed to duplicate day");
+      return createResponse(res, "Failed to duplicate day.");
     }
 
     const normalizedResult = result.rows.reduce(
@@ -88,10 +91,10 @@ export const duplicateDay = async (req: Request, res: Response) => {
       { byId: {}, allIds: [] }
     );
 
-    createResponse(res, "Day has been duplicated", normalizedResult);
+    createResponse(res, "Day has been duplicated.", normalizedResult);
 
   } catch (error) {
     console.error("Failed to duplicate day:", error);
-    res.status(500).json({ error: "Server Error" });
+    res.status(500).json({ error: "Internal server error." });
   }
 }

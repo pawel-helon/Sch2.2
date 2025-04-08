@@ -12,31 +12,25 @@ const createResponse = (res: Response, message: string, data: Slot | null = null
   }});
 }
 
-export const validateRequestBody = ( res: Response, body: { employeeId: string, day: string }) => {
-  const { employeeId, day } = body;
+export const addRecurringSlot = async (req: Request, res: Response) => {
+  const { employeeId, day } = req.body as { employeeId: string, day: string };
   
   if (!employeeId || !day) {
-    createResponse(res, "All fields are required: employeeId, day.");
+    return createResponse(res, "All fields are required: employeeId, day.");
   }
-
-  if (!UUID_REGEX.test(employeeId)) {
-    createResponse(res, "Invalid employeeId format. Expected UUID.");
-  }
-
-  if (!DATE_REGEX.test(day)) {
-    createResponse(res, "Invalid day format. Expected YYYY-MM-DD.");
-  }
-
-  if (new Date() > new Date(day)) {
-    createResponse(res, "Invalid date. Expected non-past date.");
-  }
-
-  return { employeeId, day }
-}
-
-export const addRecurringSlot = async (req: Request, res: Response) => {
-  const { employeeId, day } = validateRequestBody(res, req.body);
   
+  if (!UUID_REGEX.test(employeeId)) {
+    return createResponse(res, "Invalid employeeId format. Expected UUID.");
+  }
+  
+  if (!DATE_REGEX.test(day)) {
+    return createResponse(res, "Invalid day format. Expected YYYY-MM-DD.");
+  }
+  
+  if (new Date() > new Date(day)) {
+    return createResponse(res, "Invalid date. Expected non-past date.");
+  }
+
   try {
     const queryValue = `
       WITH recurring_dates AS (
@@ -103,13 +97,13 @@ export const addRecurringSlot = async (req: Request, res: Response) => {
     ]);
     
     if (!result.rows.length) {
-      return createResponse(res, "Failed to add slots");
+      return createResponse(res, "Failed to add slots.");
     }
 
-    createResponse(res, "New recurring slots have been added", result.rows[0]);
+    createResponse(res, "New recurring slots have been added.", result.rows[0]);
 
   } catch (error) {
     console.error("Failed to add recurring slot:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error." });
   }
 }

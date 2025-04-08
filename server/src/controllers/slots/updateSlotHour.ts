@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { Slot } from "../../lib/types";
 import { pool } from "../../index";
-import { HOUR_REGEX, UUID_REGEX } from "../../lib/constants";
+import { UUID_REGEX } from "../../lib/constants";
 
 const createResponse = (res: Response, message: string, data: Slot | null = null) => {
   res.format({"application/json": () => {
@@ -13,18 +13,22 @@ const createResponse = (res: Response, message: string, data: Slot | null = null
 }
 
 export const updateSlotHour = async (req: Request, res: Response) => {
-  const { employeeId, slotId, hour } = req.body as { employeeId: string, slotId: string, hour: string };
+  const { employeeId, slotId, hour } = req.body as { employeeId: string, slotId: string, hour: number };
   
   if (!employeeId || !slotId || !hour) {
-    return createResponse(res, "employeeId, slotId and hour are required");
+    return createResponse(res, "All fields are required: employeeId, slotId and hour.");
   }
   
-  if (!UUID_REGEX.test(employeeId) || !UUID_REGEX.test(slotId)) {
-    return createResponse(res, "Invalid UUID format");
+  if (!UUID_REGEX.test(employeeId)) {
+    return createResponse(res, "Invalid employeeId format. Expected UUID.");
+  }
+  
+  if (!UUID_REGEX.test(slotId)) {
+    return createResponse(res, "Invalid slotId format. Expected UUID.");
   }
 
-  if (!HOUR_REGEX.test(hour)) {
-    return createResponse(res, "Hour must be a number between 0 and 23");
+  if (hour < 0 || hour > 23 || typeof hour !== "number") {
+    return createResponse(res, "Invalid hour. Expected number between 0 and 23.");
   }
 
   try {
@@ -70,13 +74,13 @@ export const updateSlotHour = async (req: Request, res: Response) => {
     ])
     
     if (!result.rows.length) {
-      return createResponse(res, "Failed to update slot");
+      return createResponse(res, "Failed to update slot.");
     }
 
-    createResponse(res, "Slot time has been updated", result.rows[0]);
+    createResponse(res, "Slot time has been updated.", result.rows[0]);
     
   } catch (error) {
-    console.error("Failed to add slot:", error);
-    res.status(500).json({ message: "Server Error", error: String(error) });
+    console.error("Failed to update slot hour: ", error);
+    res.status(500).json({ error: "Internal server error." });
   }
 }

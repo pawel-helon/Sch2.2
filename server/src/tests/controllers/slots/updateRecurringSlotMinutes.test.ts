@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../../index";
-import { addSlot } from "../../../controllers/slots/addSlot";
+import { updateRecurringSlotMinutes } from "../../../controllers/slots/updateRecurringSlotMinutes";
 import { getTestDates } from "../../../lib/helpers";
 
 jest.mock("../../../index", () => ({
@@ -30,23 +30,30 @@ describe("addSlot", () => {
     });
   };
 
-  test("Returns error if required fields are missing.", async () => {
-    mockRequest.body = { day: futureDate };
+  test("Returns error if any field is missing.", async () => {
+    mockRequest.body = {
+      employeeId: "123e4567-e89b-12d3-a456-426614174000",
+      slotId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
+    }
     setupResponseFormat();
 
-    await addSlot(mockRequest as Request, mockResponse as Response);
+    await updateRecurringSlotMinutes(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
-      message: "All fields are required: employeeId, day.",
+      message: "All fields are required: employeeId, slotId and minutes.",
       data: null,
     });
   });
 
-  test("Returns error if employeeId is in invalid UUID.", async () => {
-    mockRequest.body = { employeeId: "invalid-uuid", day: futureDate };
+  test("Returns error if employeeId is in invalid format.", async () => {
+    mockRequest.body = {
+      employeeId: "invalid-uuid",
+      slotId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
+      minutes: 30
+    };
     setupResponseFormat();
 
-    await addSlot(mockRequest as Request, mockResponse as Response);
+    await updateRecurringSlotMinutes(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
       message: "Invalid employeeId format. Expected UUID.",
@@ -54,45 +61,61 @@ describe("addSlot", () => {
     });
   });
 
-  test("Returns error if date is in in invalid format.", async () => {
-    mockRequest.body = { employeeId: "123e4567-e89b-12d3-a456-426614174000", day: "invalid-date" };
+  test("Returns error if slotId is in invalid format.", async () => {
+    mockRequest.body = {
+      employeeId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
+      slotId: "invalid-uuid",
+      minutes: 30
+    };
     setupResponseFormat();
 
-    await addSlot(mockRequest as Request, mockResponse as Response);
+    await updateRecurringSlotMinutes(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
-      message: "Invalid day format. Expected YYYY-MM-DD.",
+      message: "Invalid slotId format. Expected UUID.",
       data: null,
     });
   });
 
-  test("Returns error if date is in the past.", async () => {
-    mockRequest.body = { employeeId: "123e4567-e89b-12d3-a456-426614174000", day: pastDate };
+  test("Returns error if hour is not a number between 0 and 23.", async () => {
+    mockRequest.body = {
+      employeeId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
+      slotId: "123e4567-e89b-12d3-a456-426614174000",
+      minutes: "invalid-minutes"
+    };
     setupResponseFormat();
 
-    await addSlot(mockRequest as Request, mockResponse as Response);
+    await updateRecurringSlotMinutes(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
-      message: "Invalid date. Expected non-past date.",
+      message: "Invalid minnutes. Expected number between 0 and 59.",
       data: null,
     });
   });
 
   test("Returns error on failed database mutation.", async () => {
-    mockRequest.body = { employeeId: "123e4567-e89b-12d3-a456-426614174000", day: futureDate };
+    mockRequest.body = {
+      employeeId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
+      slotId: "123e4567-e89b-12d3-a456-426614174000",
+      minutes: 30
+    };
     (pool.query as jest.Mock).mockResolvedValue({ rows: [] });
     setupResponseFormat();
 
-    await addSlot(mockRequest as Request, mockResponse as Response);
+    await updateRecurringSlotMinutes(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
-      message: "Failed to add slot.",
+      message: "Failed to update slot.",
       data: null,
     });
   });
 
-  test("Returns slot on successful database mutation.", async () => {
-    mockRequest.body = { employeeId: "123e4567-e89b-12d3-a456-426614174000", day: futureDate };
+  test("Returns updated slot on successful database mutation.", async () => {
+    mockRequest.body = {
+      employeeId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
+      slotId: "123e4567-e89b-12d3-a456-426614174000",
+      minutes: 30
+    };
     const expectedData = {
       id: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
       employeeId: "123e4567-e89b-12d3-a456-426614174000",
@@ -106,22 +129,23 @@ describe("addSlot", () => {
     (pool.query as jest.Mock).mockResolvedValue({ rows: [expectedData] });
     setupResponseFormat();
 
-    await addSlot(mockRequest as Request, mockResponse as Response);
+    await updateRecurringSlotMinutes(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
-      message: "New slot has been added.",
+      message: "Slot time has been updated.",
       data: expectedData,
     });
   });
 
   test("Returns 500 on database error.", async () => {
     mockRequest.body = {
-      employeeId: "123e4567-e89b-12d3-a456-426614174000",
-      day: futureDate,
+      employeeId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
+      slotId: "123e4567-e89b-12d3-a456-426614174000",
+      minutes: 30
     };
     (pool.query as jest.Mock).mockRejectedValue(new Error("DB error"));
 
-    await addSlot(mockRequest as Request, mockResponse as Response);
+    await updateRecurringSlotMinutes(mockRequest as Request, mockResponse as Response);
 
     expect(status).toHaveBeenCalledWith(500);
     expect(json).toHaveBeenCalledWith({ error: "Internal server error." });

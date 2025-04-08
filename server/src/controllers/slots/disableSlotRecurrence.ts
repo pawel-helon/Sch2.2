@@ -13,14 +13,18 @@ const createResponse = (res: Response, message: string, data: Slot | null = null
 }
 
 export const disableSlotRecurrence = async (req: Request, res: Response) => {
-  const { slotId } = req.body as { slotId: string };
+  const { employeeId, slotId } = req.body as { employeeId: string, slotId: string };
   
-  if (!slotId) {
-    return createResponse(res, "EmployeeId, day, and selectedDays are required");
+  if (!employeeId || !slotId) {
+    return createResponse(res, "All fields are required: employeeId, slotId.");
+  }
+
+  if (!UUID_REGEX.test(employeeId)) {
+    return createResponse(res, "Invalid employeeId format. Expected UUID.");
   }
   
   if (!UUID_REGEX.test(slotId)) {
-    return createResponse(res, "Invalid UUID format");
+    return createResponse(res, "Invalid slotId format. Expected UUID.");
   }
   
   try {
@@ -72,14 +76,18 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
     await pool.query("COMMIT");
 
     if (!updatingInitalSlot.rows.length || !deletingSlots.rows.length) {
-      return createResponse(res, "Failed to disable recurring slots");
+      return createResponse(res, "Failed to disable recurring slots.");
     }
 
-    createResponse(res, "Recurring slots have been disabled", updatingInitalSlot.rows[0]);
+    createResponse(res, "Recurring slots have been disabled.", updatingInitalSlot.rows[0]);
 
   } catch (error) {
-    await pool.query('ROLLBACK');
+    try {
+      await pool.query("ROLLBACK");
+    } catch (rollbackError) {
+      console.error("Rollback failed: ", rollbackError);
+    }
     console.error("Failed to disable recurring slots:", error);
-    res.status(500).json({ error: "Server Error" });
+    res.status(500).json({ error: "Internal server error." });
   }
 }
