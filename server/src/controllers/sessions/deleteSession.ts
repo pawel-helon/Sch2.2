@@ -15,11 +15,11 @@ export const deleteSession = async (req: Request, res: Response) => {
   const { id: sessionId } = req.body as { id: string };
 
   if (!sessionId) {
-    return createResponse(res, "Id is required");
+    return createResponse(res, "Id is required.");
   }
   
   if (!UUID_REGEX.test(sessionId)) {
-    return createResponse(res, "Invalid UUID format");
+    return createResponse(res, "Invalid id format. Expected UUID.");
   }
 
   try {
@@ -35,13 +35,13 @@ export const deleteSession = async (req: Request, res: Response) => {
     ]);
 
     if (!result.rows.length) {
-      return createResponse(res, "Failed to delete session");
+      return createResponse(res, "Failed to delete session.");
     }
 
-    createResponse(res, "Session has been deleted", result.rows[0].id);
+    createResponse(res, "Session has been deleted.", result.rows[0].id);
 
   } catch (error) {
-    console.error("Failed to delete session:", error);
-    res.status(500).json({ error: "Server Error" });
+    console.error("Failed to delete session: ", error);
+    res.status(500).json({ error: "Internal server error." });
   }
 }

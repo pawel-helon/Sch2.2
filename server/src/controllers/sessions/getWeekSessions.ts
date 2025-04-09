@@ -16,15 +16,19 @@ export const getWeekSessions = async (req: Request, res: Response) => {
   const { employeeId, start, end } = req.body as { employeeId: string, start: string, end: string };
   
   if (!employeeId || !start || !end) {
-    return createResponse(res, "Start and end dates and employeeId are required");
+    return createResponse(res, "All fields are required: employeeId, start, and end dates.");
   }
   
   if (!UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Invalid UUID format");
+    return createResponse(res, "Invalid employeeId format. Expected UUID.");
   }
   
-  if (!DATE_REGEX.test(start) || !DATE_REGEX.test(end)) {
-    return createResponse(res, "Invalid date format");
+  if (!DATE_REGEX.test(start)) {
+    return createResponse(res, "Invalid date format in start date. Expected YYYY-MM-DD.");
+  }
+
+  if (!DATE_REGEX.test(end)) {
+    return createResponse(res, "Invalid date format in end date. Expected YYYY-MM-DD.");
   }
   
   try {
@@ -60,7 +64,7 @@ export const getWeekSessions = async (req: Request, res: Response) => {
     ]);
     
     if (!result.rows.length) {
-      return createResponse(res, "Failed to fetch sessions");
+      return createResponse(res, "Failed to fetch sessions.");
     }
 
     const normalizedResult = result.rows.reduce(
@@ -72,10 +76,10 @@ export const getWeekSessions = async (req: Request, res: Response) => {
       { byId: {}, allIds: [] }
     );
 
-    createResponse(res, "Sessions have been fetched", normalizedResult);
+    createResponse(res, "Sessions have been fetched.", normalizedResult);
     
   } catch (error) {
-    console.error("Failed to fetch sessions:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Failed to fetch sessions: ", error);
+    res.status(500).json({ error: "Internal server error." });
   }
 }                               

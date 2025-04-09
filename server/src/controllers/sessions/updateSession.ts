@@ -16,11 +16,15 @@ export const updateSession = async (req: Request, res: Response) => {
   const { sessionId, slotId } = req.body as { sessionId: string, slotId: string };
 
   if (!sessionId || !slotId) {
-    return createResponse(res, "sessionId and slotId are required");
+    return createResponse(res, "All fields are required: sessionId, slotId.");
   }
   
-  if (!UUID_REGEX.test(sessionId) || !UUID_REGEX.test(slotId)) {
-    return createResponse(res, "Invalid UUID format");
+  if (!UUID_REGEX.test(sessionId)) {
+    return createResponse(res, "Invalid sessionId format. Expected UUID.");
+  }
+
+  if (!UUID_REGEX.test(slotId)) {
+    return createResponse(res, "Invalid slotId format. Expected UUID.");
   }
 
   try {
@@ -52,13 +56,13 @@ export const updateSession = async (req: Request, res: Response) => {
     ])
     
     if (!result.rows.length) {
-      return createResponse(res, "Failed to update session");
+      return createResponse(res, "Failed to update session.");
     }
 
-    createResponse(res, "Session has been updated", result.rows[0]);
+    createResponse(res, "Session has been updated.", result.rows[0]);
     
   } catch (error) {
-    console.error("Failed to update session:", error);
-    res.status(500).json({ message: "Server Error", error: String(error) });
+    console.error("Failed to update session: ", error);
+    res.status(500).json({ error: "Internal server error." });
   }
 }

@@ -29,7 +29,7 @@ export interface Session {
   employeeId: string;
   customerId: string;
   startTime: Date;
-  message?: string;
+  message: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

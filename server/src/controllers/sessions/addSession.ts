@@ -15,22 +15,42 @@ const createResponse = (res: Response, message: string, data: Session | null = n
 export const addSession = async (req: Request, res: Response) => {
   const { session } = req.body as { session: Session };
 
-  if (!session) {
-    return createResponse(res, "Session is required");
+  if (typeof session !== "object" || !Object.keys(session).length) {
+    return createResponse(res, "Invalid input data: session must be a non-empty object.");
   }
 
-  if (typeof session !== "object" || Object.keys(session).length === 0) {
-    return createResponse(res, "Invalid input data: session must be a non-empty object");
+  if (!session.id || !UUID_REGEX.test(session.id)) {
+    return createResponse(res, "Invalid id format. Expected UUID.");
+  }
+
+  if (!session.slotId || !UUID_REGEX.test(session.slotId)) {
+    return createResponse(res, "Invalid slotId format. Expected UUID.");
+  }
+
+  if (!session.employeeId || !UUID_REGEX.test(session.employeeId)) {
+    return createResponse(res, "Invalid employeeId format. Expected UUID.");
+  }
+
+  if (!session.customerId || !UUID_REGEX.test(session.customerId)) {
+    return createResponse(res, "Invalid customerId format. Expected UUID.");
+  }
+
+  if (!session.startTime || !(session.startTime instanceof Date)) {
+    return createResponse(res, "Invalid startTime format. Expected Date object.");
+  }
+
+  if (new Date(session.startTime) < new Date()) {
+    return createResponse(res, "Invalid startTime. Expected non-past value.");
+  }
+
+  if (!session.createdAt || !(session.createdAt instanceof Date)) {
+    return createResponse(res, "Invalid createdAt format. Expected Date object.");
+  }
+
+  if (!session.updatedAt || !(session.updatedAt instanceof Date)) {
+    return createResponse(res, "Invalid updatedAt format. Expected Date object.");
   }
   
-  if (!UUID_REGEX.test(session.id) ||
-      !UUID_REGEX.test(session.slotId) ||
-      !UUID_REGEX.test(session.employeeId) ||
-      !UUID_REGEX.test(session.customerId)
-  ) {
-    return createResponse(res, "Invalid UUID format");
-  }
-
   try {
     const queryValue = `
       INSERT INTO "Sessions" (
@@ -57,13 +77,13 @@ export const addSession = async (req: Request, res: Response) => {
     ]);
 
     if (!result.rows.length) {
-      return createResponse(res, "Failed to add session");
+      return createResponse(res, "Failed to add session.");
     }
 
-    createResponse(res, "Session has been restored", result.rows[0]);
+    createResponse(res, "Session has been restored.", result.rows[0]);
 
   } catch (error) {
-    console.error("Failed to restore session:", error);
-    res.status(500).json({ error: "Server Error" });
+    console.error("Failed to restore session: ", error);
+    res.status(500).json({ error: "Internal server error." });
   }
 }

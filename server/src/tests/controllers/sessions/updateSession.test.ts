@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { pool } from "../../../index";
-import { updateRecurringSlotMinutes } from "../../../controllers/slots/updateRecurringSlotMinutes";
 import { getTestDates } from "../../../lib/helpers";
+import { updateSession } from "../../../controllers/sessions/updateSession";
 
 jest.mock("../../../index", () => ({
   pool: {
@@ -9,7 +9,7 @@ jest.mock("../../../index", () => ({
   },
 }));
 
-describe("updateRecurringSlotMinutes", () => {
+describe("updateSession", () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let json: jest.Mock;
@@ -32,44 +32,41 @@ describe("updateRecurringSlotMinutes", () => {
 
   test("Returns error if any field is missing.", async () => {
     mockRequest.body = {
-      employeeId: "123e4567-e89b-12d3-a456-426614174000",
-      slotId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
+      sessionId: "123e4567-e89b-12d3-a456-426614174000",
     }
     setupResponseFormat();
 
-    await updateRecurringSlotMinutes(mockRequest as Request, mockResponse as Response);
+    await updateSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
-      message: "All fields are required: employeeId, slotId and minutes.",
+      message: "All fields are required: sessionId, slotId.",
       data: null,
     });
   });
 
-  test("Returns error if employeeId is in invalid format.", async () => {
+  test("Returns error if sessionId is in invalid format.", async () => {
     mockRequest.body = {
-      employeeId: "invalid-uuid",
+      sessionId: "invalid-uuid",
       slotId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
-      minutes: 30
     };
     setupResponseFormat();
 
-    await updateRecurringSlotMinutes(mockRequest as Request, mockResponse as Response);
+    await updateSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
-      message: "Invalid employeeId format. Expected UUID.",
+      message: "Invalid sessionId format. Expected UUID.",
       data: null,
     });
   });
-
+  
   test("Returns error if slotId is in invalid format.", async () => {
     mockRequest.body = {
-      employeeId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
+      sessionId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
       slotId: "invalid-uuid",
-      minutes: 30
     };
     setupResponseFormat();
 
-    await updateRecurringSlotMinutes(mockRequest as Request, mockResponse as Response);
+    await updateSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
       message: "Invalid slotId format. Expected UUID.",
@@ -77,75 +74,56 @@ describe("updateRecurringSlotMinutes", () => {
     });
   });
 
-  test("Returns error if hour is not a number between 0 and 23.", async () => {
-    mockRequest.body = {
-      employeeId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
-      slotId: "123e4567-e89b-12d3-a456-426614174000",
-      minutes: "invalid-minutes"
-    };
-    setupResponseFormat();
-
-    await updateRecurringSlotMinutes(mockRequest as Request, mockResponse as Response);
-
-    expect(mockResponse.send).toHaveBeenCalledWith({
-      message: "Invalid minnutes. Expected number between 0 and 59.",
-      data: null,
-    });
-  });
-
   test("Returns error on failed database mutation.", async () => {
     mockRequest.body = {
-      employeeId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
+      sessionId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
       slotId: "123e4567-e89b-12d3-a456-426614174000",
-      minutes: 30
     };
     (pool.query as jest.Mock).mockResolvedValue({ rows: [] });
     setupResponseFormat();
 
-    await updateRecurringSlotMinutes(mockRequest as Request, mockResponse as Response);
+    await updateSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
-      message: "Failed to update slot.",
+      message: "Failed to update session.",
       data: null,
     });
   });
 
   test("Returns updated slot on successful database mutation.", async () => {
     mockRequest.body = {
-      employeeId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
+      sessionId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
       slotId: "123e4567-e89b-12d3-a456-426614174000",
-      minutes: 30
     };
     const expectedData = {
       id: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
-      employeeId: "123e4567-e89b-12d3-a456-426614174000",
-      type: "AVAILABLE" as "AVAILABLE",
+      slotId: "123e4567-e89b-12d3-a456-426614174000",
+      employeeId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
+      customerId: "1e6d9a3f-7c2b-4f8e-b5a9-d3c7e1f2a8b6",
       startTime: new Date(futureDate),
-      duration: "00:30:00",
-      recurring: false,
-      createdAt: new Date(futureDate),
-      updatedAt: new Date(futureDate),
+      message: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
     (pool.query as jest.Mock).mockResolvedValue({ rows: [expectedData] });
     setupResponseFormat();
 
-    await updateRecurringSlotMinutes(mockRequest as Request, mockResponse as Response);
+    await updateSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
-      message: "Slot time has been updated.",
+      message: "Session has been updated.",
       data: expectedData,
     });
   });
 
   test("Returns 500 on database error.", async () => {
     mockRequest.body = {
-      employeeId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
+      sessionId: "b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f",
       slotId: "123e4567-e89b-12d3-a456-426614174000",
-      minutes: 30
     };
     (pool.query as jest.Mock).mockRejectedValue(new Error("DB error"));
 
-    await updateRecurringSlotMinutes(mockRequest as Request, mockResponse as Response);
+    await updateSession(mockRequest as Request, mockResponse as Response);
 
     expect(status).toHaveBeenCalledWith(500);
     expect(json).toHaveBeenCalledWith({ error: "Internal server error." });

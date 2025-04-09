@@ -9,7 +9,7 @@ jest.mock("../../../index", () => ({
   },
 }));
 
-describe("addSlot", () => {
+describe("updateSlotHour", () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let json: jest.Mock;
