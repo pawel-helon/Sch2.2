@@ -61,7 +61,7 @@ export const getWeekSlots = async (req: Request, res: Response) => {
       },
       { byId: {}, allIds: [] }
     );
-
+    
     createResponse(res, "Slots have been fetched.", normalizedResult);
   } catch (error) {
     console.error("Failed to fetch slots:", error);

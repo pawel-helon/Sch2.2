@@ -1,10 +1,3 @@
-export interface NormalizedSlots {
-  byId: {
-    [key: string]: Slot
-  },
-  allIds: string[]
-}
-
 export interface Slot {
   id: string;
   employeeId: string;
@@ -16,9 +9,9 @@ export interface Slot {
   updatedAt: Date;
 }
 
-export interface NormalizedSessions {
+export interface NormalizedSlots {
   byId: {
-    [key: string]: Session
+    [key: string]: Slot
   },
   allIds: string[]
 }
@@ -32,4 +25,11 @@ export interface Session {
   message: string | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface NormalizedSessions {
+  byId: {
+    [key: string]: Session
+  },
+  allIds: string[]
 }
