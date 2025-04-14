@@ -18,7 +18,7 @@ import {
   validateUpdateSlotHourInput,
   validateUpdateSlotMinutesInput
 } from 'src/utils/inputValidation';
-import { getWeekStartEndDatesFromDay } from './helpers';
+import { getSlotsFromNormalized, getWeekStartEndDatesFromDay } from './helpers';
 
 // Base API for injecting slots and sessions endpoints
 export const schedulingApi = createApi({
@@ -27,9 +27,7 @@ export const schedulingApi = createApi({
   tagTypes: ['Sessions', 'Slots', 'Customers', 'Employees'],
   endpoints: (builder) => ({
     /**
-     * SLOTS ENDPOINTS
-    */
-    /**
+    * -------------- SLOTS ENDPOINTS --------------
     * Fetches weekly slots for a specific employee within a date range.
     * 
     * @param {Object} body - The request payload.
@@ -69,12 +67,12 @@ export const schedulingApi = createApi({
           body
         }
       },
-      // Upserts added slot to getWeekSlots cached data.
+      /** Inserts slot to getWeekSlots cached data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const addedSlot = res.data.data;
-        const date = new Date(addedSlot.startTime).toISOString().split('T')[0];
-        const { start, end } = getWeekStartEndDatesFromDay(date);
+        const addedSlotDate = new Date(addedSlot.startTime).toISOString().split('T')[0];
+        const { start, end } = getWeekStartEndDatesFromDay(addedSlotDate);
         dispatch(schedulingApi.util.patchQueryData(
           'getWeekSlots',
           { employeeId: addedSlot.employeeId, start: start, end: end },
@@ -99,9 +97,9 @@ export const schedulingApi = createApi({
     * @param {Object} body - The request payload.
     * @param {string} body.employeeId - The ID of the employee.
     * @param {string} body.day - The day to add the slot in YYYY-MM-DD format.
-    * @returns {Slot} - Added recurring slot object.
+    * @returns {Object} - Message and added first recurring slot object.
     */
-    addRecurringSlot: builder.mutation<Slot, { employeeId: string, day: string }>({
+    addRecurringSlot: builder.mutation<{ message: string, data: Slot }, { employeeId: string, day: string }>({
       query: (body) => {
         validateAddRecurringSlotInput(body);
         return {
@@ -110,7 +108,29 @@ export const schedulingApi = createApi({
           body
         }
       },
-      invalidatesTags: ['Slots']
+      /** Inserts first recurring slot to getWeekSlots cached data*/
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        const res = await queryFulfilled;
+        const initialSlot = res.data.data;
+        const initialSlotDate = new Date(initialSlot.startTime).toISOString().split('T')[0];
+        const { start, end } = getWeekStartEndDatesFromDay(initialSlotDate);
+        dispatch(schedulingApi.util.patchQueryData(
+          'getWeekSlots',
+          { employeeId: initialSlot.employeeId, start: start, end: end},
+          [
+            {
+              op: 'add',
+              path: ['byId', initialSlot.id],
+              value: initialSlot
+            },
+            {
+              op: 'add',
+              path: ['allIds', '-'],
+              value: initialSlot.id
+            }
+          ]
+        ))
+      }
     }),
     /**
     * Restores deleted slots for a given employee.
@@ -119,7 +139,7 @@ export const schedulingApi = createApi({
     * @param {Slot[]} body.slots - An array of slot objects to be restored.
     * @returns {NormalizedSlots} - Normalized slots object.
     */
-    addSlots: builder.mutation<NormalizedSlots, { slots: Slot[] }>({
+    addSlots: builder.mutation<{ message: string, data: NormalizedSlots }, { slots: Slot[] }>({
       query: (body) => {
         validateAddSlotsInput(body);
         return {
@@ -128,10 +148,30 @@ export const schedulingApi = createApi({
           body
         }
       },
-      transformResponse: (response: { message: string; data: NormalizedSlots }) => {
-        return response.data;
-      },
-      invalidatesTags: ['Slots']
+      /** Inserts restored slots to getWeekSlots cached data */
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        const res = await queryFulfilled;
+        const restoredSlots = getSlotsFromNormalized(res.data.data);
+        const restoredSlotsDate = new Date(restoredSlots[0].startTime).toISOString().split('T')[0];
+        const { start, end } = getWeekStartEndDatesFromDay(restoredSlotsDate);
+
+        dispatch(schedulingApi.util.patchQueryData(
+          'getWeekSlots',
+          { employeeId: restoredSlots[0].employeeId, start: start, end: end },
+          restoredSlots.flatMap(slot => [
+            {
+              op: 'add',
+              path: ['byId', slot.id],
+              value: slot
+            },
+            {
+              op: 'add',
+              path: ['allIds', '-'],
+              value: slot.id
+            }
+          ])
+        ))
+      }
     }),
     /**
     * Updates the hour of a specific slot for a given employee.
@@ -288,10 +328,8 @@ export const schedulingApi = createApi({
       },
       invalidatesTags: ['Slots']
     }),
-  /**
-   * SESSIONS ENDPOINTS 
-  */
-  /**
+   /**
+   * -------------- SESSIONS ENDPOINTS --------------
    * Fetches weekly sessions for a specific employee within a date range.
    * 
    * @param {Object} body - The request payload.
@@ -373,7 +411,7 @@ export const schedulingApi = createApi({
 });
 
 export const {
-    // SLOTS HOOKS
+    /** SLOTS HOOKS */
     useGetWeekSlotsQuery,
     useAddSlotMutation,
     useAddRecurringSlotMutation,
@@ -386,7 +424,7 @@ export const {
     useDuplicateDayMutation,
     useSetSlotRecurrenceMutation,
     useDisableSlotRecurrenceMutation,
-    // SESSIONS HOOKS
+    /** SESSIONS HOOKS */
     useGetWeekSessionsQuery,
     useAddSessionMutation,
     useUpdateSessionMutation,

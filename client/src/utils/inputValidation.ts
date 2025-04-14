@@ -74,13 +74,13 @@ export const validateAddRecurringSlotInput = (input: { employeeId: string, day: 
   }
 }
 
-export const validateAddSlotsInput = (input: { slots: Slot[] }): void => {
+export const validateAddSlotsInput = (input: { slots: Slot[] } ): void => {
   if (!input || typeof input !== 'object') {
     throw new Error('Input is required. Expected an object.');
   }
-  
-  const { slots } = input;
 
+  const { slots } = input;
+  
   if (!Array.isArray(slots) || !slots.length) {
     throw new Error('Slots must be a non-empty array.');
   }

@@ -1,4 +1,5 @@
 import { DAYS_OF_WEEK } from 'src/lib/constants';
+import { NormalizedSlots, Slot } from './types';
 
 export const getCurrentWeek = () => {
   const today = new Date();
@@ -71,3 +72,6 @@ export const getWeekStartEndDatesFromDay = (day: string | Date): {start: string,
   return { start: weekDays[0], end: weekDays[weekDays.length - 1] };
 }
 
+export const getSlotsFromNormalized = (normalizedSlots: NormalizedSlots): Slot[] => {
+  return normalizedSlots.allIds.map(id => normalizedSlots.byId[id]);
+};
