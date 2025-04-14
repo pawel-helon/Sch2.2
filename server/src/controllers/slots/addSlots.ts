@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { Slot, SlotsAccumulator } from "../../lib/types";
 import { pool } from "../../index";
-import { UUID_REGEX } from "../../lib/constants";
+import { TIMESTAMP_REGEX, UUID_REGEX } from "../../lib/constants";
 
 const createResponse = (res: Response, message: string, data: SlotsAccumulator | null = null) => {
   res.format({"application/json": () => {
@@ -14,7 +14,9 @@ const createResponse = (res: Response, message: string, data: SlotsAccumulator |
 
 export const addSlots = async (req: Request, res: Response) => {
   const { slots } = req.body as { slots: Slot[] };
-  
+
+  console.log(slots);
+
   if (!Array.isArray(slots) || !slots.length) {
     return createResponse(res, "Slots must be a non-empty array.");
   }
@@ -35,7 +37,7 @@ export const addSlots = async (req: Request, res: Response) => {
     return createResponse(res, "Invalid type in slots. Expected AVAILABLE, BLOCKED or BOOKED.");
   }
 
-  if (!slots.every(slot => slot.startTime && slot.startTime instanceof Date)) {
+  if (!slots.every(slot => slot.startTime && TIMESTAMP_REGEX.test(new Date(slot.startTime).toISOString()))) {
     return createResponse(res, "Invalid startTime format in slots.");
   }
 
@@ -47,11 +49,11 @@ export const addSlots = async (req: Request, res: Response) => {
     return createResponse(res, "Invalid recurring format in slots. Expected boolean.");
   }
 
-  if (!slots.every(slot => slot.createdAt && slot.createdAt instanceof Date)) {
+  if (!slots.every(slot => slot.createdAt && TIMESTAMP_REGEX.test(new Date(slot.createdAt).toISOString()))) {
     return createResponse(res, "Invalid createdAt format in slots.");
   }
 
-  if (!slots.every(slot => slot.updatedAt && slot.updatedAt instanceof Date)) {
+  if (!slots.every(slot => slot.updatedAt && TIMESTAMP_REGEX.test(new Date(slot.updatedAt).toISOString()))) {
     return createResponse(res, "Invalid updatedAt format in slots.");
   }
 

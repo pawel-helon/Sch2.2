@@ -1,3 +1,3 @@
 -- psql -U postgres -d scheduling -f debug.sql
-SELECT "id" FROM "Slots"
-WHERE "employeeId" = '054ffd34-6faa-4f45-80ff-2219dd3e06a8'::uuid
+DELETE FROM "Slots"
+WHERE "id" = '45c5483a-1c02-4f2c-a2fd-498a07e4e791'::uuid

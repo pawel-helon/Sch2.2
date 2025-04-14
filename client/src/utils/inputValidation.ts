@@ -1,7 +1,7 @@
-import { DATE_REGEX, HOUR_REGEX, MINUTES_REGEX, UUID_REGEX } from "src/lib/constants";
+import { DATE_REGEX, TIMESTAMP_REGEX, UUID_REGEX } from "src/lib/constants";
 import { Session, Slot } from "src/lib/types";
 
-// Slots endpoints validation functions
+// Slots inputs validation functions
 export const validateGetWeekSlotsInput = (input: { employeeId: string, start: string, end: string }): void => {
   if (!input || typeof input !== 'object') {
     throw new Error('Input is required. Expected an object.');
@@ -101,7 +101,7 @@ export const validateAddSlotsInput = (input: { slots: Slot[] } ): void => {
     throw new Error('Invalid type in slots. Expected AVAILABLE, BLOCKED or BOOKED.');
   }
 
-  if (!slots.every(slot => slot.startTime && slot.startTime instanceof Date)) {
+  if (!slots.every(slot => slot.startTime && TIMESTAMP_REGEX.test(new Date(slot.startTime).toISOString()))) {
     throw new Error('Invalid startTime format in slots.');
   }
 
@@ -113,16 +113,16 @@ export const validateAddSlotsInput = (input: { slots: Slot[] } ): void => {
     throw new Error('Invalid recurring format in slots. Expected boolean.');
   }
 
-  if (!slots.every(slot => slot.createdAt && slot.createdAt instanceof Date)) {
+  if (!slots.every(slot => slot.createdAt && TIMESTAMP_REGEX.test(new Date(slot.createdAt).toISOString()))) {
     throw new Error('Invalid createdAt format in slots.');
   }
 
-  if (!slots.every(slot => slot.updatedAt && slot.updatedAt instanceof Date)) {
+  if (!slots.every(slot => slot.updatedAt && TIMESTAMP_REGEX.test(new Date(slot.updatedAt).toISOString()))) {
     throw new Error('Invalid updatedAt format in slots.');
   }
 }
 
-export const validateUpdateSlotHourInput = (input: { employeeId: string, slotId: string, hour: string }): void => {
+export const validateUpdateSlotHourInput = (input: { employeeId: string, slotId: string, hour: number }): void => {
   if (!input || typeof input !== 'object') {
     throw new Error('Input is required. Expected an object.');
   }
@@ -141,12 +141,12 @@ export const validateUpdateSlotHourInput = (input: { employeeId: string, slotId:
     throw new Error('Invalid slotId format. Expected UUID.');
   }
 
-  if (!HOUR_REGEX.test(hour)) {
-    throw new Error('Invalid hour format. Expected HH:MM.');
+  if (hour < 0 || hour > 23 || typeof hour !== "number") {
+    throw new Error("Invalid hour. Expected number between 0 and 23.");
   }
 }
 
-export const validateUpdateRecurringSlotHourInput = (input: { employeeId: string, slotId: string, hour: string }): void => {
+export const validateUpdateRecurringSlotHourInput = (input: { employeeId: string, slotId: string, hour: number }): void => {
   if (!input || typeof input !== 'object') {
     throw new Error('Input is required. Expected an object.');
   }
@@ -165,12 +165,12 @@ export const validateUpdateRecurringSlotHourInput = (input: { employeeId: string
     throw new Error('Invalid slotId format. Expected UUID.');
   }
 
-  if (!HOUR_REGEX.test(hour)) {
-    throw new Error('Invalid hour format. Expected HH:MM.');
+  if (hour < 0 || hour > 23 || typeof hour !== "number") {
+    throw new Error("Invalid hour. Expected number between 0 and 23.");
   }
 }
 
-export const validateUpdateSlotMinutesInput = (input: { employeeId: string, slotId: string, minutes: string }): void => {
+export const validateUpdateSlotMinutesInput = (input: { employeeId: string, slotId: string, minutes: number }): void => {
   if (!input || typeof input !== 'object') {
     throw new Error('Input is required. Expected an object.');
   }
@@ -189,12 +189,12 @@ export const validateUpdateSlotMinutesInput = (input: { employeeId: string, slot
     throw new Error('Invalid slotId format. Expected UUID.');
   }
 
-  if (!MINUTES_REGEX.test(minutes)) {
+  if (minutes < 0 || minutes > 59 || typeof minutes !== "number") {
     throw new Error('Invalid minutes format. Expected MM.');
   }
 }
 
-export const validateUpdateRecurringSlotMinutesInput = (input: { employeeId: string, slotId: string, minutes: string }): void => {
+export const validateUpdateRecurringSlotMinutesInput = (input: { employeeId: string, slotId: string, minutes: number }): void => {
   if (!input || typeof input !== 'object') {
     throw new Error('Input is required. Expected an object.');
   }
@@ -213,24 +213,20 @@ export const validateUpdateRecurringSlotMinutesInput = (input: { employeeId: str
     throw new Error('Invalid slotId format. Expected UUID.');
   }
 
-  if (!MINUTES_REGEX.test(minutes)) {
+  if (minutes < 0 || minutes > 59 || typeof minutes !== "number") {
     throw new Error('Invalid minutes format. Expected MM.');
   }
 }
 
-export const validateDeleteSlotsInput = (input: { employeeId: string, slotIds: string[] }): void => {
+export const validateDeleteSlotsInput = (input: { slotIds: string[] }): void => {
   if (!input || typeof input !== 'object') {
     throw new Error('Input is required. Expected an object.');
   }
   
-  const { employeeId, slotIds } = input;
+  const { slotIds } = input;
 
-  if (!employeeId || !slotIds) {
+  if (!slotIds) {
     throw new Error('All fields are required: employeeId, slotIds.');
-  }
-
-  if (!UUID_REGEX.test(employeeId)) {
-    throw new Error('Invalid employeeId format. Expected UUID.');
   }
 
   if (!Array.isArray(slotIds) || !slotIds.every(id => UUID_REGEX.test(id))) {

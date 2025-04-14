@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { Slot } from "../../lib/types";
 import { pool } from "../../index";
-import { MINUTES_REGEX, UUID_REGEX } from "../../lib/constants";
+import { UUID_REGEX } from "../../lib/constants";
 
 const createResponse = (res: Response, message: string, data: Slot | null = null) => {
   res.format({"application/json": () => {

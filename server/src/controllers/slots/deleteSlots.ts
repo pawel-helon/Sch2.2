@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { pool } from "../../index";
 import { UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: string[] | null = null) => {
+const createResponse = (res: Response, message: string, data: { date: string, ids: string[] } | null = null ) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -12,18 +12,14 @@ const createResponse = (res: Response, message: string, data: string[] | null = 
 }
 
 export const deleteSlots = async (req: Request, res: Response) => {
-  const { employeeId, slotIds } = req.body as { employeeId: string, slotIds: string[] };
+  const { slotIds } = req.body as { employeeId: string, slotIds: string[] };
   
-  if (!employeeId || !slotIds) {
-    return createResponse(res, "All fields are required: employeeId, slotIds.");
+  if (!slotIds) {
+    return createResponse(res, "SlotIds is required.");
   }
   
-  if (!UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Invalid employeeId format. Expected UUID.");
-  }
-
   if (!Array.isArray(slotIds) || !slotIds.length) {
-    return createResponse(res, "Slot ids must be a non-empty array.");
+    return createResponse(res, "SlotIds must be a non-empty array.");
   }
 
   if (!slotIds.every(slotId => slotId && UUID_REGEX.test(slotId))) {
@@ -31,27 +27,41 @@ export const deleteSlots = async (req: Request, res: Response) => {
   }
 
   try {
-    const queryValue = `
+    const gettingSlotsDateQueryValue = `
+      SELECT "startTime"::date
+      FROM "Slots"
+      WHERE "id" = $1:uuid
+    `;
+    
+    const gettingSlotsDate = await pool.query(gettingSlotsDateQueryValue, [
+      slotIds[0]
+    ])
+
+    if (!gettingSlotsDate.rows.length) {
+      createResponse(res, "Failed to get slots date.")
+    }
+
+    console.log(gettingSlotsDate.rows[0]);
+    
+    const deletingSlotsQueryValue = `
       WITH slot_ids AS (
         SELECT unnest($1::uuid[]) AS slot_id
-      )
+      ),
       DELETE
       FROM "Slots"
       WHERE "id" IN (SELECT slot_id FROM slot_ids)
-        AND "employeeId" = $2::uuid 
       RETURNING "id"
     `;
 
-    const result = await pool.query(queryValue, [
+    const deletingSlots = await pool.query(deletingSlotsQueryValue, [
       slotIds,
-      employeeId
     ]);
 
-    if (!result.rows.length) {
+    if (!deletingSlots.rows.length) {
       return createResponse(res, "Failed to delete slots.");
     }
 
-    createResponse(res, "Slots have been deleted.", result.rows);
+    createResponse(res, "Slots have been deleted.", { date: gettingSlotsDate.rows[0], ids: deletingSlots.rows });
 
   } catch (error) {
     console.error("Failed to delete slots:", error);
