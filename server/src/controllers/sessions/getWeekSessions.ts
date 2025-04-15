@@ -14,7 +14,7 @@ const createResponse = (res: Response, message: string, data: SessionsAccumulato
 
 export const getWeekSessions = async (req: Request, res: Response) => {
   const { employeeId, start, end } = req.body as { employeeId: string, start: string, end: string };
-  
+
   if (!employeeId || !start || !end) {
     return createResponse(res, "All fields are required: employeeId, start, and end dates.");
   }

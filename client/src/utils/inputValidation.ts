@@ -322,8 +322,8 @@ export const validateAddSessionInput = (input: { session: Session }): void => {
 
   const { session } = input;
 
-  if (!session || typeof session !== 'object') {
-    throw new Error('Session is required.');
+  if (!session || typeof session !== 'object' || !Object.keys(session).length) {
+    throw new Error('Invalid input data: session must be a non-empty object.');
   }
 
   if (!session.id || !session.slotId || !session.employeeId || !session.customerId || !session.startTime || !session.createdAt || !session.updatedAt) {
@@ -345,21 +345,17 @@ export const validateAddSessionInput = (input: { session: Session }): void => {
   if (!UUID_REGEX.test(session.customerId)) {
     throw new Error('Invalid customer ID format. Expected UUID.');
   }
-  
-  if (!(session.startTime instanceof Date)) {
+
+  if (!TIMESTAMP_REGEX.test(new Date(session.startTime).toISOString())) {
     throw new Error('Invalid startTime format. Expected a Date object.');
   }
-
-  if (session.message && typeof session.message !== 'string') {
-    throw new Error('Invalid message format. Expected a string.');
-  }
   
-  if (session.updatedAt instanceof Date) {
-    throw new Error('Invalid updateAt format. Expected a Date object.');
+  if (!TIMESTAMP_REGEX.test(new Date(session.createdAt).toISOString())) {
+    throw new Error('Invalid createdAt format. Expected a Date object.');
   }
 
-  if (session.createdAt instanceof Date) {
-    throw new Error('Invalid createdAt format. Expected a Date object.');
+  if (!TIMESTAMP_REGEX.test(new Date(session.updatedAt).toISOString())) {
+    throw new Error('Invalid updateAt format. Expected a Date object.');
   }
 }
 
@@ -391,7 +387,7 @@ export const validateDeleteSessionInput = (input: { sessionId: string }): void =
   const { sessionId } = input;
 
   if (!sessionId) {
-    throw new Error('sessionId is required.');
+    throw new Error('All fields are required: sessionId, employeeId, and startTime.');
   }
 
   if (!UUID_REGEX.test(sessionId)) {

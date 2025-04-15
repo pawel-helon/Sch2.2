@@ -20,7 +20,6 @@ import {
 } from 'src/utils/inputValidation';
 import { getSlotsFromNormalized, getWeekStartEndDatesFromDay } from './helpers';
 
-// Base API for injecting slots and sessions endpoints
 export const schedulingApi = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: 'http://localhost:5000/api' }),
@@ -67,7 +66,7 @@ export const schedulingApi = createApi({
           body
         }
       },
-      /** Inserts slot to cached getWeekSlots data. */
+      /** Inserts slot into cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const data = res.data.data;
@@ -109,7 +108,7 @@ export const schedulingApi = createApi({
           body
         }
       },
-      /** Inserts first recurring slot to cached getWeekSlots data*/
+      /** Inserts first recurring slot into cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const data = res.data.data;
@@ -150,7 +149,7 @@ export const schedulingApi = createApi({
           body
         }
       },
-      /** Inserts restored slots to cached getWeekSlots data */
+      /** Inserts restored slots into cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const data = getSlotsFromNormalized(res.data.data);
@@ -193,7 +192,7 @@ export const schedulingApi = createApi({
           body
         }
       },
-      /** Inserts updated slot to cached getWeekSlots data */
+      /** Updates slot in cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const data = res.data.data;
@@ -231,7 +230,7 @@ export const schedulingApi = createApi({
           body
         }
       },
-      /** Inserts updated initial slot to cached getWeekSlots data */
+      /** Updated initial slot in cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const data = res.data.data;
@@ -269,7 +268,7 @@ export const schedulingApi = createApi({
           body
         }
       },
-      /** Inserts updated slot to cached getWeekSlots data */
+      /** Updates slot in cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const data = res.data.data;
@@ -307,7 +306,7 @@ export const schedulingApi = createApi({
           body
         }
       },
-      /** Inserts updated initial slot to cached getWeekSlots data */
+      /** Updates initial slot in cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const data = res.data.data;
@@ -343,6 +342,7 @@ export const schedulingApi = createApi({
           body
         }
       },
+      /** Removes deleted slots from cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const { employeeId, date, slotIds } = res.data.data;
@@ -385,6 +385,7 @@ export const schedulingApi = createApi({
           body
         }
       },
+      /** Inserts duplicated slots into cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const { data } = res.data;
@@ -430,6 +431,7 @@ export const schedulingApi = createApi({
           body
         }
       },
+      /** Updates initial slot in cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const { data: slot } = res.data;
@@ -466,6 +468,7 @@ export const schedulingApi = createApi({
           body
         }
       },
+      /** Updates initial slot in cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const { data: slot } = res.data;
@@ -494,9 +497,9 @@ export const schedulingApi = createApi({
    * @param {string} body.employeeId - The ID of the employee.
    * @param {string} body.start - The start date in YYYY-MM-DD format.
    * @param {string} body.end - The end date in YYYY-MM-DD format.
-   * @returns {NormalizedSessions[]} An array of normalized sessions.
+   * @returns {NormalizedSessions} An array of normalized sessions.
   */
-  getWeekSessions: builder.query<NormalizedSessions[], { employeeId: string, start: string, end: string}>({
+  getWeekSessions: builder.query<NormalizedSessions, { employeeId: string, start: string, end: string}>({
     query: (body) => {
       validateGetWeekSessionsInput(body);
       return {
@@ -506,7 +509,7 @@ export const schedulingApi = createApi({
       }
     },
     transformResponse: (response: { message: string, data: NormalizedSessions}) => {
-      return [response.data];
+      return response.data;
     },
     providesTags: ['Sessions']
   }),
@@ -515,9 +518,9 @@ export const schedulingApi = createApi({
    * 
    * @param {Object} body - The request payload.
    * @param {Session} body.session - The session object to be added.
-   * @returns {Session} The added session object.
+   * @returns {Object} Message and restored session object.
   */
-  addSession: builder.mutation<Session, { session: Session }>({
+  addSession: builder.mutation<{message: string, data: Session }, { session: Session }>({
     query: (body) => {
       validateAddSessionInput(body);
       return {
@@ -526,7 +529,31 @@ export const schedulingApi = createApi({
         body
       }
     },
-    invalidatesTags: ['Sessions']
+    /** Inserts restored session into cached getWeekSessions data. */
+    async onQueryStarted(_, { dispatch, queryFulfilled }) {
+      const res = await queryFulfilled;
+      const { data: session } = res.data;
+      const employeeId = session.employeeId;
+      const date = new Date(session.startTime).toISOString().split('T')[0];
+      const { start, end } = getWeekStartEndDatesFromDay(date);
+
+      dispatch(schedulingApi.util.patchQueryData(
+        'getWeekSessions',
+        { employeeId: employeeId, start: start, end: end },
+          [
+            {
+              op: 'add',
+              path: ['byId', session.id],
+              value: session
+            },
+            {
+              op: 'add',
+              path: ['allIds', '-'],
+              value: session.id
+            }
+          ]
+      ))
+    },
   }),
   /**
    * Updates a session for a specific employee.
@@ -534,9 +561,9 @@ export const schedulingApi = createApi({
    * @param {Object} body - The request payload.
    * @param {string} body.sessionId - The ID of the session to be updated.
    * @param {string} body.slotId - The ID of the slot to be updated.
-   * @returns {Session} The updated session object.
+   * @returns {Object} Message and the updated session object.
   */
-  updateSession: builder.mutation<Session, { sessionId: string, slotId: string }>({
+  updateSession: builder.mutation<{ message: string, data: Session }, { sessionId: string, slotId: string }>({
     query: (body) => {
       validateUpdateSessionInput(body);
       return {
@@ -552,18 +579,40 @@ export const schedulingApi = createApi({
    * 
    * @param {Object} body - The request payload.
    * @param {string} body.sessionId - The ID of the session to be deleted.
-   * @returns {string} The ID of the deleted session.
+   * @returns {Object} The ID of the deleted session, the ID of the employee, and start time of the session.
    */
-  deleteSession: builder.mutation<{ sessionId: string }, { sessionId: string}>({
+  deleteSession: builder.mutation<{ message: string, data: { sessionId: string, employeeId: string, startTime: Date } }, { sessionId: string }>({
     query: (body) => {
       validateDeleteSessionInput(body);
       return {
         url: 'sessions/delete-session',
-        method: 'POST',
+        method: 'DELETE',
         body
       }
     },
-    invalidatesTags: ['Sessions']
+    /** Removes deleted session from cached getWeekSessions data. */
+    async onQueryStarted(_, { dispatch, queryFulfilled }) {
+      const res = await queryFulfilled;
+      const { sessionId, employeeId, startTime } = res.data.data;
+      const date = new Date(startTime).toISOString().split('T')[0];
+      const { start, end } = getWeekStartEndDatesFromDay(date);
+
+      dispatch(schedulingApi.util.patchQueryData(
+        'getWeekSessions',
+        { employeeId: employeeId, start: start, end: end },
+          [
+            {
+              op: 'remove',
+              path: ['byId', sessionId],
+              value: sessionId
+            },
+            {
+              op: 'remove',
+              path: ['allIds', '-'],
+            }
+          ]
+      ))
+    },
   })
 })
 });

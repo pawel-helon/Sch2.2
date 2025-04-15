@@ -15,8 +15,6 @@ const createResponse = (res: Response, message: string, data: SlotsAccumulator |
 export const addSlots = async (req: Request, res: Response) => {
   const { slots } = req.body as { slots: Slot[] };
 
-  console.log(slots);
-
   if (!Array.isArray(slots) || !slots.length) {
     return createResponse(res, "Slots must be a non-empty array.");
   }

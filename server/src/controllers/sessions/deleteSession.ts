@@ -12,7 +12,7 @@ const createResponse = (res: Response, message: string, data: string | null = nu
 }
 
 export const deleteSession = async (req: Request, res: Response) => {
-  const { id: sessionId } = req.body as { id: string };
+  const { sessionId } = req.body as { sessionId: string };
 
   if (!sessionId) {
     return createResponse(res, "Id is required.");
@@ -24,10 +24,18 @@ export const deleteSession = async (req: Request, res: Response) => {
 
   try {
     const queryValue = `
-      DELETE
-      FROM "Sessions"
+      WITH session_info AS (
+        SELECT s."slotId" AS session_slot_id, sl."startTime" AS session_start_time
+        FROM "Sessions" s
+        INNER JOIN "Slots" sl ON s."slotId" = sl."id"
+        WHERE s."id" = $1::uuid
+      )
+      DELETE FROM "Sessions"
       WHERE "id" = $1::uuid
-      RETURNING "id"
+      RETURNING 
+        "id" AS "sessionId", 
+        "employeeId", 
+        (SELECT session_start_time FROM session_info) AS "startTime"
     `;
 
     const result = await pool.query(queryValue, [
@@ -38,7 +46,7 @@ export const deleteSession = async (req: Request, res: Response) => {
       return createResponse(res, "Failed to delete session.");
     }
 
-    createResponse(res, "Session has been deleted.", result.rows[0].id);
+    createResponse(res, "Session has been deleted.", result.rows[0]);
 
   } catch (error) {
     console.error("Failed to delete session: ", error);

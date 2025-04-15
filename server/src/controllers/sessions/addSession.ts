@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { Session } from "../../lib/types";
 import { pool } from "../../index";
-import { UUID_REGEX } from "../../lib/constants";
+import { TIMESTAMP_REGEX, UUID_REGEX } from "../../lib/constants";
 
 const createResponse = (res: Response, message: string, data: Session | null = null) => {
   res.format({"application/json": () => {
@@ -15,44 +15,49 @@ const createResponse = (res: Response, message: string, data: Session | null = n
 export const addSession = async (req: Request, res: Response) => {
   const { session } = req.body as { session: Session };
 
-  if (typeof session !== "object" || !Object.keys(session).length) {
+  if (!session || typeof session !== "object" || !Object.keys(session).length) {
     return createResponse(res, "Invalid input data: session must be a non-empty object.");
   }
 
-  if (!session.id || !UUID_REGEX.test(session.id)) {
+  if (!session.id || !session.slotId || !session.employeeId || !session.customerId || !session.startTime || !session.createdAt || !session.updatedAt) {
+    return createResponse(res, 'Required fields: id, slotId, employeeId, customerId, startTime, createdAt, updatedAt.');
+  }
+
+  if (!UUID_REGEX.test(session.id)) {
     return createResponse(res, "Invalid id format. Expected UUID.");
   }
 
-  if (!session.slotId || !UUID_REGEX.test(session.slotId)) {
+  if (!UUID_REGEX.test(session.slotId)) {
     return createResponse(res, "Invalid slotId format. Expected UUID.");
   }
 
-  if (!session.employeeId || !UUID_REGEX.test(session.employeeId)) {
+  if (!UUID_REGEX.test(session.employeeId)) {
     return createResponse(res, "Invalid employeeId format. Expected UUID.");
   }
 
-  if (!session.customerId || !UUID_REGEX.test(session.customerId)) {
+  if (!UUID_REGEX.test(session.customerId)) {
     return createResponse(res, "Invalid customerId format. Expected UUID.");
   }
 
-  if (!session.startTime || !(session.startTime instanceof Date)) {
+  if (!TIMESTAMP_REGEX.test(new Date(session.startTime).toISOString())) {
     return createResponse(res, "Invalid startTime format. Expected Date object.");
   }
 
-  if (new Date(session.startTime) < new Date()) {
-    return createResponse(res, "Invalid startTime. Expected non-past value.");
-  }
-
-  if (!session.createdAt || !(session.createdAt instanceof Date)) {
+  if (!TIMESTAMP_REGEX.test(new Date(session.createdAt).toISOString())) {
     return createResponse(res, "Invalid createdAt format. Expected Date object.");
   }
 
-  if (!session.updatedAt || !(session.updatedAt instanceof Date)) {
+  if (!TIMESTAMP_REGEX.test(new Date(session.updatedAt).toISOString())) {
     return createResponse(res, "Invalid updatedAt format. Expected Date object.");
   }
   
   try {
     const queryValue = `
+      WITH slot_info AS (
+        SELECT "startTime" as slot_start_time
+        FROM "Slots"
+        WHERE "id" = $2::uuid
+      )
       INSERT INTO "Sessions" (
         "id", "slotId", "employeeId", "customerId", "message", "createdAt", "updatedAt"
       )
@@ -64,7 +69,16 @@ export const addSession = async (req: Request, res: Response) => {
         $5::text AS "message",
         $6::timestamp AS "createdAt",
         NOW() AS "updatedAt"
-      RETURNING *
+      FROM slot_info
+      RETURNING
+        "id", 
+        "slotId", 
+        "employeeId", 
+        "customerId", 
+        (SELECT slot_start_time FROM slot_info) AS "startTime", 
+        "message", 
+        "createdAt", 
+        "updatedAt";
     `;
 
     const result = await pool.query(queryValue, [
@@ -73,7 +87,7 @@ export const addSession = async (req: Request, res: Response) => {
       session.employeeId,
       session.customerId,
       session.message,
-      session.createdAt
+      session.createdAt,
     ]);
 
     if (!result.rows.length) {
