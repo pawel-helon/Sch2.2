@@ -64,8 +64,6 @@ export const getWeekSlots = async (req: Request, res: Response) => {
     
     createResponse(res, "Slots have been fetched.", normalizedResult);
 
-    console.log('getWeekSlots executed')
-    
   } catch (error) {
     console.error("Failed to fetch slots:", error);
     res.status(500).json({ error: "Internal server error." });

@@ -226,7 +226,7 @@ export const validateDeleteSlotsInput = (input: { slotIds: string[] }): void => 
   const { slotIds } = input;
 
   if (!slotIds) {
-    throw new Error('All fields are required: employeeId, slotIds.');
+    throw new Error('All fields are required: slotIds.');
   }
 
   if (!Array.isArray(slotIds) || !slotIds.every(id => UUID_REGEX.test(id))) {
@@ -266,11 +266,11 @@ export const validateSetSlotRecurrenceInput = (input: { slotId: string }): void 
   const { slotId } = input;
 
   if (!slotId) {
-    throw new Error('slotId is required.');
+    throw Error('slotId is required.');
   }
 
   if (!UUID_REGEX.test(slotId)) {
-    throw new Error('Invalid slotId format. Expected UUID.');
+    throw Error('Invalid slotId format. Expected UUID.');
   }
 }
 

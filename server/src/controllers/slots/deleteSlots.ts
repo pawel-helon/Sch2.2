@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { pool } from "../../index";
 import { UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: { date: string, ids: string[] } | null = null ) => {
+const createResponse = (res: Response, message: string, data: { employeeId: string, date: string, slotIds: string[] } | null = null ) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -12,7 +12,7 @@ const createResponse = (res: Response, message: string, data: { date: string, id
 }
 
 export const deleteSlots = async (req: Request, res: Response) => {
-  const { slotIds } = req.body as { employeeId: string, slotIds: string[] };
+  const { slotIds } = req.body as { slotIds: string[] };
   
   if (!slotIds) {
     return createResponse(res, "SlotIds is required.");
@@ -27,41 +27,30 @@ export const deleteSlots = async (req: Request, res: Response) => {
   }
 
   try {
-    const gettingSlotsDateQueryValue = `
-      SELECT "startTime"::date
-      FROM "Slots"
-      WHERE "id" = $1:uuid
-    `;
-    
-    const gettingSlotsDate = await pool.query(gettingSlotsDateQueryValue, [
-      slotIds[0]
-    ])
-
-    if (!gettingSlotsDate.rows.length) {
-      createResponse(res, "Failed to get slots date.")
-    }
-
-    console.log(gettingSlotsDate.rows[0]);
-    
-    const deletingSlotsQueryValue = `
+    const queryValue = `
       WITH slot_ids AS (
         SELECT unnest($1::uuid[]) AS slot_id
-      ),
+      )
       DELETE
       FROM "Slots"
       WHERE "id" IN (SELECT slot_id FROM slot_ids)
-      RETURNING "id"
+      RETURNING "id", "employeeId", "startTime"
     `;
 
-    const deletingSlots = await pool.query(deletingSlotsQueryValue, [
+    const result = await pool.query(queryValue, [
       slotIds,
     ]);
 
-    if (!deletingSlots.rows.length) {
+    if (!result.rows.length) {
       return createResponse(res, "Failed to delete slots.");
     }
 
-    createResponse(res, "Slots have been deleted.", { date: gettingSlotsDate.rows[0], ids: deletingSlots.rows });
+    const employeeId = result.rows[0].employeeId;
+    const startTime = result.rows[0].startTime;
+    const date = new Date(startTime).toISOString().split('T')[0];
+    const ids = result.rows.flatMap((item) => item.id );
+
+    createResponse(res, "Slots have been deleted.", { employeeId, date, slotIds: ids });
 
   } catch (error) {
     console.error("Failed to delete slots:", error);

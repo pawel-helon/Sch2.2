@@ -13,16 +13,12 @@ const createResponse = (res: Response, message: string, data: Slot | null = null
 }
 
 export const disableSlotRecurrence = async (req: Request, res: Response) => {
-  const { employeeId, slotId } = req.body as { employeeId: string, slotId: string };
+  const { slotId } = req.body as { employeeId: string, slotId: string };
   
-  if (!employeeId || !slotId) {
-    return createResponse(res, "All fields are required: employeeId, slotId.");
+  if (!slotId) {
+    return createResponse(res, "slotId is required.");
   }
 
-  if (!UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Invalid employeeId format. Expected UUID.");
-  }
-  
   if (!UUID_REGEX.test(slotId)) {
     return createResponse(res, "Invalid slotId format. Expected UUID.");
   }

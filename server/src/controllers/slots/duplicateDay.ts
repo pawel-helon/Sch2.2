@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { SlotsAccumulator } from "../../lib/types";
 import { pool } from "../../index";
 import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
-import { resolveMx } from "dns";
 
 const createResponse = (res: Response, message: string, data: SlotsAccumulator | null = null) => {
   res.format({"application/json": () => {
