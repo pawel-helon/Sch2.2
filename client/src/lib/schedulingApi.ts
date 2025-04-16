@@ -561,9 +561,9 @@ export const schedulingApi = createApi({
    * @param {Object} body - The request payload.
    * @param {string} body.sessionId - The ID of the session to be updated.
    * @param {string} body.slotId - The ID of the slot to be updated.
-   * @returns {Object} Message and the updated session object.
+   * @returns {Object} Message and the data object containing prevStartTime date and session object.
   */
-  updateSession: builder.mutation<{ message: string, data: Session }, { sessionId: string, slotId: string }>({
+  updateSession: builder.mutation<{ message: string, data: { prevStartTime: Date, session: Session } }, { sessionId: string, slotId: string }>({
     query: (body) => {
       validateUpdateSessionInput(body);
       return {
@@ -572,7 +572,45 @@ export const schedulingApi = createApi({
         body
       }
     },
-    invalidatesTags: ['Sessions']
+    /** Updates session in cached getWeekSessions data, if session stays in the same week*/
+    async onQueryStarted(_, { dispatch, queryFulfilled }) {
+      const res = await queryFulfilled;
+      const { prevStartTime, session } = res.data.data;
+      const employeeId = session.employeeId;
+      const prevDate = new Date(prevStartTime).toISOString().split('T')[0];
+      const { start: prevStart } = getWeekStartEndDatesFromDay(prevDate);
+      const nextDate = new Date(session.startTime).toISOString().split('T')[0];
+      const { start: nextStart, end } = getWeekStartEndDatesFromDay(nextDate);
+
+      if (prevStart === nextStart) {
+        dispatch(schedulingApi.util.patchQueryData(
+          'getWeekSessions',
+          { employeeId: employeeId, start: nextStart, end: end },
+          [
+            {
+              op: 'replace',
+              path: ['byId', session.id],
+              value: session
+            },
+          ]
+        ))
+      } else {
+        dispatch(schedulingApi.util.patchQueryData(
+          'getWeekSessions',
+          { employeeId: employeeId, start: nextStart, end: end },
+          [
+            {
+              op: 'remove',
+              path: ['byId', session.id],
+            },
+            {
+              op: 'remove',
+              path: ['allIds', '-']
+            }
+          ]
+        ))
+      }
+    },
   }),
   /**
    * Deletes a session for a specific employee.

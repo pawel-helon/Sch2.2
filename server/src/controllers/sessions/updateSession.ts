@@ -3,7 +3,7 @@ import { Session } from "../../lib/types";
 import { pool } from "../../index";
 import { UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: Session | null = null) => {
+const createResponse = (res: Response, message: string, data: { prevStartTime: Date, session: Session} | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -29,25 +29,35 @@ export const updateSession = async (req: Request, res: Response) => {
 
   try {
     const queryValue = `
-      WITH slot_info AS (
-        SELECT
-          "startTime" AS slot_start_time
+      WITH session_info AS (
+        SELECT "slotId" AS slot_id
+        FROM "Sessions"
+        WHERE "id" = $2::uuid
+      ),
+      prev_slot_info AS (
+        SELECT "startTime" AS slot_start_time
+        FROM "Slots"
+        INNER JOIN session_info ON "Slots"."id" = session_info.slot_id
+      ),
+      next_slot_info AS (
+        SELECT "startTime" AS slot_start_time
         FROM "Slots"
         WHERE "id" = $1::uuid
       )
       UPDATE "Sessions"
       SET "slotId" = $1::uuid
-      FROM slot_info
-      WHERE "id" = $2::uuid
+      FROM prev_slot_info, next_slot_info
+      WHERE "Sessions"."id" = $2::uuid
       RETURNING
         "id",
         "slotId",
         "employeeId",
         "customerId",
-        slot_info.slot_start_time AS "startTime",
+        (SELECT slot_start_time FROM next_slot_info) AS "startTime",
         "message",
         "createdAt",
-        "updatedAt"
+        "updatedAt",
+        (SELECT slot_start_time FROM prev_slot_info) AS "prevStartTime"
     `;
 
     const result = await pool.query(queryValue, [
@@ -59,7 +69,18 @@ export const updateSession = async (req: Request, res: Response) => {
       return createResponse(res, "Failed to update session.");
     }
 
-    createResponse(res, "Session has been updated.", result.rows[0]);
+    const session = {
+      id: result.rows[0].id,
+      slotId: result.rows[0].slotId,
+      employeeId: result.rows[0].employeeId,
+      customerId: result.rows[0].customerId,
+      startTime: result.rows[0].startTime,
+      message: result.rows[0].message,
+      createdAt: result.rows[0].createdAt,
+      updatedAt: result.rows[0].updatedAt,
+    }
+
+    createResponse(res, "Session has been updated.", { prevStartTime: result.rows[0].prevStartTime, session: session });
     
   } catch (error) {
     console.error("Failed to update session: ", error);
