@@ -13,7 +13,7 @@ const createResponse = (res: Response, message: string, data: { employeeId: stri
 
 export const deleteSlots = async (req: Request, res: Response) => {
   const { slotIds } = req.body as { slotIds: string[] };
-  
+
   if (!slotIds) {
     return createResponse(res, "SlotIds is required.");
   }

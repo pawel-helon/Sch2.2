@@ -3,7 +3,7 @@ import { Slot } from "../../lib/types";
 import { pool } from "../../index";
 import { UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: Slot | null = null) => {
+const createResponse = (res: Response, message: string, data: { prevMinutes: string, slot: Slot } | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -64,7 +64,16 @@ export const updateSlotMinutes = async (req: Request, res: Response) => {
             )::timestamp
             AND s2."id" != $2::uuid
         )
-      RETURNING "id", "employeeId", "type", "startTime", "duration", "recurring", "createdAt", "updatedAt"
+      RETURNING
+        "id",
+        "employeeId",
+        "type",
+        "startTime",
+        "duration",
+        "recurring",
+        "createdAt",
+        "updatedAt",
+        (SELECT slot_info.current_minutes FROM slot_info) AS "prevMinutes"
     `;
 
     const result = await pool.query(queryValue, [
@@ -77,7 +86,18 @@ export const updateSlotMinutes = async (req: Request, res: Response) => {
       return createResponse(res, "Failed to update slot.");
     }
 
-    createResponse(res, "Slot time has been updated.", result.rows[0]);
+    const slot = {
+      id: result.rows[0].id,
+      employeeId: result.rows[0].employeeId,
+      type: result.rows[0].type,
+      startTime: result.rows[0].startTime,
+      duration: result.rows[0].duration,
+      recurring: result.rows[0].recurring,
+      createdAt: result.rows[0].createdAt,
+      updatedAt: result.rows[0].updatedAt
+    }
+
+    createResponse(res, "Slot time has been updated.", { prevMinutes: result.rows[0].prevMinutes, slot });
 
   } catch (error) {
     console.error("Failed to update slot minutes: ", error);

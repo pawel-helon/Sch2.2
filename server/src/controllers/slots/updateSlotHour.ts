@@ -3,7 +3,7 @@ import { Slot } from "../../lib/types";
 import { pool } from "../../index";
 import { UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: Slot | null = null) => {
+const createResponse = (res: Response, message: string, data: { prevHour: string, slot: Slot } | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -14,7 +14,7 @@ const createResponse = (res: Response, message: string, data: Slot | null = null
 
 export const updateSlotHour = async (req: Request, res: Response) => {
   const { employeeId, slotId, hour } = req.body as { employeeId: string, slotId: string, hour: number };
-  
+
   if (!employeeId || !slotId || !hour) {
     return createResponse(res, "All fields are required: employeeId, slotId and hour.");
   }
@@ -64,7 +64,16 @@ export const updateSlotHour = async (req: Request, res: Response) => {
             )::timestamp
             AND s2."id" != $2::uuid
         )
-      RETURNING "id", "employeeId", "type", "startTime", "duration", "recurring", "createdAt", "updatedAt"
+      RETURNING
+        "id",
+        "employeeId",
+        "type",
+        "startTime",
+        "duration",
+        "recurring",
+        "createdAt",
+        "updatedAt",
+        (SELECT slot_info.current_hour FROM slot_info) AS "prevHour"
     `;
 
     const result = await pool.query(queryValue, [
@@ -76,8 +85,19 @@ export const updateSlotHour = async (req: Request, res: Response) => {
     if (!result.rows.length) {
       return createResponse(res, "Failed to update slot.");
     }
+    
+    const slot = {
+      id: result.rows[0].id,
+      employeeId: result.rows[0].employeeId,
+      type: result.rows[0].type,
+      startTime: result.rows[0].startTime,
+      duration: result.rows[0].duration,
+      recurring: result.rows[0].recurring,
+      createdAt: result.rows[0].createdAt,
+      updatedAt: result.rows[0].updatedAt
+    }
 
-    createResponse(res, "Slot time has been updated.", result.rows[0]);
+    createResponse(res, "Slot time has been updated.", { prevHour: result.rows[0].prevHour, slot });
     
   } catch (error) {
     console.error("Failed to update slot hour: ", error);
