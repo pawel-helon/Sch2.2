@@ -411,18 +411,46 @@ export const validateUpdateSessionInput = (input: { sessionId: string, slotId: s
   }
 }
 
-export const validateDeleteSessionInput = (input: { sessionId: string }): void => {
+export const validateDeleteSessionInput = (input: { session: Session }): void => {
   if (!input || typeof input !== 'object') {
     throw new Error('Input is required. Expected an object.');
   }
 
-  const { sessionId } = input;
+  const { session } = input;
 
-  if (!sessionId) {
-    throw new Error('All fields are required: sessionId, employeeId, and startTime.');
+  if (!session || typeof session !== 'object' || !Object.keys(session).length) {
+    throw new Error('Invalid input data: session must be a non-empty object.');
   }
 
-  if (!UUID_REGEX.test(sessionId)) {
+  if (!session.id || !session.slotId || !session.employeeId || !session.customerId || !session.startTime || !session.createdAt || !session.updatedAt) {
+    throw new Error('Required fields: id, slotId, employeeId, customerId, startTime, createdAt, updatedAt.');
+  }
+
+  if (!UUID_REGEX.test(session.id)) {
     throw new Error('Invalid session ID format. Expected UUID.');
+  }
+
+  if (!UUID_REGEX.test(session.slotId)) {
+    throw new Error('Invalid slot ID format. Expected UUID.');
+  }
+  
+  if (!UUID_REGEX.test(session.employeeId)) {
+    throw new Error('Invalid employee ID format. Expected UUID.');
+  }
+
+  if (!UUID_REGEX.test(session.customerId)) {
+    throw new Error('Invalid customer ID format. Expected UUID.');
+  }
+
+  if (!TIMESTAMP_REGEX.test(new Date(session.startTime).toISOString())) {
+    throw new Error('Invalid startTime format. Expected a Date object.');
+  }
+  
+  if (!TIMESTAMP_REGEX.test(new Date(session.createdAt).toISOString())) {
+    throw new Error('Invalid createdAt format. Expected a Date object.');
+  }
+
+  if (!TIMESTAMP_REGEX.test(new Date(session.updatedAt).toISOString())) {
+    throw new Error('Invalid updateAt format. Expected a Date object.');
   }
 }

@@ -6,6 +6,7 @@ import {
 } from 'src/utils/inputValidation';
 import { Session } from "src/lib/types";
 import { getWeekStartEndDatesFromDay } from "src/lib/helpers";
+import { sessionsMutationAdded } from "./sessionsMutationsSlice";
 
 export const sessionsSlice = schedulingApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -59,7 +60,7 @@ export const sessionsSlice = schedulingApi.injectEndpoints({
      * @param {string} body.slotId - The ID of the slot to be updated.
      * @returns {Object} Message and the data object containing prevStartTime date and session object.
     */
-    updateSession: builder.mutation<{ message: string, data: { prevStartTime: Date, session: Session } }, { sessionId: string, slotId: string }>({
+    updateSession: builder.mutation<{ message: string, data: { prevSlotId: string, prevStartTime: Date, session: Session } }, { sessionId: string, slotId: string }>({
       query: (body) => {
         validateUpdateSessionInput(body);
         return {
@@ -68,16 +69,29 @@ export const sessionsSlice = schedulingApi.injectEndpoints({
           body
         }
       },
-      /** Updates session in cached getWeekSessions data, if session stays in the same week*/
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
-        const { prevStartTime, session } = res.data.data;
+        const { prevSlotId, prevStartTime, session } = res.data.data;
         const employeeId = session.employeeId;
         const prevDate = new Date(prevStartTime).toISOString().split('T')[0];
         const { start: prevStart } = getWeekStartEndDatesFromDay(prevDate);
         const nextDate = new Date(session.startTime).toISOString().split('T')[0];
         const { start: nextStart, end } = getWeekStartEndDatesFromDay(nextDate);
-  
+
+        /** Stores sessions's previous state in cached sessionsMutationsSlice data. */
+        const sessionPrevState = {
+          id: session.id,
+          slotId: prevSlotId,
+          employeeId: session.employeeId,
+          customerId: session.customerId,
+          startTime: prevStartTime,
+          message: session.message,
+          createdAt: session.createdAt,
+          updatedAt: session.updatedAt,
+        }
+        dispatch(sessionsMutationAdded(sessionPrevState));
+        
+        /** Updates session in cached getWeekSessions data, if session stays in the same week*/
         if (prevStart === nextStart) {
           dispatch(schedulingApi.util.patchQueryData(
             'getWeekSessions',
@@ -115,22 +129,25 @@ export const sessionsSlice = schedulingApi.injectEndpoints({
      * @param {string} body.sessionId - The ID of the session to be deleted.
      * @returns {Object} The ID of the deleted session, the ID of the employee, and start time of the session.
     */
-    deleteSession: builder.mutation<{ message: string, data: { sessionId: string, employeeId: string, startTime: Date } }, { sessionId: string }>({
+    deleteSession: builder.mutation<{ message: string, data: { sessionId: string, employeeId: string, startTime: Date } }, { session: Session }>({
       query: (body) => {
         validateDeleteSessionInput(body);
         return {
           url: 'sessions/delete-session',
           method: 'DELETE',
-          body
+          body: { sessionId: body.session.id }
         }
       },
-      /** Removes deleted session from cached getWeekSessions data. */
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+      async onQueryStarted(args, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const { sessionId, employeeId, startTime } = res.data.data;
         const date = new Date(startTime).toISOString().split('T')[0];
         const { start, end } = getWeekStartEndDatesFromDay(date);
-  
+
+        /** Updates session in cached getWeekSessions data, if session stays in the same week*/
+        dispatch(sessionsMutationAdded(args.session));
+        
+        /** Removes deleted session from cached getWeekSessions data. */
         dispatch(schedulingApi.util.patchQueryData(
           'getWeekSessions',
           { employeeId: employeeId, start: start, end: end },

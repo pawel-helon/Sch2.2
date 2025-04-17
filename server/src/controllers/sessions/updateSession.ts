@@ -3,7 +3,7 @@ import { Session } from "../../lib/types";
 import { pool } from "../../index";
 import { UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: { prevStartTime: Date, session: Session} | null = null) => {
+const createResponse = (res: Response, message: string, data: { prevSlotId: string, prevStartTime: Date, session: Session} | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -46,7 +46,7 @@ export const updateSession = async (req: Request, res: Response) => {
       )
       UPDATE "Sessions"
       SET "slotId" = $1::uuid
-      FROM prev_slot_info, next_slot_info
+      FROM session_info, prev_slot_info, next_slot_info
       WHERE "Sessions"."id" = $2::uuid
       RETURNING
         "id",
@@ -57,6 +57,7 @@ export const updateSession = async (req: Request, res: Response) => {
         "message",
         "createdAt",
         "updatedAt",
+        (SELECT slot_id FROM session_info) AS "prevSlotId",
         (SELECT slot_start_time FROM prev_slot_info) AS "prevStartTime"
     `;
 
@@ -80,7 +81,11 @@ export const updateSession = async (req: Request, res: Response) => {
       updatedAt: result.rows[0].updatedAt,
     }
 
-    createResponse(res, "Session has been updated.", { prevStartTime: result.rows[0].prevStartTime, session: session });
+    createResponse(res, "Session has been updated.", {
+      prevSlotId: result.rows[0].prevSlotId,
+      prevStartTime: result.rows[0].prevStartTime,
+      session: session
+    });
     
   } catch (error) {
     console.error("Failed to update session: ", error);

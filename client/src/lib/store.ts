@@ -1,11 +1,13 @@
 import { Action, configureStore, ThunkAction } from '@reduxjs/toolkit';
 import { schedulingApi } from './schedulingApi';
 import slotsMutationsSlice from 'src/features/slots/slotsMutationsSlice';
+import sessionsMutationsSlice from 'src/features/sessions/sessionsMutationsSlice';
 
 export const store = configureStore({
   reducer: {
     [schedulingApi.reducerPath]: schedulingApi.reducer,
     slotsMutations: slotsMutationsSlice,
+    sessionsMutations: sessionsMutationsSlice
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
