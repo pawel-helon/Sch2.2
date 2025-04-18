@@ -19,7 +19,6 @@ const sessionsMutationsSlice = createSlice({
   reducers: {
     sessionsMutationAdded(state, action: PayloadAction<Session>) {
       const session = action.payload;
-      console.log('sessionsMutations: ', session);
       state.data.push(session);
     },
     sessionsMutationRemoved(state, action: PayloadAction<string>) {

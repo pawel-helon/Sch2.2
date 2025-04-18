@@ -44,7 +44,7 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
           "employeeId"::uuid AS slot_employee_id,
           "startTime"::time AS slot_start_time,
           "startTime"::date AS slot_start_date,
-          EXTRACT(YEAR FROM "startTime") as slot_year,
+          EXTRACT(YEAR FROM "startTime") AS slot_year,
           "duration" AS slot_duration
         FROM "Slots"
         WHERE "id" = $1::uuid

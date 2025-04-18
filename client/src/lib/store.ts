@@ -12,8 +12,8 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ['slotsMutations/slotsMutationAdded'],
-        ignoredPaths: ['slotsMutations', 'payload.startTime'],
+        ignoredActions: ['slotsMutations/slotsMutationAdded', 'sessionsMutations/sessionsMutationAdded'],
+        ignoredPaths: ['slotsMutations', 'sessionsMutations', 'payload.startTime'],
       },
     }).concat(schedulingApi.middleware)
 });

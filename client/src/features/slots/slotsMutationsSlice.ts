@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Slot } from "src/lib/types";
 
 interface SlotsMutationsState {
-  data: Slot[],
+  data: { message: string | null, slot: Slot }[],
   status: 'idle' | 'loading' | 'succeeded' | 'failed',
   error: string | null
 }
@@ -17,13 +17,13 @@ const slotsMutationsSlice = createSlice({
   name: 'slotsMutations',
   initialState,
   reducers: {
-    slotsMutationAdded(state, action: PayloadAction<Slot>) {
-      const slot = action.payload;
-      state.data.push(slot);
+    slotsMutationAdded(state, action: PayloadAction<{ message: string | null, slot: Slot }>) {
+      const data = action.payload;
+      state.data.push(data);
     },
     slotsMutationRemoved(state, action: PayloadAction<string>) {
       const slotId = action.payload;
-      state.data.filter(slot => slot.id !== slotId);
+      state.data = state.data.filter(mutation => mutation.slot.id !== slotId);
     },
   },
 })

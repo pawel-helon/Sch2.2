@@ -54,7 +54,7 @@ export const addSession = async (req: Request, res: Response) => {
   try {
     const queryValue = `
       WITH slot_info AS (
-        SELECT "startTime" as slot_start_time
+        SELECT "startTime" AS slot_start_time
         FROM "Slots"
         WHERE "id" = $2::uuid
       )
@@ -75,7 +75,7 @@ export const addSession = async (req: Request, res: Response) => {
         "slotId", 
         "employeeId", 
         "customerId", 
-        (SELECT slot_start_time FROM slot_info) AS "startTime", 
+        (SELECT slot_start_time FROM slot_info) AS "startTime",
         "message", 
         "createdAt", 
         "updatedAt";

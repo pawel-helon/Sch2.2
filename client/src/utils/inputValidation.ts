@@ -74,6 +74,18 @@ export const validateAddRecurringSlotInput = (input: { employeeId: string, day: 
   }
 }
 
+export const validateUndoAddRecurringSlotInput = (input: { slotId: string }): void => {
+  if (!input || typeof input !== 'object') {
+    throw new Error('Input is required. Expected an object.');
+  }
+
+  const { slotId } = input;
+
+  if (!UUID_REGEX.test(slotId)) {
+    throw new Error('Invalid slotId format. Expected UUID.');
+  }
+}
+
 export const validateAddSlotsInput = (input: { slots: Slot[] } ): void => {
   if (!input || typeof input !== 'object') {
     throw new Error('Input is required. Expected an object.');

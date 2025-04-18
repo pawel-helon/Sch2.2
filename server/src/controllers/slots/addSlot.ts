@@ -69,14 +69,17 @@ export const addSlot = async (req: Request, res: Response) => {
       RETURNING *
     `;
 
+    
     const result = await pool.query(queryValue, [
       employeeId,
       day
     ]);
-
+    
     if (!result.rows.length) {
       return createResponse(res, "Failed to add slot.");
     }
+    
+    console.log(result.rows[0]);
 
     createResponse(res, "New slot has been added.", result.rows[0]);
 
