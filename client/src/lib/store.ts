@@ -1,19 +1,22 @@
 import { Action, configureStore, ThunkAction } from '@reduxjs/toolkit';
 import { schedulingApi } from './schedulingApi';
-import slotsMutationsSlice from 'src/features/slots/slotsMutationsSlice';
-import sessionsMutationsSlice from 'src/features/sessions/sessionsMutationsSlice';
+import undoSlice from 'src/lib/undoSlice';
 
 export const store = configureStore({
   reducer: {
     [schedulingApi.reducerPath]: schedulingApi.reducer,
-    slotsMutations: slotsMutationsSlice,
-    sessionsMutations: sessionsMutationsSlice
+    undo: undoSlice
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ['slotsMutations/slotsMutationAdded', 'sessionsMutations/sessionsMutationAdded'],
-        ignoredPaths: ['slotsMutations', 'sessionsMutations', 'payload.startTime'],
+        ignoredActions: [
+          'undo/undoAdded'
+        ],
+        ignoredPaths: [
+          'undo',
+          'payload.startTime'
+        ],
       },
     }).concat(schedulingApi.middleware)
 });

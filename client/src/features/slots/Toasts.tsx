@@ -2,25 +2,26 @@ import React from 'react';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { AnimatePresence, motion } from 'framer-motion'; 
 import { useDispatch, useSelector } from 'react-redux';
-import { slotsMutationRemoved } from './slotsMutationsSlice';
+import { undoRemoved } from 'src/lib/undoSlice';
 import {
   useUndoAddRecurringSlotMutation,
-  useUndoUpdateSlotHourMutation
+  useUndoUpdateRecurringSlotHourMutation,
+  useUndoUpdateSlotHourMutation,
 } from './slotsSlice';
 import { Paragraph } from 'src/lib/typography';
 import { Button } from 'src/ui/button';
 import { AppDispatch, RootState } from 'src/lib/store';
-import { Slot } from 'src/lib/types';
+import { Session, Slot } from 'src/lib/types';
 
 export function Toasts() {
   const dispatch = useDispatch<AppDispatch>();
-  const slotsMutations = useSelector((state: RootState) => state.slotsMutations);
+  const undos = useSelector((state: RootState) => state.undo)
   
-  if (Object.values(slotsMutations.data).length > 0) {
+  if (Object.values(undos.payload).length > 0) {
     return (
       <AnimatePresence>
-        {Object.values(slotsMutations.data).map((mutation: { message: string | null, slot: Slot }) => (
-          <Toast key={mutation.slot.id} mutation={mutation} dispatch={dispatch} />
+        {Object.values(undos.payload).map((undo: { message: string, data: Slot | Session }) => (
+          <Toast key={undo.data.id} undo={undo} dispatch={dispatch} />
         ))}
       </AnimatePresence>
     )
@@ -28,32 +29,38 @@ export function Toasts() {
 }
 
 function Toast(props: {
-  mutation: { message: string | null, slot: Slot }
+  undo: { message: string, data: Slot | Session }
   dispatch: AppDispatch;
 }) {
   const [ undoUpdateSlotHour ] = useUndoUpdateSlotHourMutation();
   const [ undoAddRecurringSlot ] = useUndoAddRecurringSlotMutation();
+  const [ undoUpdateRecurringSlotHour ] = useUndoUpdateRecurringSlotHourMutation();
 
   React.useEffect(() => {
     setTimeout(() => {
-      props.dispatch(slotsMutationRemoved(props.mutation.slot.id));
+      props.dispatch(undoRemoved(props.undo.data.id));
     }, 5000);
   },[props])
   
   const description = (
     <Paragraph variant='thin' size='sm'>
-      {props.mutation.message}
+      {props.undo.message}
     </Paragraph>
   );
 
   const handleClick = () => {
-    if ( props.mutation.message === 'Slot hour has been updated.') {
-      const hour = new Date(props.mutation.slot.startTime).getHours();
-      undoUpdateSlotHour({ employeeId: props.mutation.slot.employeeId, slotId: props.mutation.slot.id, hour });
-    } else if ( props.mutation.message === 'Recurring slot has been added.') {
-      undoAddRecurringSlot({ slotId: props.mutation.slot.id })
+    props.dispatch(undoRemoved(props.undo.data.id));
+    if ( props.undo.message === 'Recurring slot has been added.') {
+      undoAddRecurringSlot({ slotId: props.undo.data.id })
+    } else if ( props.undo.message === 'Slot hour has been updated.') {
+      const hour = new Date(props.undo.data.startTime).getHours();
+      undoUpdateSlotHour({ slotId: props.undo.data.id, hour });
+    } else if ( props.undo.message === 'Recurring slot hour has been updated.') {
+      undoUpdateRecurringSlotHour({
+        slotId: props.undo.data.id,
+        hour: new Date(props.undo.data.startTime).getHours()
+      });
     }
-    props.dispatch(slotsMutationRemoved(props.mutation.slot.id));
   }
   
   return (

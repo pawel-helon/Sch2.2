@@ -79,8 +79,6 @@ export const addSlot = async (req: Request, res: Response) => {
       return createResponse(res, "Failed to add slot.");
     }
     
-    console.log(result.rows[0]);
-
     createResponse(res, "New slot has been added.", result.rows[0]);
 
   } catch (error) {

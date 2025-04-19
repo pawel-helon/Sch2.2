@@ -1,5 +1,5 @@
 import { schedulingApi } from "src/lib/schedulingApi";
-import { slotsMutationAdded, slotsMutationRemoved } from "./slotsMutationsSlice";
+import { undoAdded } from "src/lib/undoSlice";
 import {
   validateAddRecurringSlotInput,
   validateAddSlotInput,
@@ -14,8 +14,8 @@ import {
   validateUpdateSlotHourInput,
   validateUpdateSlotMinutesInput
 } from 'src/utils/inputValidation';
-import { NormalizedSlots, Slot } from "src/lib/types";
 import { getSlotsFromNormalized, getWeekStartEndDatesFromDay } from "src/lib/helpers";
+import { NormalizedSlots, Slot } from "src/lib/types";
 
 export const slotsSlice = schedulingApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -86,7 +86,7 @@ export const slotsSlice = schedulingApi.injectEndpoints({
         
         /** Stores message and slot's previous state in cached slotsMutationsSlice data. */
         const message = 'Recurring slot has been added.';
-        dispatch(slotsMutationAdded({ message, slot }))
+        dispatch(undoAdded({ message, data: slot }))
         
         /** Inserts first recurring slot into cached getWeekSlots data. */
         dispatch(schedulingApi.util.patchQueryData(
@@ -108,7 +108,7 @@ export const slotsSlice = schedulingApi.injectEndpoints({
       }
     }),
     /**
-     * Reverses adding recurring slot for a specific employee on a given day.
+     * Undoes adding recurring slot for a specific employee on a given day.
      * 
      * @param {Object} body - The request payload.
      * @param {string} body.employeeId - The ID of the employee.
@@ -129,9 +129,6 @@ export const slotsSlice = schedulingApi.injectEndpoints({
         const slot = res.data.data;
         const date = new Date(slot.startTime).toISOString().split('T')[0];
         const { start, end } = getWeekStartEndDatesFromDay(date);
-        
-        /** Stores message and slot's previous state in cached slotsMutationsSlice data. */
-        dispatch(slotsMutationRemoved(slot.id));
         
         /** Inserts first recurring slot into cached getWeekSlots data. */
         dispatch(schedulingApi.util.patchQueryData(
@@ -159,7 +156,7 @@ export const slotsSlice = schedulingApi.injectEndpoints({
      * @param {string} body.hour - The new hour value in HH-MM fomrat.
      * @returns {Object} - Message and an object containing previous hour and slot object.
     */
-    updateSlotHour: builder.mutation<{ message: string, data: { prevHour: string, slot: Slot } }, { employeeId: string, slotId: string, hour: number } >({
+    updateSlotHour: builder.mutation<{ message: string, data: { prevHour: string, slot: Slot } }, { slotId: string, hour: number } >({
       query: (body) => {
         validateUpdateSlotHourInput(body);
         return {
@@ -170,42 +167,42 @@ export const slotsSlice = schedulingApi.injectEndpoints({
       },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
-        const slot = res.data.data.slot;
+        const updatedSlot = res.data.data.slot;
         const prevHour = Number(res.data.data.prevHour);
-        const date = new Date(slot.startTime).toISOString().split('T')[0];
+        const date = new Date(updatedSlot.startTime).toISOString().split('T')[0];
         const { start, end } = getWeekStartEndDatesFromDay(date);
         
         /** Stores message and slot's previous state in cached slotsMutationsSlice data. */
         const message = 'Slot hour has been updated.';
-        const slotPrevStartTimeMinutes = new Date(slot.startTime).getMinutes();  
+        const slotPrevStartTimeMinutes = new Date(updatedSlot.startTime).getMinutes();  
         const slotPrevState = {
-          id: slot.id,
-          employeeId: slot.employeeId,
-          type: slot.type,
-          startTime: new Date(new Date(slot.startTime).setHours(prevHour, slotPrevStartTimeMinutes)),
-          duration: slot.duration,
-          recurring: slot.recurring,
-          createdAt: slot.createdAt,
-          updatedAt: slot.updatedAt
+          id: updatedSlot.id,
+          employeeId: updatedSlot.employeeId,
+          type: updatedSlot.type,
+          startTime: new Date(new Date(updatedSlot.startTime).setHours(prevHour, slotPrevStartTimeMinutes)),
+          duration: updatedSlot.duration,
+          recurring: updatedSlot.recurring,
+          createdAt: updatedSlot.createdAt,
+          updatedAt: updatedSlot.updatedAt
         }
-        dispatch(slotsMutationAdded({ message, slot: slotPrevState }));
+        dispatch(undoAdded({ message, data: slotPrevState }));
         
         /** Updates slot in cached getWeekSlots data. */
         dispatch(schedulingApi.util.patchQueryData(
           'getWeekSlots',
-          { employeeId: slot.employeeId, start: start, end: end },
+          { employeeId: updatedSlot.employeeId, start: start, end: end },
           [
             {
               op: 'replace',
-              path: ['byId', slot.id],
-              value: slot
+              path: ['byId', updatedSlot.id],
+              value: updatedSlot
             } 
           ]
         ))
       },
     }),
     /**
-     * Reverses hour update of a specific slot for a given employee.
+     * Undoes hour update of a specific slot for a given employee.
      * 
      * @param {Object} body - The request payload.
      * @param {string} body.employeeId - The ID of the employee.
@@ -213,7 +210,7 @@ export const slotsSlice = schedulingApi.injectEndpoints({
      * @param {string} body.hour - The new hour value in HH-MM fomrat.
      * @returns {Object} - Message and an object containing previous hour and slot object.
     */
-    undoUpdateSlotHour: builder.mutation<{ message: string, data: { prevHour: string, slot: Slot } }, { employeeId: string, slotId: string, hour: number } >({
+    undoUpdateSlotHour: builder.mutation<{ message: string, data: { prevHour: string, slot: Slot } }, { slotId: string, hour: number } >({
       query: (body) => {
         validateUpdateSlotHourInput(body);
         return {
@@ -222,16 +219,13 @@ export const slotsSlice = schedulingApi.injectEndpoints({
           body
         }
       },
+      /** Updates slot in cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const slot = res.data.data.slot;
         const date = new Date(slot.startTime).toISOString().split('T')[0];
         const { start, end } = getWeekStartEndDatesFromDay(date);
-        
-        /** Removes entry from cached slotsMutationSlice data. */
-        dispatch(slotsMutationRemoved(slot.id));
-        
-        /** Updates slot in cached getWeekSlots data. */
+
         dispatch(schedulingApi.util.patchQueryData(
           'getWeekSlots',
           { employeeId: slot.employeeId, start: start, end: end },
@@ -254,7 +248,7 @@ export const slotsSlice = schedulingApi.injectEndpoints({
      * @param {string} body.hour - The new hour value in HH-MM fomrat.
      * @returns {Object} - Message and an object containing previous hour and slot object.
     */
-    updateRecurringSlotHour: builder.mutation<{ message: string, data: { prevHour: string, slot: Slot } }, { employeeId: string, slotId: string, hour: number } >({
+    updateRecurringSlotHour: builder.mutation<{ message: string, data: { prevHour: string, slot: Slot } }, { slotId: string, hour: number } >({
       query: (body) => {
         validateUpdateRecurringSlotHourInput(body);
         return {
@@ -271,7 +265,8 @@ export const slotsSlice = schedulingApi.injectEndpoints({
         const { start, end } = getWeekStartEndDatesFromDay(date);
         
         /** Stores slot's previous state in cached slotsMutationsSlice data. */
-        const slotPrevStartTimeMinutes = new Date(slot.startTime).getMinutes();  
+        const message = 'Recurring slot hour has been updated.'
+        const slotPrevStartTimeMinutes = new Date(slot.startTime).getMinutes();
         const slotPrevState = {
           id: slot.id,
           employeeId: slot.employeeId,
@@ -282,7 +277,46 @@ export const slotsSlice = schedulingApi.injectEndpoints({
           createdAt: slot.createdAt,
           updatedAt: slot.updatedAt
         }
-        dispatch(slotsMutationAdded({ message: 'TODO', slot: slotPrevState }));
+        dispatch(undoAdded({ message, data: slotPrevState }));
+        
+        /** Updates initial slot in cached getWeekSlots data. */
+        dispatch(schedulingApi.util.patchQueryData(
+          'getWeekSlots',
+          { employeeId: slot.employeeId, start: start, end: end },
+          [
+            {
+              op: 'replace',
+              path: ['byId', slot.id],
+              value: slot
+            },
+          ]
+        ))
+      },
+    }),
+    /**
+     * Undoes update of the recurring slot hour for a given employee.
+     * 
+     * @param {Object} body - The request payload.
+     * @param {string} body.employeeId - The ID of the employee.
+     * @param {string} body.slotId - The ID of the slot to be updated.
+     * @param {string} body.hour - The new hour value in HH-MM fomrat.
+     * @returns {Object} - Message and an object containing previous hour and slot object.
+    */
+    undoUpdateRecurringSlotHour: builder.mutation<{ message: string, data: { prevHour: string, slot: Slot } }, { slotId: string, hour: number } >({
+      query: (body) => {
+        validateUpdateRecurringSlotHourInput(body);
+        return {
+          url: 'slots/update-recurring-slot-hour',
+          method: 'PUT',
+          body
+        }
+      },
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        const res = await queryFulfilled;
+        const slot = res.data.data.slot;
+        const date = new Date(slot.startTime).toISOString().split('T')[0];
+        const { start, end } = getWeekStartEndDatesFromDay(date);
+
         
         /** Updates initial slot in cached getWeekSlots data. */
         dispatch(schedulingApi.util.patchQueryData(
@@ -335,7 +369,7 @@ export const slotsSlice = schedulingApi.injectEndpoints({
           createdAt: slot.createdAt,
           updatedAt: slot.updatedAt
         }
-        dispatch(slotsMutationAdded({ message: 'TODO', slot: slotPrevState }));
+        dispatch(undoAdded({ message: 'TODO', data: slotPrevState }));
         
         /** Updates slot in cached getWeekSlots data. */
         dispatch(schedulingApi.util.patchQueryData(
@@ -389,7 +423,7 @@ export const slotsSlice = schedulingApi.injectEndpoints({
           createdAt: slot.createdAt,
           updatedAt: slot.updatedAt
         }
-        dispatch(slotsMutationAdded({ message: 'TODO', slot: slotPrevState }));
+        dispatch(undoAdded({ message: 'TODO', data: slotPrevState }));
         
         /** Updates initial slot in cached getWeekSlots data. */
         dispatch(schedulingApi.util.patchQueryData(
@@ -429,7 +463,7 @@ export const slotsSlice = schedulingApi.injectEndpoints({
         
         /** Stores deleted slots in cached slotsMutationsSlice data. */
         for (const slot of args.slots) {
-          dispatch(slotsMutationAdded({ message: 'TODO', slot }));
+          dispatch(undoAdded({ message: 'TODO', data: slot }));
         }
         
         /** Removes deleted slots from cached getWeekSlots data. */
@@ -625,6 +659,7 @@ export const {
   useUpdateSlotHourMutation,
   useUndoUpdateSlotHourMutation,
   useUpdateRecurringSlotHourMutation,
+  useUndoUpdateRecurringSlotHourMutation,
   useUpdateSlotMinutesMutation,
   useUpdateRecurringSlotMinutesMutation,
   useDeleteSlotsMutation,
