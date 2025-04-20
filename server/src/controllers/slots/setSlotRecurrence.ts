@@ -64,8 +64,7 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
         (recurring_dates.recurring_date::date || ' ' || slot_info.slot_start_time::time)::timestamp AS "startTime",
         slot_info.slot_duration AS "duration",
         true AS "recurring"
-      FROM slot_info
-      CROSS JOIN recurring_dates
+      FROM slot_info, recurring_dates
       WHERE NOT EXISTS (
         SELECT 1
         FROM "Slots"

@@ -32,6 +32,7 @@ export const updateRecurringSlotHour = async (req: Request, res: Response) => {
       WITH slot_info AS (
         SELECT 
           "startTime" AS current_start_time,
+          "employeeId" AS employee_id,
           EXTRACT(HOUR FROM "startTime") AS current_hour,
           EXTRACT(MINUTE FROM "startTime") AS current_minutes,
           EXTRACT(YEAR FROM "startTime") AS current_year
@@ -59,6 +60,18 @@ export const updateRecurringSlotHour = async (req: Request, res: Response) => {
           LPAD((SELECT current_hour FROM slot_info)::text, 2, '0') || ':' ||
           LPAD((SELECT current_minutes FROM slot_info)::text, 2, '0') || ':00.000'
         )::time
+        AND "Slots"."employeeId"::uuid = slot_info.employee_id
+        AND NOT EXISTS (
+          SELECT 1
+          FROM "Slots" s2
+          WHERE s2."employeeId" = (SELECT employee_id FROM slot_info)::uuid
+            AND s2."startTime" = (
+              slot_info.current_start_time::date || ' ' || 
+              LPAD($2::text, 2, '0') || ':' || 
+              LPAD(slot_info.current_minutes::text, 2, '0') || ':00.000'
+            )::timestamp
+            AND s2."id" != $1::uuid
+        )
       RETURNING
         "id",
         "employeeId",

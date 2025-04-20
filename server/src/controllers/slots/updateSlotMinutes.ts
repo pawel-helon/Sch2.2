@@ -13,14 +13,10 @@ const createResponse = (res: Response, message: string, data: { prevMinutes: str
 }
 
 export const updateSlotMinutes = async (req: Request, res: Response) => {
-  const { employeeId, slotId, minutes } = req.body as { employeeId: string, slotId: string, minutes: number };
+  const { slotId, minutes } = req.body as { slotId: string, minutes: number };
   
-  if (!employeeId || !slotId || !minutes) {
+  if (!slotId || !minutes) {
     return createResponse(res, "All fields are required: employeeId, slotId and minutes.");
-  }
-  
-  if (!UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Invalid employeeId format. Expected UUID.");
   }
   
   if (!UUID_REGEX.test(slotId)) {
@@ -39,30 +35,27 @@ export const updateSlotMinutes = async (req: Request, res: Response) => {
           EXTRACT(HOUR FROM "startTime") AS current_hour,
           EXTRACT(MINUTE FROM "startTime") AS current_minutes
         FROM "Slots"
-        WHERE "employeeId" = $1::uuid
-          AND "id" = $2::uuid
+        WHERE "id" = $1::uuid
       )
       UPDATE "Slots"
       SET
         "startTime" = (
           slot_info.current_start_time::date || ' ' ||
           LPAD(slot_info.current_hour::text, 2, '0') || ':' ||
-          LPAD($3::text, 2, '0') || ':00.000'
+          LPAD($2::text, 2, '0') || ':00.000'
         )::timestamp,
         "updatedAt" = NOW()
       FROM slot_info
-      WHERE "employeeId" = $1::uuid
-        AND "id" = $2::uuid
+      WHERE "id" = $1::uuid
         AND NOT EXISTS (
           SELECT 1
           FROM "Slots" s2
-          WHERE s2."employeeId" = $1::uuid
-            AND s2."startTime" = (
+          WHERE s2."startTime" = (
               slot_info.current_start_time::date || ' ' || 
               LPAD(slot_info.current_hour::text, 2, '0') || ':' ||
-              LPAD($3::text, 2, '0') || ':00.000'
+              LPAD($2::text, 2, '0') || ':00.000'
             )::timestamp
-            AND s2."id" != $2::uuid
+            AND s2."id" != $1::uuid
         )
       RETURNING
         "id",
@@ -77,7 +70,6 @@ export const updateSlotMinutes = async (req: Request, res: Response) => {
     `;
 
     const result = await pool.query(queryValue, [
-      employeeId,
       slotId,
       minutes
     ])

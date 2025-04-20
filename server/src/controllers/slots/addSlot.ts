@@ -60,7 +60,7 @@ export const addSlot = async (req: Request, res: Response) => {
       SELECT
         $1::uuid AS "employeeId",
         'AVAILABLE' AS "type",
-        ($2::date || ' ' || time::time)::timestamp AS "startTime",
+        ($2::date || ' ' || available_time.time::time)::timestamp AS "startTime",
         '30 minutes' AS "duration",
         false AS "recurring",
         NOW() AS "createdAt",
@@ -78,7 +78,9 @@ export const addSlot = async (req: Request, res: Response) => {
     if (!result.rows.length) {
       return createResponse(res, "Failed to add slot.");
     }
-    
+
+    console.log(result.rows[0]);
+
     createResponse(res, "New slot has been added.", result.rows[0]);
 
   } catch (error) {

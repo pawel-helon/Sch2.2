@@ -76,8 +76,7 @@ export const addRecurringSlot = async (req: Request, res: Response) => {
         true AS "recurring",
         NOW() AS "createdAt",
         NOW() AS "updatedAt"
-      FROM recurring_dates
-      CROSS JOIN available_time
+      FROM recurring_dates, available_time
       WHERE NOT EXISTS (
         SELECT 1
         FROM "Slots"

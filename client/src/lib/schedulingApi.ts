@@ -1,13 +1,58 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import {
-  validateGetWeekSessionsInput,
-  validateGetWeekSlotsInput
-} from 'src/utils/inputValidation';
 import { NormalizedSessions, NormalizedSlots } from 'src/lib/types';
+import { DATE_REGEX, UUID_REGEX } from './constants';
+
+export const validateGetWeekSlotsInput = (input: { employeeId: string, start: string, end: string }): void => {
+  if (!input || typeof input !== 'object') {
+    throw new Error('Input is required. Expected an object.');
+  }
+  
+  const { employeeId, start, end } = input;
+  
+  if (!employeeId || !start || !end) {
+    throw new Error('All fields are required: employeeId, start, end.');
+  }
+
+  if (!UUID_REGEX.test(employeeId)) {
+    throw new Error('Invalid employeeId format. Expected UUID.');
+  }
+
+  if (!DATE_REGEX.test(start)) {
+    throw new Error('Invalid start date format. Expected YYYY-MM-DD.');
+  }
+
+  if (!DATE_REGEX.test(end)) {
+    throw new Error('Invalid end date format. Expected YYYY-MM-DD.');
+  }
+}
+
+export const validateGetWeekSessionsInput = (input: { employeeId: string, start: string, end: string }): void => {
+  if (!input || typeof input !== 'object') {
+    throw new Error('Input is required. Expected an object.');
+  }
+  
+  const { employeeId, start, end } = input;
+  
+  if (!employeeId || !start || !end) {
+    throw new Error('All fields are required: employeeId, start, end.');
+  }
+
+  if (!UUID_REGEX.test(employeeId)) {
+    throw new Error('Invalid employeeId format. Expected UUID.');
+  }
+
+  if (!DATE_REGEX.test(start)) {
+    throw new Error('Invalid start date format. Expected YYYY-MM-DD.');
+  }
+
+  if (!DATE_REGEX.test(end)) {
+    throw new Error('Invalid end date format. Expected YYYY-MM-DD.');
+  }
+}
 
 export const schedulingApi = createApi({
   reducerPath: 'api',
-  baseQuery: fetchBaseQuery({ baseUrl: 'http://localhost:5000/api' }),
+  baseQuery: fetchBaseQuery({ baseUrl: import.meta.env.VITE_API_URL }),
   tagTypes: ['Sessions', 'Slots', 'Customers', 'Employees'],
   endpoints: (builder) => ({
     /**
@@ -58,8 +103,8 @@ export const schedulingApi = createApi({
     }),
     /**
      * Remaining endpoints:
-     * slots: src/features/slots/slotsSlice.ts
-     * sessions: src/features/sessions/sessionsSlice.ts 
+     * slots: src/features/slots/actions
+     * sessions: src/features/sessions/actions 
     */
 })
 });

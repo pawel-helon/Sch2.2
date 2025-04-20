@@ -65,24 +65,24 @@ export const addSlots = async (req: Request, res: Response) => {
   try {
     const queryValue = `
       WITH slots_input AS (
-        SELECT unnest($2::uuid[]) AS id,
-          unnest($3::text[]) AS type,
-          unnest($4::timestamp[]) AS start_time,
-          unnest($5::interval[]) AS duration,
-          unnest($6::boolean[]) AS recurring,
-          unnest($7::timestamp[]) AS created_at
+        SELECT unnest($2::uuid[]) AS slot_id,
+          unnest($3::text[]) AS slot_type,
+          unnest($4::timestamp[]) AS slot_start_time,
+          unnest($5::interval[]) AS slot_duration,
+          unnest($6::boolean[]) AS slot_recurring,
+          unnest($7::timestamp[]) AS slot_created_at
       )
       INSERT INTO "Slots" (
         "id", "employeeId", "type", "startTime", "duration", "recurring", "createdAt", "updatedAt"
       )
       SELECT
-        id::uuid AS "id",
+        slot_id::uuid AS "id",
         $1::uuid AS "employeeId",
-        type::text AS "type",
-        start_time::timestamp AS "startTime",
-        duration::interval AS "duration",
-        recurring::boolean AS "recurring",
-        created_at::timestamp AS "createdAt",
+        slot_type::text AS "type",
+        slot_start_time::timestamp AS "startTime",
+        slot_duration::interval AS "duration",
+        slot_recurring::boolean AS "recurring",
+        slot_created_at::timestamp AS "createdAt",
         NOW() 
       FROM slots_input
       RETURNING *

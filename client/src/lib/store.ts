@@ -10,13 +10,8 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: [
-          'undo/undoAdded'
-        ],
-        ignoredPaths: [
-          'undo',
-          'payload.startTime'
-        ],
+        ignoredActions: ['undo/undoAdded'],
+        ignoredPaths: ['undo', 'payload.startTime'],
       },
     }).concat(schedulingApi.middleware)
 });

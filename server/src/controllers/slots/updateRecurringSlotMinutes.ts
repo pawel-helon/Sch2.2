@@ -13,14 +13,10 @@ const createResponse = (res: Response, message: string, data: { prevMinutes: str
 }
 
 export const updateRecurringSlotMinutes = async (req: Request, res: Response) => {
-  const { employeeId, slotId, minutes } = req.body as { employeeId: string, slotId: string, minutes: number };
+  const { slotId, minutes } = req.body as { slotId: string, minutes: number };
   
-  if (!employeeId || !slotId || !minutes) {
+  if (!slotId || !minutes) {
     return createResponse(res, "All fields are required: employeeId, slotId and minutes.");
-  }
-  
-  if (!UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Invalid employeeId format. Expected UUID.");
   }
   
   if (!UUID_REGEX.test(slotId)) {
@@ -36,12 +32,12 @@ export const updateRecurringSlotMinutes = async (req: Request, res: Response) =>
       WITH slot_info AS (
         SELECT 
           "startTime" AS current_start_time,
+          "employeeId" AS employee_id,
           EXTRACT(HOUR FROM "startTime") AS current_hour,
           EXTRACT(MINUTE FROM "startTime") AS current_minutes,
           EXTRACT(YEAR FROM "startTime") AS current_year
         FROM "Slots"
-        WHERE "employeeId" = $1::uuid
-          AND "id" = $2::uuid
+        WHERE "id" = $1::uuid
       ),
       recurring_dates AS (
         SELECT generate_series(
@@ -55,21 +51,20 @@ export const updateRecurringSlotMinutes = async (req: Request, res: Response) =>
         "startTime" = (
           recurring_dates.date::date || ' ' ||
           LPAD((SELECT current_hour FROM slot_info)::text, 2, '0') || ':' ||
-          LPAD($3::text, 2, '0') || ':00.000'
+          LPAD($2::text, 2, '0') || ':00.000'
         )::timestamp,
         "updatedAt" = NOW()
-      FROM slot_info
-      CROSS JOIN recurring_dates
-      WHERE "Slots"."employeeId" = $1::uuid
-        AND "Slots"."startTime" = (
-          recurring_dates.date::date || ' ' ||
+      FROM slot_info, recurring_dates
+      WHERE "Slots"."startTime"::date = (SELECT date FROM recurring_dates)::date
+        AND "Slots"."startTime"::time = (
           LPAD((SELECT current_hour FROM slot_info)::text, 2, '0') || ':' ||
           LPAD((SELECT current_minutes FROM slot_info)::text, 2, '0') || ':00.000'
-        )::timestamp
+        )::time
+        AND "Slots"."employeeId"::uuid = (SELECT employee_id FROM slot_info)::uuid
         AND NOT EXISTS (
           SELECT 1
           FROM "Slots" s2
-          WHERE s2."employeeId" = $1::uuid
+          WHERE s2."employeeId" = (SELECT employee_id FROM slot_info)::uuid
             AND s2."startTime" = (
               recurring_dates.date::date || ' ' ||
               LPAD((SELECT current_hour FROM slot_info)::text, 2, '0') || ':' ||
@@ -90,7 +85,6 @@ export const updateRecurringSlotMinutes = async (req: Request, res: Response) =>
     `;
 
     const result = await pool.query(queryValue, [
-      employeeId,
       slotId,
       minutes
     ])
