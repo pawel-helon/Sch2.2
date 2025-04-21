@@ -54,9 +54,9 @@ const addRecurringSlot = schedulingApi.injectEndpoints({
         const date = new Date(slot.startTime).toISOString().split('T')[0];
         const { start, end } = getWeekStartEndDatesFromDay(date);
         
-        /** Stores message and slot's previous state in cached slotsMutationsSlice data. */
+        /** Stores message and slot's previous state in cached undoSlice data. */
         const message = 'Recurring slot has been added.';
-        dispatch(undoAdded({ message, data: slot }))
+        dispatch(undoAdded({ message, data: [slot] }))
         
         /** Inserts first recurring slot into cached getWeekSlots data. */
         dispatch(schedulingApi.util.patchQueryData(

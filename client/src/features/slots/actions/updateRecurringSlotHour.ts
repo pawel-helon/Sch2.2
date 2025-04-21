@@ -50,7 +50,7 @@ const updateRecurringSlotHour = schedulingApi.injectEndpoints({
         const date = new Date(slot.startTime).toISOString().split('T')[0];
         const { start, end } = getWeekStartEndDatesFromDay(date);
         
-        /** Stores slot's previous state in cached slotsMutationsSlice data. */
+        /** Stores slot's previous state in cached undoSlice data. */
         const message = 'Recurring slot hour has been updated.'
         const slotPrevStartTimeMinutes = new Date(slot.startTime).getMinutes();
         const slotPrevState = {
@@ -63,7 +63,7 @@ const updateRecurringSlotHour = schedulingApi.injectEndpoints({
           createdAt: slot.createdAt,
           updatedAt: slot.updatedAt
         }
-        dispatch(undoAdded({ message, data: slotPrevState }));
+        dispatch(undoAdded({ message, data: [slotPrevState] }));
         
         /** Updates initial slot in cached getWeekSlots data. */
         dispatch(schedulingApi.util.patchQueryData(

@@ -58,8 +58,7 @@ export const duplicateDay = async (req: Request, res: Response) => {
         (selected_day::date || ' ' || slots_info.slot_start_time::time)::timestamp AS "startTime",
         slots_info.slot_duration AS "duration",
         slots_info.slot_recurring AS "recurring" 
-      FROM slots_info
-      CROSS JOIN selected_days
+      FROM slots_info, selected_days
       WHERE NOT EXISTS (
         SELECT 1
         FROM "Slots"

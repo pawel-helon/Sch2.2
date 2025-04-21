@@ -4,7 +4,7 @@ import { Session, Slot } from "./types";
 interface UndoState {
   payload: {
     message: string,
-    data: Slot | Session
+    data: Slot[] | Session[]
   }[]
 }
 
@@ -14,13 +14,13 @@ const undoSlice = createSlice({
   name: 'undo',
   initialState,
   reducers: {
-    undoAdded(state, action: PayloadAction<{ message: string, data: Slot | Session }>) {
+    undoAdded(state, action: PayloadAction<{ message: string, data: Slot[] | Session[] }>) {
       const data = action.payload;
       state.payload.push(data);
     },
     undoRemoved(state, action: PayloadAction<string>) {
       const id = action.payload;
-      state.payload = state.payload.filter(e => e.data.id !== id);
+      state.payload = state.payload.filter(e => e.data[0].id !== id);
     },
   },
 })

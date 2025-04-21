@@ -1,15 +1,15 @@
 import { TIMESTAMP_REGEX, UUID_REGEX } from "src/lib/constants";
-import { getSlotsFromNormalized, getWeekStartEndDatesFromDay } from "src/lib/helpers";
+import { getWeekStartEndDatesFromDay } from "src/lib/helpers";
 import { schedulingApi } from "src/lib/schedulingApi";
-import { NormalizedSlots, Slot } from "src/lib/types";
+import { Slot } from "src/lib/types";
 
-export const validateInput = (input: { slots: Slot[] } ): void => {
+const validateInput = (input: { slots: Slot[] }): void => {
   if (!input || typeof input !== 'object') {
     throw new Error('Input is required. Expected an object.');
   }
-
-  const { slots } = input;
   
+  const { slots } = input;
+
   if (!Array.isArray(slots) || !slots.length) {
     throw new Error('Slots must be a non-empty array.');
   }
@@ -51,50 +51,51 @@ export const validateInput = (input: { slots: Slot[] } ): void => {
   }
 }
 
-const undoDeleteSlots = schedulingApi.injectEndpoints({
+const undoDuplicateDay = schedulingApi.injectEndpoints({
   endpoints: (builder) => ({
     /**
-     * Undoes delete slots for a given employee.
+     * Undoes duplicate day for a given employee.
      * 
      * @param {Object} body - The request payload.
-     * @param {Slot[]} body.slots - An array of slot objects to be restored.
-     * @returns {Object} - Message and normalized slots object.
+     * @param {Slot[]} body.slots - An array of slot objects to be deleted.
+     * @returns {Object} - Message and data object containing employeeId, date, and an array of deleted slot IDs.
     */
-    undoDeleteSlots: builder.mutation<{ message: string, data: NormalizedSlots }, { slots: Slot[] }>({
+    undoDuplicateDay: builder.mutation<{ message: string, data: { employeeId: string, date: string, slotIds: string[] } }, { slots: Slot[] }>({
       query: (body) => {
         validateInput(body);
+        const slotIds = body.slots.map(slot => slot.id);
         return {
-          url: 'slots/add-slots',
-          method: 'POST',
-          body
+          url: 'slots/delete-slots',
+          method: 'DELETE',
+          body: { slotIds }
         }
       },
-      /** Inserts restored slots into cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
-        const data = getSlotsFromNormalized(res.data.data);
-        const date = new Date(data[0].startTime).toISOString().split('T')[0];
+        const { employeeId, date, slotIds } = res.data.data;
         const { start, end } = getWeekStartEndDatesFromDay(date);
-
+        
+        /** Removes deleted slots from cached getWeekSlots data. */
         dispatch(schedulingApi.util.patchQueryData(
           'getWeekSlots',
-          { employeeId: data[0].employeeId, start: start, end: end },
-          data.flatMap(slot => [
-            {
-              op: 'add',
-              path: ['byId', slot.id],
-              value: slot
-            },
-            {
-              op: 'add',
-              path: ['allIds', '-'],
-              value: slot.id
-            }
-          ])
-        ))
-      }
+          { employeeId: employeeId, start: start, end: end },
+          slotIds.flatMap((slotId) =>
+            [
+              {
+                op: 'remove',
+                path: ['byId', slotId],
+                value: slotId
+              },
+              {
+                op: 'remove',
+                path: ['allIds', '-']
+              }
+            ]
+          )
+        ));
+      },
     }),
   }),
 })
 
-export const { useUndoDeleteSlotsMutation } = undoDeleteSlots;
+export const { useUndoDuplicateDayMutation } = undoDuplicateDay;

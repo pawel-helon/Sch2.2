@@ -39,7 +39,6 @@ const addSlot = schedulingApi.injectEndpoints({
     */
     addSlot: builder.mutation<{ message: string, data: Slot }, { employeeId: string, day: string }>({
       query: (body) => {
-        console.log('logged');
         validateInput(body);
         return {
           url: 'slots/add-slot',

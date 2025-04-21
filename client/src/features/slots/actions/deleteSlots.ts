@@ -58,7 +58,7 @@ const deleteSlots = schedulingApi.injectEndpoints({
      * Deletes slots for a given employee.
      * 
      * @param {Object} body - The request payload.
-     * @param {string[]} body.slotIds - An array of slot IDs to be deleted.
+     * @param {Slot[]} body.slots - An array of slot objects to be deleted.
      * @returns {Object} - Message and data object containing employeeId, date, and an array of deleted slot IDs.
     */
     deleteSlots: builder.mutation<{ message: string, data: { employeeId: string, date: string, slotIds: string[] } }, { slots: Slot[] }>({
@@ -76,11 +76,10 @@ const deleteSlots = schedulingApi.injectEndpoints({
         const { employeeId, date, slotIds } = res.data.data;
         const { start, end } = getWeekStartEndDatesFromDay(date);
         
-        /** Stores deleted slots in cached slotsMutationsSlice data. */
-        for (const slot of args.slots) {
-          dispatch(undoAdded({ message: 'TODO', data: slot }));
-        }
-        
+        /** Stores message and deleted slots in cached undoSlice data. */
+        const message = 'Slots have been deleted.';
+        dispatch(undoAdded({ message, data: args.slots }))
+
         /** Removes deleted slots from cached getWeekSlots data. */
         dispatch(schedulingApi.util.patchQueryData(
           'getWeekSlots',

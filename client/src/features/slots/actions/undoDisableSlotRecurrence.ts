@@ -2,7 +2,6 @@ import { UUID_REGEX } from "src/lib/constants";
 import { getWeekStartEndDatesFromDay } from "src/lib/helpers";
 import { schedulingApi } from "src/lib/schedulingApi";
 import { Slot } from "src/lib/types";
-import { undoAdded } from "src/lib/undoSlice";
 
 const validateInput = (input: { slotId: string }): void => {
   if (!input || typeof input !== 'object') {
@@ -20,17 +19,17 @@ const validateInput = (input: { slotId: string }): void => {
   }
 }
 
-const setSlotRecurrence = schedulingApi.injectEndpoints({
+const undoDisableSlotRecurrence = schedulingApi.injectEndpoints({
   endpoints: (builder) => ({
     /**
-     * Sets a slot as recurring for a given employee.
+     * Undoes disabling recurrence of a slot for a given employee.
      * 
      * @param {Object} body - The request payload.
      * @param {string} body.employeeId - The ID of the employee.
      * @param {string} body.slotId - The ID of the slot to be set as recurring.
      * @returns {Object} - Message and slot object.
     */
-    setSlotRecurrence: builder.mutation<{ message: string, data: Slot }, { slotId: string }>({
+    undoDisableSlotRecurrence: builder.mutation<{ message: string, data: Slot }, { slotId: string }>({
       query: (body) => {
         validateInput(body);
         return {
@@ -39,6 +38,7 @@ const setSlotRecurrence = schedulingApi.injectEndpoints({
           body
         }
       },
+      /** Updates initial slot in cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const { data: slot } = res.data;
@@ -46,11 +46,6 @@ const setSlotRecurrence = schedulingApi.injectEndpoints({
         const date = new Date(slot.startTime).toISOString().split('T')[0];
         const { start, end } = getWeekStartEndDatesFromDay(date);
         
-        /** Stores message and slot in cached undoSlice data. */
-        const message = 'Slot recurrence has been set.';
-        dispatch(undoAdded({ message, data: [slot] }));
-        
-        /** Updates initial slot in cached getWeekSlots data. */
         dispatch(schedulingApi.util.patchQueryData(
           'getWeekSlots',
           { employeeId: employeeId, start: start, end: end },
@@ -67,4 +62,4 @@ const setSlotRecurrence = schedulingApi.injectEndpoints({
   }),
 })
 
-export const { useSetSlotRecurrenceMutation } = setSlotRecurrence;
+export const { useUndoDisableSlotRecurrenceMutation } = undoDisableSlotRecurrence;

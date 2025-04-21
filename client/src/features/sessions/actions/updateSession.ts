@@ -52,7 +52,7 @@ const updateSession = schedulingApi.injectEndpoints({
         const nextDate = new Date(session.startTime).toISOString().split('T')[0];
         const { start: nextStart, end } = getWeekStartEndDatesFromDay(nextDate);
 
-        /** Stores sessions's previous state in cached sessionsMutationsSlice data. */
+        /** Stores sessions's previous state in cached undoSlice data. */
         const message = 'TODO';
         const sessionPrevState = {
           id: session.id,
@@ -64,7 +64,7 @@ const updateSession = schedulingApi.injectEndpoints({
           createdAt: session.createdAt,
           updatedAt: session.updatedAt,
         }
-        dispatch(undoAdded({ message, data: sessionPrevState}));
+        dispatch(undoAdded({ message, data: [sessionPrevState] }));
         
         /** Updates session in cached getWeekSessions data, if session stays in the same week*/
         if (prevStart === nextStart) {

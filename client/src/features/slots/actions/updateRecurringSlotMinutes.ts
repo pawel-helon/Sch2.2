@@ -2,6 +2,7 @@ import { UUID_REGEX } from "src/lib/constants";
 import { getWeekStartEndDatesFromDay } from "src/lib/helpers";
 import { schedulingApi } from "src/lib/schedulingApi";
 import { Slot } from "src/lib/types";
+import { undoAdded } from "src/lib/undoSlice";
 
 const validateInput = (input: { slotId: string, minutes: number }): void => {
   if (!input || typeof input !== 'object') {
@@ -42,13 +43,29 @@ const updateRecurringSlotMinutes = schedulingApi.injectEndpoints({
           body
         }
       },
-      /** Updates initial slot in cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const slot = res.data.data.slot;
+        const prevMinutes = Number(res.data.data.prevMinutes);
         const date = new Date(slot.startTime).toISOString().split('T')[0];
         const { start, end } = getWeekStartEndDatesFromDay(date);
         
+        /** Stores slot's previous state in cached undoSlice data. */
+        const message = 'Recurring slot minutes have been updated.';
+        const slotPrevStartTimeHours = new Date(slot.startTime).getHours();  
+        const slotPrevState = {
+          id: slot.id,
+          employeeId: slot.employeeId,
+          type: slot.type,
+          startTime: new Date(new Date(slot.startTime).setHours(slotPrevStartTimeHours, prevMinutes)),
+          duration: slot.duration,
+          recurring: slot.recurring,
+          createdAt: slot.createdAt,
+          updatedAt: slot.updatedAt
+        }
+        dispatch(undoAdded({ message, data: [slotPrevState] }));
+        
+        /** Updates initial slot in cached getWeekSlots data. */
         dispatch(schedulingApi.util.patchQueryData(
           'getWeekSlots',
           { employeeId: slot.employeeId, start: start, end: end },

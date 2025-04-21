@@ -2,6 +2,7 @@ import { DATE_REGEX, UUID_REGEX } from "src/lib/constants";
 import { getSlotsFromNormalized, getWeekStartEndDatesFromDay } from "src/lib/helpers";
 import { schedulingApi } from "src/lib/schedulingApi";
 import { NormalizedSlots } from "src/lib/types";
+import { undoAdded } from "src/lib/undoSlice";
 
 const validateInput = (input: { employeeId: string, day: string, selectedDays: string[] }): void => {
   if (!input || typeof input !== 'object') {
@@ -48,7 +49,6 @@ const duplicateDay = schedulingApi.injectEndpoints({
           body
         }
       },
-      /** Inserts duplicated slots into cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const { data } = res.data;
@@ -57,6 +57,11 @@ const duplicateDay = schedulingApi.injectEndpoints({
         const date = new Date(slots[0].startTime).toISOString().split('T')[0];
         const { start, end } = getWeekStartEndDatesFromDay(date);
 
+        /** Stores message and duplicated slots in undoSlice data. */
+        const message = 'Day has been duplicated.';
+        dispatch(undoAdded({ message, data: slots }));
+        
+        /** Inserts duplicated slots into cached getWeekSlots data. */
         dispatch(schedulingApi.util.patchQueryData(
           'getWeekSlots',
           { employeeId: employeeId, start: start, end: end },
