@@ -3,11 +3,9 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import { AnimatePresence, motion } from 'framer-motion'; 
 import { useDispatch, useSelector } from 'react-redux';
 import { undoRemoved } from 'src/lib/undoSlice';
-
 import { Paragraph } from 'src/lib/typography';
 import { Button } from 'src/ui/button';
 import { AppDispatch, RootState } from 'src/lib/store';
-import { Session, Slot } from 'src/lib/types';
 import { useUndoUpdateSlotHourMutation } from 'src/features/slots/actions/undoUpdateSlotHour';
 import { useUndoAddRecurringSlotMutation } from './actions/undoAddRecurringSlot';
 import { useUndoUpdateRecurringSlotHourMutation } from './actions/undoUpdateRecurringSlotHour';
@@ -15,6 +13,9 @@ import { useUndoDeleteSlotsMutation } from './actions/undoDeleteSlots';
 import { useUndoDuplicateDayMutation } from './actions/undoDuplicateDay';
 import { useUndoSetSlotRecurrenceMutation } from './actions/undoSetSlotRecurrence';
 import { useUndoDisableSlotRecurrenceMutation } from './actions/undoDisableSlotRecurrence';
+import { useUndoDeleteSessionMutation } from '../sessions/actions/undoDeleteSession';
+import { Slot, Session } from 'src/lib/types';
+import { useUndoUpdateSessionMutation } from '../sessions/actions/undoUpdateSession';
 
 export const Toasts = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -45,7 +46,9 @@ const Toast = (props: {
   const [ undoDuplicateDay ] = useUndoDuplicateDayMutation();
   const [ undoSetSlotRecurrence ] = useUndoSetSlotRecurrenceMutation();
   const [ undoDisableSlotRecurrence ] = useUndoDisableSlotRecurrenceMutation();
-
+  const [ undoUpdateSession ] = useUndoUpdateSessionMutation();
+  const [ undoDeleteSession ] = useUndoDeleteSessionMutation()
+  
   React.useEffect(() => {
     setTimeout(() => {
       props.dispatch(undoRemoved(props.undo.data[0].id));
@@ -59,23 +62,36 @@ const Toast = (props: {
   );
 
   const handleClick = () => {
-    props.dispatch(undoRemoved(props.undo.data[0].id));
     if (props.undo.message === 'Recurring slot has been added.') {
-      undoAddRecurringSlot({ slotId: props.undo.data[0].id });
+      const slot = props.undo.data[0] as Slot;
+      undoAddRecurringSlot({ slotId: slot.id });
     } else if (props.undo.message === 'Slot hour has been updated.') {
-      const hour = new Date(props.undo.data[0].startTime).getHours();
+      const slot = props.undo.data[0] as Slot;
+      const hour = new Date(slot.startTime).getHours();
       undoUpdateSlotHour({ slotId: props.undo.data[0].id, hour });
     } else if (props.undo.message === 'Recurring slot hour has been updated.') {
-      undoUpdateRecurringSlotHour({ slotId: props.undo.data[0].id, hour: new Date(props.undo.data[0].startTime).getHours() });
+      const slot = props.undo.data[0] as Slot;
+      undoUpdateRecurringSlotHour({ slotId: slot.id, hour: new Date(slot.startTime).getHours() });
     } else if (props.undo.message === 'Slots have been deleted.') {
-      undoDeleteSlots({ slots: props.undo.data as Slot[]});
+      const slots = props.undo.data as Slot[];
+      undoDeleteSlots({ slots: slots});
     } else if (props.undo.message === 'Day has been duplicated.') {
-      undoDuplicateDay({ slots: props.undo.data as Slot[] });
+      const slots = props.undo.data as Slot[];
+      undoDuplicateDay({ slots });
     } else if (props.undo.message === 'Slot recurrence has been set.') {
-      undoSetSlotRecurrence({ slotId: props.undo.data[0].id });
+      const slot = props.undo.data[0] as Slot;
+      undoSetSlotRecurrence({ slotId: slot.id });
     } else if (props.undo.message === 'Slot recurrence has been disabled.') {
-      undoDisableSlotRecurrence({ slotId: props.undo.data[0].id });
+      const slot = props.undo.data[0];
+      undoDisableSlotRecurrence({ slotId: slot.id });
+    } else if (props.undo.message === 'Session has been updated.') {
+      const session = props.undo.data[0] as Session;
+      undoUpdateSession({ sessionId: session.id, slotId: session.slotId })
+    } else if (props.undo.message === 'Session has been deleted.') {
+      const session = props.undo.data[0] as Session;
+      undoDeleteSession({ session })
     }
+    props.dispatch(undoRemoved(props.undo.data[0].id));
   }
   
   return (

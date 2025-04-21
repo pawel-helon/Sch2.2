@@ -47,20 +47,20 @@ const validateInput = (input: { session: Session }): void => {
   }
 }
 
-const addSession = schedulingApi.injectEndpoints({
+const undoDeleteSession = schedulingApi.injectEndpoints({
   endpoints: (builder) => ({
     /**
-     * Restores a session for a specific employee.
+     * Undoes deleting session for a specific employee.
      * 
      * @param {Object} body - The request payload.
      * @param {Session} body.session - The session object to be added.
      * @returns {Object} Message and restored session object.
     */
-    addSession: builder.mutation<{message: string, data: Session }, { session: Session }>({
+    undoDeleteSession: builder.mutation<{message: string, data: Session }, { session: Session }>({
       query: (body) => {
         validateInput(body);
         return {
-          url: 'sessions/add-session',
+          url: 'sessions/undo-delete-session',
           method: 'POST',
           body
         }
@@ -94,4 +94,4 @@ const addSession = schedulingApi.injectEndpoints({
   }),
 })
 
-export const { useAddSessionMutation } = addSession;
+export const { useUndoDeleteSessionMutation } = undoDeleteSession;

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../../index";
-import { addSession } from "../../../controllers/sessions/addSession";
+import { addSession } from "../../../controllers/sessions/undoDeleteSession";
 import { getTestDates } from "../../../lib/helpers";
 
 jest.mock("../../../index", () => ({

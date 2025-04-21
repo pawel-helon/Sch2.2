@@ -12,7 +12,7 @@ const createResponse = (res: Response, message: string, data: Session | null = n
   }});
 }
 
-export const addSession = async (req: Request, res: Response) => {
+export const undoDeleteSession = async (req: Request, res: Response) => {
   const { session } = req.body as { session: Session };
 
   if (!session || typeof session !== "object" || !Object.keys(session).length) {
