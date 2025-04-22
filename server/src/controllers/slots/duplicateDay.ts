@@ -14,7 +14,7 @@ const createResponse = (res: Response, message: string, data: SlotsAccumulator |
 
 export const duplicateDay = async (req: Request, res: Response) => {
   const { employeeId, day, selectedDays } = req.body as { employeeId: string, day: string, selectedDays: string[] };
-  
+
   if (!employeeId || !day || !selectedDays) {
     return createResponse(res, "All fields are required: employeeId, day, selectedDays.");
   }

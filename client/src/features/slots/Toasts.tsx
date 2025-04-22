@@ -16,6 +16,7 @@ import { useUndoDisableSlotRecurrenceMutation } from './actions/undoDisableSlotR
 import { useUndoDeleteSessionMutation } from '../sessions/actions/undoDeleteSession';
 import { Slot, Session } from 'src/lib/types';
 import { useUndoUpdateSessionMutation } from '../sessions/actions/undoUpdateSession';
+import { useUndoUpdateRecurringSlotMinutesMutation } from './actions/undoUpdateRecurringSlotMinutes';
 
 export const Toasts = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -40,8 +41,10 @@ const Toast = (props: {
   dispatch: AppDispatch;
 }) => {
   const [ undoUpdateSlotHour ] = useUndoUpdateSlotHourMutation();
+  const [ undoUpdateSlotMinutes ] = useUndoUpdateRecurringSlotMinutesMutation();
   const [ undoAddRecurringSlot ] = useUndoAddRecurringSlotMutation();
   const [ undoUpdateRecurringSlotHour ] = useUndoUpdateRecurringSlotHourMutation();
+  const [ undoUpdateRecurringSlotMinutes ] = useUndoUpdateRecurringSlotMinutesMutation();
   const [ undoDeleteSlots ] = useUndoDeleteSlotsMutation();
   const [ undoDuplicateDay ] = useUndoDuplicateDayMutation();
   const [ undoSetSlotRecurrence ] = useUndoSetSlotRecurrenceMutation();
@@ -72,6 +75,12 @@ const Toast = (props: {
     } else if (props.undo.message === 'Recurring slot hour has been updated.') {
       const slot = props.undo.data[0] as Slot;
       undoUpdateRecurringSlotHour({ slotId: slot.id, hour: new Date(slot.startTime).getHours() });
+    } else if (props.undo.message === 'Slot minutes have been updated.') {
+      const slot = props.undo.data[0] as Slot;
+      undoUpdateSlotMinutes({ slotId: slot.id, minutes: new Date(slot.startTime).getMinutes() })
+    } else if (props.undo.message === 'Recurring slot minutes have been updated.') {
+      const slot = props.undo.data[0] as Slot;
+      undoUpdateRecurringSlotMinutes({ slotId: slot.id, minutes: new Date(slot.startTime).getMinutes() })
     } else if (props.undo.message === 'Slots have been deleted.') {
       const slots = props.undo.data as Slot[];
       undoDeleteSlots({ slots: slots});

@@ -72,7 +72,7 @@ const deleteSession = schedulingApi.injectEndpoints({
         const date = new Date(startTime).toISOString().split('T')[0];
         const { start, end } = getWeekStartEndDatesFromDay(date);
 
-        /** Updates session in cached undoSlice data.*/
+        /** Stores message and session in cached undoSlice data.*/
         const message = 'Session has been deleted.';
         dispatch(undoAdded({ message, data: [args.session] }));
         

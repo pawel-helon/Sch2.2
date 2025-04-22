@@ -2,6 +2,7 @@ import { UUID_REGEX } from "src/lib/constants";
 import { getWeekStartEndDatesFromDay } from "src/lib/helpers";
 import { schedulingApi } from "src/lib/schedulingApi";
 import { Slot } from "src/lib/types";
+import { undoAdded } from "src/lib/undoSlice";
 
 const validateInput = (input: { slotId: string }): void => {
   if (!input || typeof input !== 'object') {
@@ -37,7 +38,6 @@ const disableSlotRecurrence = schedulingApi.injectEndpoints({
           body
         }
       },
-      /** Updates initial slot in cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
         const { data: slot } = res.data;
@@ -45,6 +45,21 @@ const disableSlotRecurrence = schedulingApi.injectEndpoints({
         const date = new Date(slot.startTime).toISOString().split('T')[0];
         const { start, end } = getWeekStartEndDatesFromDay(date);
 
+        /** Stores message and initial slot previous state in undoSlice data. */
+        const message = 'Slot recurrence has been disabled.';
+        const prevSlotState = {
+          id: slot.id,
+          employeeId: slot.employeeId,
+          type: slot.type,
+          startTime: slot.startTime,
+          duration: slot.duration,
+          recurring: false,
+          createdAt: slot.createdAt,
+          updatedAt: new Date()
+        }
+        dispatch(undoAdded({ message, data: [prevSlotState] }));
+        
+        /** Updates initial slot in cached getWeekSlots data. */
         dispatch(schedulingApi.util.patchQueryData(
           'getWeekSlots',
           { employeeId: employeeId, start: start, end: end },

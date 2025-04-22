@@ -55,22 +55,22 @@ export const updateRecurringSlotMinutes = async (req: Request, res: Response) =>
         )::timestamp,
         "updatedAt" = NOW()
       FROM slot_info, recurring_dates
-      WHERE "Slots"."startTime"::date = (SELECT date FROM recurring_dates)::date
+      WHERE "Slots"."startTime"::date = recurring_dates.date::date
         AND "Slots"."startTime"::time = (
           LPAD((SELECT current_hour FROM slot_info)::text, 2, '0') || ':' ||
           LPAD((SELECT current_minutes FROM slot_info)::text, 2, '0') || ':00.000'
         )::time
-        AND "Slots"."employeeId"::uuid = (SELECT employee_id FROM slot_info)::uuid
+        AND "Slots"."employeeId"::uuid = slot_info.employee_id
         AND NOT EXISTS (
           SELECT 1
           FROM "Slots" s2
           WHERE s2."employeeId" = (SELECT employee_id FROM slot_info)::uuid
             AND s2."startTime" = (
-              recurring_dates.date::date || ' ' ||
+              slot_info.current_start_time::date || ' ' || 
               LPAD((SELECT current_hour FROM slot_info)::text, 2, '0') || ':' ||
-              LPAD($3::text, 2, '0') || ':00.000'
+              LPAD($2::text, 2, '0') || ':00.000'
             )::timestamp
-            AND s2."id" != $2::uuid
+            AND s2."id" != $1::uuid
         )
       RETURNING
         "id",
@@ -86,7 +86,7 @@ export const updateRecurringSlotMinutes = async (req: Request, res: Response) =>
 
     const result = await pool.query(queryValue, [
       slotId,
-      minutes
+      String(minutes)
     ])
     
     if (!result.rows.length) {

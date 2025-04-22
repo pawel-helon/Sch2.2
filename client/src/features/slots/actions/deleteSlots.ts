@@ -35,8 +35,8 @@ const validateInput = (input: { slots: Slot[] }): void => {
     throw new Error('Invalid startTime format in slots.');
   }
 
-  if (!slots.every(slot => slot.duration && typeof slot.duration === 'string')) {
-    throw new Error('Invalid duration format in slots. Expected string.');
+  if (!slots.every(slot => slot.duration && typeof slot.duration === 'object')) {
+    throw new Error('Invalid duration format in slots. Expected object.');
   }
 
   if (!slots.every(slot => typeof slot.recurring === 'boolean')) {
