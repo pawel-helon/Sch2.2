@@ -1,0 +1,38 @@
+import { useParams } from 'react-router-dom';
+import { useGetWeekSlotsQuery } from 'src/api/schedulingApi';
+import { ThemeToggle } from 'src/components/ThemeToggle';
+import { Toasts } from 'src/components/Toasts';
+import { useHandleTheme } from 'src/hooks/useHandleTheme';
+import { getWeekDays } from 'src/utils/dates/getWeekDays';
+import { destructureParams } from 'src/utils/destructureParams';
+import { Breadcrumbs } from 'src/features/slots/Breadcrumbs';
+import { Header } from 'src/features/slots/Header';
+import { Tabs } from 'src/components/Tabs';
+import { cn } from 'src/utils/cn';
+import { Days } from 'src/features/slots/days';
+
+export const SlotsLayout = () => {
+  const employeeId = '06daeca5-1878-4adf-abf4-58045206a555';
+  const { theme } = useHandleTheme();
+  const { week } = useParams() as { week: string };
+  const { year, weekNumber } = destructureParams(week);
+  const weekDays = getWeekDays(year, weekNumber);
+  useGetWeekSlotsQuery({ employeeId, start: weekDays[0], end: weekDays[weekDays.length - 1] });
+
+  return (
+    <div className={cn(theme, 'bg-background h-[100vh]')}>
+      <div id='availability-layout' className='mx-auto xl:max-w-screen-xl 2xl:max-w-screen-2xl'>
+        <div className='w-full h-[100vh] pl-3 pr-2 pb-12 xs:pl-6 xs:pr-5 xs:border-x-[1px] border-border overflow-y-scroll scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1'>
+          <div className='w-full flex justify-between items-center pt-4'>
+            <Breadcrumbs year={year} weekNumber={weekNumber} />
+            <ThemeToggle />
+          </div>
+          <Header year={year} weekNumber={weekNumber} weekDays={weekDays} />
+          <Tabs />
+          <Days year={year} weekNumber={weekNumber} weekDays={weekDays} />
+        </div>
+        <Toasts />
+      </div>
+    </div>
+  )
+}

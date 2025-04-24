@@ -1,3 +1,7 @@
 export const SessionsLayout = () => {
-  // TODO
+  return (
+    <div>
+      SessionsLayout
+    </div>
+  )
 }

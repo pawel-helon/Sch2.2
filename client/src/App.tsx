@@ -1,8 +1,9 @@
 import { BrowserRouter, Route, Routes, Navigate, useParams } from 'react-router-dom';
+import { StoreProvider } from 'src/redux/StoreProvider';
 import { SessionsLayout } from 'src/features/sessions/SessionsLayout';
-import { AvailabilityLayout } from 'src/features/slots/AvailabilityLayout';
-import { getCurrentWeek } from 'src/lib/helpers';
-import { StoreProvider } from './lib/storeProvider';
+import { SlotsLayout } from 'src/features/slots/SlotsLayout';
+import { getCurrentWeek } from 'src/utils/dates/getCurrentWeek';
+import { TooltipProvider } from './components/Tooltip';
 
 const App = () => {
   const { year, weekNumber, dayName } = getCurrentWeek();
@@ -11,17 +12,19 @@ const App = () => {
 
   return (
     <StoreProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to={defaultsessionsPath} replace />} />
-          <Route path="/sessions" element={<Navigate to={defaultsessionsPath} replace />} />
-          <Route path="/sessions/:week/" element={<Redirect />} />
-          <Route path="/sessions/:week/:day" element={<SessionsLayout />} />
-          <Route path="/availability" element={<Navigate to={defaultAvailabilityPath} replace />} />
-          <Route path="/availability/:week" element={<AvailabilityLayout />} />
-          <Route path="*" element={<div>404 - Page Not Found</div>} />
-        </Routes>
-      </BrowserRouter>
+      <TooltipProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path='/' element={<Navigate to={defaultsessionsPath} replace />} />
+            <Route path='/sessions' element={<Navigate to={defaultsessionsPath} replace />} />
+            <Route path='/sessions/:week/' element={<Redirect />} />
+            <Route path='/sessions/:week/:day' element={<SessionsLayout />} />
+            <Route path='/availability' element={<Navigate to={defaultAvailabilityPath} replace />} />
+            <Route path='/availability/:week' element={<SlotsLayout />} />
+            <Route path='*' element={<div>404 - Page Not Found</div>} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
     </StoreProvider>
   );
 }

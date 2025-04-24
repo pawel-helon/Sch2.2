@@ -1,4 +1,4 @@
-import { useGetWeekSessionsQuery } from 'src/lib/schedulingApi';
+import { useGetWeekSessionsQuery } from 'src/api/schedulingApi';
 
 export function DataFetcher(props: {
   employeeId: string,
