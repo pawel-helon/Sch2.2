@@ -9,15 +9,18 @@ import { Breadcrumbs } from 'src/features/slots/Breadcrumbs';
 import { Header } from 'src/features/slots/Header';
 import { Tabs } from 'src/components/Tabs';
 import { cn } from 'src/utils/cn';
-import { Days } from 'src/features/slots/days';
+import { Days } from 'src/features/slots/Days';
+import { useHandleBreakpoint } from 'src/hooks/useHandleBreakpoint';
 
 export const SlotsLayout = () => {
-  const employeeId = '06daeca5-1878-4adf-abf4-58045206a555';
+  const employeeId = '06daeca5-1878-4adf-abf4-58045206a555'; //TODO: add auth
   const { theme } = useHandleTheme();
   const { week } = useParams() as { week: string };
   const { year, weekNumber } = destructureParams(week);
   const weekDays = getWeekDays(year, weekNumber);
   useGetWeekSlotsQuery({ employeeId, start: weekDays[0], end: weekDays[weekDays.length - 1] });
+  const isMobile = useHandleBreakpoint({ windowInnerWidth: 480 });
+  
 
   return (
     <div className={cn(theme, 'bg-background h-[100vh]')}>
@@ -27,9 +30,20 @@ export const SlotsLayout = () => {
             <Breadcrumbs year={year} weekNumber={weekNumber} />
             <ThemeToggle />
           </div>
-          <Header year={year} weekNumber={weekNumber} weekDays={weekDays} />
+          <Header
+            year={year}
+            weekNumber={weekNumber}
+            weekDays={weekDays}
+            isMobile={isMobile}
+          />
           <Tabs />
-          <Days year={year} weekNumber={weekNumber} weekDays={weekDays} />
+          <Days
+            employeeId={employeeId}
+            year={year}
+            weekNumber={weekNumber}
+            weekDays={weekDays}
+            isMobile={isMobile}
+          />
         </div>
         <Toasts />
       </div>

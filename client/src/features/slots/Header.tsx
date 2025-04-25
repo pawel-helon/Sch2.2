@@ -4,24 +4,23 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from 'src/comp
 import { Tooltip, TooltipContent, TooltipTrigger } from 'src/components/Tooltip';
 import { Heading } from 'src/components/typography/Heading';
 import { Button } from 'src/components/Button';
-import { useHandleBreakpoint } from 'src/hooks/useHandleBreakpoint';
 import { getDateRange } from 'src/utils/dates/getDateRange';
 import { getPrevNextWeeks } from 'src/utils/dates/getPrevNextWeeks';
 import { getPrevNextWeeksDateRanges } from 'src/utils/dates/getPrevNextWeeksDateRanges';
 import { getWeeks } from 'src/utils/dates/getWeeks';
 import { cn } from 'src/utils/cn';
 
-export function Header(props: {
+export const Header = (props: {
   year: number,
   weekNumber: number,
-  weekDays: string[]
-}) {
-  const isMobile = useHandleBreakpoint({ windowInnerWidth: 480 })
+  weekDays: string[],
+  isMobile: boolean
+}) => {
 
   let content: React.ReactNode = null;
-  if (isMobile) {
+  if (props.isMobile) {
     content = (
-      <MobileHeader
+      <Mobile
         year={props.year}
         weekNumber={props.weekNumber}
         weekDays={props.weekDays}
@@ -29,7 +28,7 @@ export function Header(props: {
     );
   } else {
     content = (
-      <DesktopHeader
+      <Desktop
         year={props.year}
         weekNumber={props.weekNumber}
         weekDays={props.weekDays}
@@ -40,11 +39,11 @@ export function Header(props: {
   return content;
 }
 
-function MobileHeader(props: {
+const Mobile = (props: {
   year: number,
   weekNumber: number,
   weekDays: string[]
-}) {
+}) => {
   return (
     <div className='flex flex-col my-[4rem]'>
       <div className='flex justify-between items-start'>
@@ -65,11 +64,11 @@ function MobileHeader(props: {
 }
 
 
-function DesktopHeader(props: {
+const Desktop = (props: {
   year: number,
   weekNumber: number,
   weekDays: string[]
-}) {
+}) => {
   return (
     <div className='flex flex-col gap-2 my-[4rem]'>
       <div className='flex gap-2 items-center'>
@@ -91,11 +90,11 @@ function DesktopHeader(props: {
   )
 }
 
-function SelectWeek(props: {
+const SelectWeek = (props: {
   year: number,
   weekNumber: number,
   weekDays: string[]
-}) {
+}) => {
   const [open, setOpen] = React.useState<boolean>(false);
   const weeks = getWeeks(props.year);
   
@@ -120,11 +119,11 @@ function SelectWeek(props: {
   )
 }
 
-function PrevNextButtons(props: {
+const PrevNextButtons = (props: {
   year: number,
   weekDays: string[],
   weekNumber: number
-}) {
+}) => {
   const weeks = getWeeks(props.year);
   const { prevWeekNumber, nextWeekNumber, yearOnBackwardNavigation, yearOnForewardNavigation } = getPrevNextWeeks(props.weekDays, props.weekNumber);
 

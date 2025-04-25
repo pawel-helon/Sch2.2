@@ -12,9 +12,9 @@ export const selectDaySlots = createSelector(
   (queries, day) => {
     const queryData = Object.values(queries)
       .find((query) => query?.endpointName === 'getWeekSlots' && query?.data)?.data as {
-      byId: Record<string, Slot>;
-      allIds: string[];
-    };
+        byId: Record<string, Slot>;
+        allIds: string[];
+      };
 
     if (!queryData) {
       return {

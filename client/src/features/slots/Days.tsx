@@ -1,5 +1,4 @@
 import React from 'react';
-import { MobileDayCard, DesktopDayCard } from 'src/features/slots/days/Card';
 import { Switch } from 'src/components/Switch';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from 'src/components/Accordion';
 import { Paragraph } from 'src/components/typography/Paragraph';
@@ -9,32 +8,39 @@ import { isPast } from 'src/utils/dates/isPast';
 import { getNumOfPlaceholders } from 'src/utils/data/getNumOfPlaceholders';
 import { useHandleBreakpoint } from 'src/hooks/useHandleBreakpoint';
 import { Badge } from 'src/components/Badge';
+import { Card } from './card';
 
 export const Days = (props: {
+  employeeId: string,
   year: number,
   weekNumber: number,
-  weekDays: string[]
+  weekDays: string[],
+  isMobile: boolean
 }) => {
   const isMobile = useHandleBreakpoint({ windowInnerWidth: 480 });
   const [isRecurringSlotsOnly, setIsRecurringSlotsOnly] = React.useState<boolean>(false);
 
   let content: React.ReactNode = null;
-  if (isMobile) {
+  if (props.isMobile) {
     content = (
-      <MobileDays
+      <Mobile
+        employeeId={props.employeeId}
         year={props.year}
         weekNumber={props.weekNumber}
         weekDays={props.weekDays}
         isRecurringSlotsOnly={isRecurringSlotsOnly}
+        isMobile={isMobile}
       />
     );
   } else {
     content = (
-      <DesktopDays
+      <Desktop
+        employeeId={props.employeeId}
         year={props.year}
         weekNumber={props.weekNumber}
         weekDays={props.weekDays}
         isRecurringSlotsOnly={isRecurringSlotsOnly}
+        isMobile={isMobile}
       />
     );
   }
@@ -42,19 +48,27 @@ export const Days = (props: {
   return (
     <main>
       <div className='w-full flex justify-end items-center gap-2 mb-4'>
-        <label htmlFor='only-recurring' className='text-sm text-text-primary font-medium leading-none'>Recurring only</label>
-        <Switch checked={isRecurringSlotsOnly} onCheckedChange={() => setIsRecurringSlotsOnly(!isRecurringSlotsOnly)} className='data-[state=checked]:bg-accent-secondary' />
+        <label htmlFor='only-recurring' className='text-sm text-text-primary font-medium leading-none'>
+          Recurring only
+        </label>
+        <Switch
+          checked={isRecurringSlotsOnly}
+          onCheckedChange={() => setIsRecurringSlotsOnly(!isRecurringSlotsOnly)}
+          className='data-[state=checked]:bg-accent-secondary'
+        />
       </div>
       {content}
     </main>
   )
 }
 
-const MobileDays = (props: {
+const Mobile = (props: {
+  employeeId: string,
   year: number,
   weekNumber: number,
   weekDays: string[],
   isRecurringSlotsOnly: boolean,
+  isMobile: boolean
 }) => {
   return (
     <Accordion type='single' defaultValue={props.weekDays[0]} className='flex flex-col gap-4'>
@@ -69,11 +83,13 @@ const MobileDays = (props: {
            </div>
          </AccordionTrigger>
          <AccordionContent className='pb-0'>
-          <MobileDayCard
+          <Card
+            employeeId={props.employeeId}
             year={props.year}
             weekNumber={props.weekNumber}
             day={day}
             isRecurringSlotsOnly={props.isRecurringSlotsOnly}
+            isMobile={props.isMobile}
           />
          </AccordionContent>
        </AccordionItem>
@@ -82,15 +98,17 @@ const MobileDays = (props: {
   )
 }
 
-const DesktopDays = (props: {
+const Desktop = (props: {
+  employeeId: string,
   year: number,
   weekNumber: number,
   weekDays: string[],
   isRecurringSlotsOnly: boolean,
+  isMobile: boolean
 }) => {
   const numOfPlaceholders = getNumOfPlaceholders(props.weekDays.length);
   
-  let placeholdersBefore: React.ReactNode;
+  let placeholdersBefore: React.ReactNode = null;
   if (props.weekNumber === 1) {
     placeholdersBefore = (
       numOfPlaceholders.map((placeholder: number) => (
@@ -110,12 +128,14 @@ const DesktopDays = (props: {
   
   const content = (
     props.weekDays.map((day) => (
-      <DesktopDayCard
+      <Card
+        employeeId={props.employeeId}
         year={props.year}
         weekNumber={props.weekNumber}
         key={day}
         day={day}
         isRecurringSlotsOnly={props.isRecurringSlotsOnly}
+        isMobile={props.isMobile}
       />
     ))
   )

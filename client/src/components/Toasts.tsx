@@ -20,7 +20,6 @@ import { Slot } from 'src/types/slots';
 import { Session } from 'src/types/sessions';
 
 export const Toasts = () => {
-  const dispatch = useDispatch<AppDispatch>();
   const undos = useSelector((state: RootState) => state.undo)
   
   let content: React.ReactNode = null;
@@ -29,7 +28,7 @@ export const Toasts = () => {
     content = (
       <AnimatePresence>
         {Object.values(undos.payload).map((undo: { message: string, data: Slot[] | Session[] }) => (
-          <Toast key={undo.data[0].id} undo={undo} dispatch={dispatch} />
+          <Toast key={undo.data[0].id} undo={undo} />
         ))}
       </AnimatePresence>
     )
@@ -39,8 +38,9 @@ export const Toasts = () => {
 
 const Toast = (props: {
   undo: { message: string, data: Slot[] | Session[] }
-  dispatch: AppDispatch;
 }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  
   const [ undoUpdateSlotHour ] = useUndoUpdateSlotHourMutation();
   const [ undoUpdateSlotMinutes ] = useUndoUpdateRecurringSlotMinutesMutation();
   const [ undoAddRecurringSlot ] = useUndoAddRecurringSlotMutation();
@@ -55,9 +55,9 @@ const Toast = (props: {
   
   React.useEffect(() => {
     setTimeout(() => {
-      props.dispatch(undoRemoved(props.undo.data[0].id));
+      dispatch(undoRemoved(props.undo.data[0].id));
     }, 5000);
-  },[props])
+  },[dispatch, props])
   
   const description = (
     <Paragraph variant='thin' size='sm'>
@@ -101,7 +101,7 @@ const Toast = (props: {
       const session = props.undo.data[0] as Session;
       undoDeleteSession({ session })
     }
-    props.dispatch(undoRemoved(props.undo.data[0].id));
+    dispatch(undoRemoved(props.undo.data[0].id));
   }
   
   return (

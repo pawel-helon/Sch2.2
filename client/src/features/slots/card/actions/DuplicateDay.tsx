@@ -1,52 +1,90 @@
-import React from 'react';
 import { Cross2Icon } from '@radix-ui/react-icons';
-import { duplicateDay } from 'src/features/slots/slotsSlice';
-import { Slot } from 'src/lib/types';
-import { Button } from 'src/ui/button';
-import { Dialog } from 'src/ui/dialog';
-import { Heading } from 'src/lib/typography';
-import { AppDispatch } from 'src/lib/store';
-import { cn } from 'src/lib/utils';
-import { Sheet, SheetContent, SheetTitleH as SheetTitle, SheetTrigger } from 'src/ui/sheet';
-import { capitalizeFirstLetter, getMonthAndDay, getNameOfDay, getNumOfPlaceholders, getWeekDays } from 'src/lib/helpers';
-import { toastAdded } from 'src/features/toasts/toastSlice';
+import React from 'react';
+import { Button } from 'src/components/Button';
+import { Dialog } from 'src/components/Dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetTitleH as SheetTitle,
+  SheetTrigger
+} from 'src/components/Sheet';
+import { Heading } from 'src/components/typography/Heading';
+import { useDuplicateDayMutation } from 'src/redux/actions/slots/duplicateDay';
+import { capitalizeFirstLetter } from 'src/utils/capitalizeFirstLetter';
+import { cn } from 'src/utils/cn';
+import { getNumOfPlaceholders } from 'src/utils/data/getNumOfPlaceholders';
+import { getDayName } from 'src/utils/dates/getDayName';
+import { getMonthAndDay } from 'src/utils/dates/getMonthAndDay';
+import { getWeekDays } from 'src/utils/dates/getWeekDays';
 
-export function MobileDuplicateDay(props: {
+export const DuplicateDay = (props: {
+  employeeId: string,
   year: number,
   weekNumber: number,
   day: string,
-  dispatch: AppDispatch
-}) {
-  const [open, setOpen] = React.useState<boolean>(false);
+  isMobile: boolean
+}) => {
+  let content: React.ReactNode = null;
+
+  if (props.isMobile) {
+    content = (
+      <Mobile
+        employeeId={props.employeeId}
+        year={props.year}
+        weekNumber={props.weekNumber}
+        day={props.day}
+      />
+    )
+  } else {
+    content = (
+      <Desktop
+        employeeId={props.employeeId}
+        year={props.year}
+        weekNumber={props.weekNumber}
+        day={props.day}
+      />
+    )
+  }
   
+  return content;
+}
+
+const Mobile = (props: {
+  employeeId: string,
+  year: number,
+  weekNumber: number,
+  day: string
+}) => {
+  const [open, setOpen] = React.useState<boolean>(false);
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button aria-label='duplicate-day' size='sm' variant='outline' onClick={() => setOpen(true)} className='w-full rounded-r-none px-1.5'>
-          Duplicate
-        </Button>
-      </SheetTrigger>
-      <SheetContent side='bottom' aria-describedby='duplicate-day'>
-        <SheetTitle>Duplicate day</SheetTitle>
-        <DuplicateDay
-          year={props.year}
-          weekNumber={props.weekNumber}
-          day={props.day}
-          dialogOpen={open}
-          setDialogOpen={setOpen}
-          dispatch={props.dispatch}
-        />
-      </SheetContent>
-    </Sheet>
+    <SheetTrigger asChild>
+      <Button aria-label='duplicate-day' size='sm' variant='outline' onClick={() => setOpen(true)} className='w-full rounded-r-none px-1.5'>
+        Duplicate
+      </Button>
+    </SheetTrigger>
+    <SheetContent side='bottom' aria-describedby='duplicate-day'>
+      <SheetTitle>Duplicate day</SheetTitle>
+      <Form
+        employeeId={props.employeeId}
+        year={props.year}
+        weekNumber={props.weekNumber}
+        day={props.day}
+        dialogOpen={open}
+        setDialogOpen={setOpen}
+      />
+    </SheetContent>
+  </Sheet>
   )
 }
 
-export function DesktopDuplicateDay(props: {
+const Desktop = (props: {
+  employeeId: string,
   year: number,
   weekNumber: number,
-  day: string,
-  dispatch: AppDispatch
-}) {
+  day: string
+}) => {
   const [open, setOpen] = React.useState<boolean>(false);
   const dialogRef = React.useRef<HTMLDialogElement>(null);
 
@@ -62,7 +100,7 @@ export function DesktopDuplicateDay(props: {
       document.removeEventListener('mousedown', handleClickOutside);
     }
   },[open])
-
+  
   return (
     <>
       <Button size='sm' variant='outline' onClick={() => setOpen(true)} className='w-[100px] rounded-r-none px-1.5'>
@@ -75,56 +113,48 @@ export function DesktopDuplicateDay(props: {
             <Cross2Icon />
           </button>
         </div>
-        <DuplicateDay
+        <Form
+          employeeId={props.employeeId}
           year={props.year}
           weekNumber={props.weekNumber}
           day={props.day}
           dialogOpen={open}
           setDialogOpen={setOpen}
-          dispatch={props.dispatch}
         />
       </Dialog> 
     </>
   )
 }
 
-function DuplicateDay(props: {
+const Form = (props: {
+  employeeId: string,
   year: number,
   weekNumber: number,
   day: string,
   dialogOpen: boolean,
   setDialogOpen: (dialogOpen: boolean) => void,
-  dispatch: AppDispatch
-}) {
+}) => {
+  const [ duplicateDay ] = useDuplicateDayMutation();
   const [selectedDays, setSelectedDays] = React.useState<string[]>([]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     props.setDialogOpen(false);
     try {
-      props.dispatch(duplicateDay({ day: props.day, selectedDays })).then((response) => {
-        const payload = response.payload as { message: string, slots: Slot[] }
-        const slotIds = payload.slots.map(slot => slot.id);
-        props.dispatch(toastAdded({
-          requestStatus: response.meta.requestStatus,
-          description: payload.message,
-          action: { name: 'undoDuplicateDay', payload: slotIds }
-        }));
-      })
+      await duplicateDay({ employeeId: props.employeeId, day: props.day, selectedDays });
     } catch (error) {
-      console.error(error);
-      props.dispatch(toastAdded({
-        requestStatus: 'rejected',
-        description: 'An error occurred while rescheduling meeting',
-        action: { name: '', payload: [] }
-      }));
+      console.error('Failed to duplicate day: ', error);
     }
   }
 
-  const placeholdersBefore = props.weekNumber === 1
-    && <Placeholders year={props.year} weekNumber={props.weekNumber} />;
+  let placeholdersBefore: React.ReactNode = null;
+  if (props.weekNumber === 1) {
+    placeholdersBefore = <Placeholders year={props.year} weekNumber={props.weekNumber} />;
+  }
 
-  const placeholdersAfter = props.weekNumber === 53
-    && <Placeholders year={props.year} weekNumber={props.weekNumber} />;
+  let placeholdersAfter: React.ReactNode = null;
+  if (props.weekNumber === 1) {
+    placeholdersAfter = <Placeholders year={props.year} weekNumber={props.weekNumber} />;
+  }
 
   const content = (
     <SelectDays 
@@ -144,16 +174,18 @@ function DuplicateDay(props: {
         {placeholdersAfter}
       </div>
       <div className='w-full flex justify-end mt-8 gap-2'>
-        <Button onClick={handleSubmit} className='w-full xs:w-fit'>Duplicate</Button>
+        <Button onClick={handleSubmit} className='w-full xs:w-fit'>
+          Duplicate
+        </Button>
       </div>
     </>
   )
 }
 
-function Placeholders(props: {
+const Placeholders = (props: {
   year: number,
   weekNumber: number,
-}) {
+}) => {
   const weekDays = getWeekDays(props.year, props.weekNumber);
   const placeholders = getNumOfPlaceholders(weekDays.length);
 
@@ -165,13 +197,13 @@ function Placeholders(props: {
   ))
 }
 
-function SelectDays(props: {
+const SelectDays = (props: {
   year: number,
   weekNumber: number,
   day: string,
   selectedDays: string[],
   setSelectedDays: (selectedDays: string[]) => void
-}) {
+}) => {
   const weekDays = getWeekDays(props.year, props.weekNumber);
   
   return (
@@ -188,12 +220,12 @@ function SelectDays(props: {
 
 }
 
-function Day(props: {
+const Day = (props: {
   initialDay: string,
   weekDay: string,
   selectedDays: string[],
   setSelectedDays: (selectedDays: string[]) => void
-}) {
+}) => {
   const handleClick = (weekDay: string) => {
     if (!props.selectedDays.includes(weekDay)) {
       props.setSelectedDays([...props.selectedDays, weekDay])
@@ -203,7 +235,7 @@ function Day(props: {
   }
 
   const className =  props.selectedDays.includes(props.weekDay) ? 'bg-background-hover' : 'bg-background';
-  const dayName = capitalizeFirstLetter(getNameOfDay(props.weekDay));
+  const dayName = capitalizeFirstLetter(getDayName(props.weekDay));
   const dayDate = getMonthAndDay(props.weekDay);
   
   return (
