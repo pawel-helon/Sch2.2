@@ -14,6 +14,7 @@ import { selectDaySlots } from 'src/redux/selectors/slots/selectDaySlots';
 import { useAddSlotMutation } from 'src/redux/actions/slots/addSlot';
 import { useAddRecurringSlotMutation } from 'src/redux/actions/slots/addRecurringSlot';
 import { Actions } from './actions';
+import { List } from './list';
 
 export const Card = (props: {
   employeeId: string,
@@ -176,7 +177,7 @@ const Mobile = (props: {
 }) => {
   const content = (
     <>
-      {/* TODO: Slot list */}
+      <List slots={props.slots} />
       <Actions
         employeeId={props.employeeId}
         slots={props.slots}
@@ -207,7 +208,7 @@ export const Desktop = (props: {
 }) => {
   const content = (
     <>
-      {/* TODO: Slot list */}
+      <List slots={props.slots} />
       <Actions
         employeeId={props.employeeId}
         slots={props.slots}

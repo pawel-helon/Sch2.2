@@ -47,6 +47,11 @@ export const Days = (props: {
 
   return (
     <main>
+              <Switch
+          checked={isRecurringSlotsOnly}
+          onCheckedChange={() => setIsRecurringSlotsOnly(!isRecurringSlotsOnly)}
+          className='data-[state=checked]:bg-accent-secondary'
+        />
       <div className='w-full flex justify-end items-center gap-2 mb-4'>
         <label htmlFor='only-recurring' className='text-sm text-text-primary font-medium leading-none'>
           Recurring only

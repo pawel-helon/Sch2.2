@@ -13,19 +13,19 @@ import { Days } from 'src/features/slots/Days';
 import { useHandleBreakpoint } from 'src/hooks/useHandleBreakpoint';
 
 export const SlotsLayout = () => {
-  const employeeId = '06daeca5-1878-4adf-abf4-58045206a555'; //TODO: add auth
+  const employeeId = '06daeca5-1878-4adf-abf4-58045206a555';
   const { theme } = useHandleTheme();
   const { week } = useParams() as { week: string };
   const { year, weekNumber } = destructureParams(week);
   const weekDays = getWeekDays(year, weekNumber);
   useGetWeekSlotsQuery({ employeeId, start: weekDays[0], end: weekDays[weekDays.length - 1] });
   const isMobile = useHandleBreakpoint({ windowInnerWidth: 480 });
-  
 
   return (
     <div className={cn(theme, 'bg-background h-[100vh]')}>
+      <ThemeToggle />
       <div id='availability-layout' className='mx-auto xl:max-w-screen-xl 2xl:max-w-screen-2xl'>
-        <div className='w-full h-[100vh] pl-3 pr-2 pb-12 xs:pl-6 xs:pr-5 xs:border-x-[1px] border-border overflow-y-scroll scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1'>
+        <div className='w-full pl-3 pr-2 pb-12 xs:pl-6 xs:pr-5 xs:border-x-[1px] border-border overflow-y-scroll scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1'>
           <div className='w-full flex justify-between items-center pt-4'>
             <Breadcrumbs year={year} weekNumber={weekNumber} />
             <ThemeToggle />

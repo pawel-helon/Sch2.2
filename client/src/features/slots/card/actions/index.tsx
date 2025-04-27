@@ -21,9 +21,46 @@ export const Actions = (props: {
   isRecurringSlotsOnly: boolean,
   isMobile: boolean
 }) => {
+  return (
+  <div className='absolute bottom-0 left-0 right-0 flex flex-col gap-2 p-3 bg-background-background'>
+    <div className='flex'>
+      <DuplicateDay
+        employeeId={props.employeeId}
+        year={props.year}
+        weekNumber={props.weekNumber}
+        day={props.day}
+        isMobile={props.isMobile}
+      />
+      <MoreActions
+        employeeId={props.employeeId}
+        slots={props.slots}
+        year={props.year}
+        weekNumber={props.weekNumber}
+        day={props.day}
+        isRecurringSlotsOnly={props.isRecurringSlotsOnly}
+      />
+    </div>
+    <AddSlot
+      employeeId={props.employeeId}
+      day={props.day}
+      isRecurringSlotsOnly={props.isRecurringSlotsOnly}
+      isMobile={props.isMobile}
+    />
+  </div>
+  )
+}
+
+const MoreActions = (props: {
+  employeeId: string,
+  slots: Slot[],
+  year: number,
+  weekNumber: number,
+  day: string,
+  isRecurringSlotsOnly: boolean
+}) => {
   const [open, setOpen] = React.useState<boolean>(false);
 
-  const moreActions = (
+  return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant='outline' size='sm' className='w-12 xs:w-8 rounded-l-none px-1.5'>
@@ -39,26 +76,5 @@ export const Actions = (props: {
         />
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-  
-  return (
-  <div className='absolute bottom-0 left-0 right-0 flex flex-col gap-2 p-3 bg-background-background'>
-    <div className='flex'>
-      <DuplicateDay
-        employeeId={props.employeeId}
-        year={props.year}
-        weekNumber={props.weekNumber}
-        day={props.day}
-        isMobile={props.isMobile}
-      />
-      {moreActions}
-    </div>
-    <AddSlot
-      employeeId={props.employeeId}
-      day={props.day}
-      isRecurringSlotsOnly={props.isRecurringSlotsOnly}
-      isMobile={props.isMobile}
-    />
-  </div>
   )
 }
