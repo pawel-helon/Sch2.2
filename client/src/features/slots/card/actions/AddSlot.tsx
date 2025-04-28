@@ -35,14 +35,14 @@ export const AddSlot = (props: {
   let content: React.ReactNode = null;
   if (props.isMobile) {
     content = (
-      <Button onClick={handleClick} variant={handleVariant} size='icon' className='text-xs w-full'>
+      <Button onClick={handleClick} variant={handleVariant} size='sm' className='text-xs w-full'>
         <Plus className='size-4 mr-1'/>
         {cta}
       </Button>
     )
   } else {
     content = (
-      <Button onClick={handleClick} variant={handleVariant} size='icon' className='size-8'>
+      <Button onClick={handleClick} variant={handleVariant} size='sm' className='size-8 p-0'>
         <Plus size={16} />
       </Button>
     )

@@ -12,7 +12,7 @@ export const List = (props: {
   slots: Slot[]
 }) => {
   return (
-    <div className='mt-10 mb-12 pl-3 pr-2 flex relative flex-col h-full overflow-y-scroll scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1 bg-background'>
+    <div className='mt-10 mb-12 pl-3 pr-2 flex relative flex-col h-full overflow-y-auto scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1 bg-background'>
       {props.slots.map((slot) => (
         <Item key={slot.id} slot={slot} />
       ))}

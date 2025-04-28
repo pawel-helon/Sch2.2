@@ -1,14 +1,17 @@
-import { Cross2Icon } from '@radix-ui/react-icons';
 import React from 'react';
 import { Button } from 'src/components/Button';
-import { Dialog } from 'src/components/Dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger
+} from 'src/components/Dialog';
 import {
   Sheet,
   SheetContent,
   SheetTitleH as SheetTitle,
   SheetTrigger
 } from 'src/components/Sheet';
-import { Heading } from 'src/components/typography/Heading';
 import { useDuplicateDayMutation } from 'src/redux/actions/slots/duplicateDay';
 import { capitalizeFirstLetter } from 'src/utils/capitalizeFirstLetter';
 import { cn } from 'src/utils/cn';
@@ -59,23 +62,23 @@ const Mobile = (props: {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-    <SheetTrigger asChild>
-      <Button aria-label='duplicate-day' size='sm' variant='outline' onClick={() => setOpen(true)} className='w-full rounded-r-none px-1.5'>
-        Duplicate
-      </Button>
-    </SheetTrigger>
-    <SheetContent side='bottom' aria-describedby='duplicate-day'>
-      <SheetTitle>Duplicate day</SheetTitle>
-      <Form
-        employeeId={props.employeeId}
-        year={props.year}
-        weekNumber={props.weekNumber}
-        day={props.day}
-        dialogOpen={open}
-        setDialogOpen={setOpen}
-      />
-    </SheetContent>
-  </Sheet>
+      <SheetTrigger asChild>
+        <Button aria-label='duplicate-day' size='sm' variant='outline' onClick={() => setOpen(true)} className='w-full rounded-r-none px-1.5'>
+          Duplicate
+        </Button>
+      </SheetTrigger>
+      <SheetContent side='bottom' aria-describedby='duplicate-day'>
+        <SheetTitle>Duplicate day</SheetTitle>
+        <Form
+          employeeId={props.employeeId}
+          year={props.year}
+          weekNumber={props.weekNumber}
+          day={props.day}
+          dialogOpen={open}
+          setDialogOpen={setOpen}
+        />
+      </SheetContent>
+    </Sheet>
   )
 }
 
@@ -86,33 +89,16 @@ const Desktop = (props: {
   day: string
 }) => {
   const [open, setOpen] = React.useState<boolean>(false);
-  const dialogRef = React.useRef<HTMLDialogElement>(null);
-
-  React.useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dialogRef.current && !dialogRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    }
-  },[open])
   
   return (
-    <>
-      <Button size='sm' variant='outline' onClick={() => setOpen(true)} className='w-[100px] rounded-r-none px-1.5'>
-        Duplicate
-      </Button>
-      <Dialog ref={dialogRef} isOpen={open} className='min-w-[480px]'>
-        <div className='flex justify-between items-start text-left'>
-          <Heading variant='h4'>Duplicate day</Heading>
-          <button onClick={() => setOpen(false)} className='cursor-pointer text-text-secondary transition-colors hover:text-text-primary'>
-            <Cross2Icon />
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={setOpen} >
+      <DialogTrigger asChild>
+        <Button size='sm' variant='outline' className='w-[100px] rounded-r-none px-1.5'>
+          Duplicate
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogTitle>Duplicate day</DialogTitle>
         <Form
           employeeId={props.employeeId}
           year={props.year}
@@ -121,8 +107,8 @@ const Desktop = (props: {
           dialogOpen={open}
           setDialogOpen={setOpen}
         />
-      </Dialog> 
-    </>
+      </DialogContent>
+    </Dialog> 
   )
 }
 

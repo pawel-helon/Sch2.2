@@ -27,7 +27,7 @@ export const addSlot = async (req: Request, res: Response) => {
     return createResponse(res, "Invalid day format. Expected YYYY-MM-DD.");
   }
 
-  if (new Date() > new Date(day)) {
+  if (new Date().getTime() > new Date(new Date(day).setHours(23,59,59,999)).getTime()) {
     return createResponse(res, "Invalid date. Expected non-past date.");
   }
 
@@ -68,12 +68,12 @@ export const addSlot = async (req: Request, res: Response) => {
       FROM available_time
       RETURNING *
     `;
-
     
     const result = await pool.query(queryValue, [
       employeeId,
       day
     ]);
+
     
     if (!result.rows.length) {
       return createResponse(res, "Failed to add slot.");

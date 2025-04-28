@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Slot, SlotsAccumulator } from "../../lib/types";
+import { SlotsAccumulator, Slot } from "../../lib/types";
 import { pool } from "../../index";
 import { TIMESTAMP_REGEX, UUID_REGEX } from "../../lib/constants";
 
@@ -39,8 +39,8 @@ export const addSlots = async (req: Request, res: Response) => {
     return createResponse(res, "Invalid startTime format in slots.");
   }
 
-  if (!slots.every(slot => slot.duration && typeof slot.duration === "string")) {
-    return createResponse(res, "Invalid duration format in slots. Expected string.");
+  if (!slots.every(slot => slot.duration && typeof slot.duration === "object")) {
+    return createResponse(res, "Invalid duration format in slots. Expected string in the object.");
   }
 
   if (!slots.every(slot => typeof slot.recurring === "boolean")) {
@@ -58,7 +58,7 @@ export const addSlots = async (req: Request, res: Response) => {
   const slots_id = slots.map(slot => slot.id);
   const slots_type = slots.map(slot => slot.type);
   const slots_start_time = slots.map(slot => slot.startTime);
-  const slots_duration = slots.map(slot => slot.duration);
+  const slots_duration = slots.map(slot => `00:${slot.duration.minutes}:00`);
   const slots_recurring = slots.map(slot => slot.recurring) ;
   const slots_created_at = slots.map(slot => slot.createdAt);
 

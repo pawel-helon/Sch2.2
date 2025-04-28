@@ -19,9 +19,10 @@ const undoSlice = createSlice({
       const data = action.payload;
       state.payload.push(data);
     },
-    undoRemoved(state, action: PayloadAction<string>) {
-      const id = action.payload;
-      state.payload = state.payload.filter(e => e.data[0].id !== id);
+    undoRemoved(state, action: PayloadAction<{ message: string, id: string }>) {
+      const message = action.payload.id;
+      const id = action.payload.id;
+      state.payload = state.payload.filter(e => (e.message[0] !== message && e.data[0].id !== id));
     },
   },
 })

@@ -1,11 +1,13 @@
 import { Action, configureStore, ThunkAction } from '@reduxjs/toolkit';
 import { schedulingApi } from 'src/api/schedulingApi';
 import undoSlice from 'src/redux/slices/undoSlice';
+import infoSlice from 'src/redux/slices/infoSlice';
 
 export const store = configureStore({
   reducer: {
     [schedulingApi.reducerPath]: schedulingApi.reducer,
-    undo: undoSlice
+    undo: undoSlice,
+    info: infoSlice
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

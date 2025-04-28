@@ -1,9 +1,10 @@
 import React from 'react';
-import { CheckIcon } from '@radix-ui/react-icons';
+import { CheckIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { AnimatePresence, motion } from 'framer-motion'; 
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from 'src/redux/store';
 import { undoRemoved } from 'src/redux/slices/undoSlice';
+import { infoRemoved } from 'src/redux/slices/infoSlice';
 import { useUndoUpdateSlotHourMutation } from 'src/redux/actions/slots/undoUpdateSlotHour';
 import { useUndoAddRecurringSlotMutation } from 'src/redux/actions/slots/undoAddRecurringSlot';
 import { useUndoUpdateRecurringSlotHourMutation } from 'src/redux/actions/slots/undoUpdateRecurringSlotHour';
@@ -18,26 +19,69 @@ import { Button } from 'src/components/Button';
 import { Paragraph } from 'src/components/typography/Paragraph';
 import { Slot } from 'src/types/slots';
 import { Session } from 'src/types/sessions';
+import { v4 as uuid } from 'uuid';
 
 export const Toasts = () => {
-  const undos = useSelector((state: RootState) => state.undo)
+  const undos = useSelector((state: RootState) => state.undo);
+  const infos = useSelector((state: RootState) => state.info);
   
   let content: React.ReactNode = null;
-
   if (Object.values(undos.payload).length > 0) {
     content = (
       <AnimatePresence>
         {Object.values(undos.payload).map((undo: { message: string, data: Slot[] | Session[] }) => (
-          <Toast key={undo.data[0].id} undo={undo} />
+          <Undo
+            key={undo.data[0].id + uuid()}
+            undo={undo}
+          />
+        ))}
+      </AnimatePresence>
+    )
+  } else if (Object.values(infos.payload).length > 0) {
+    content = (
+      <AnimatePresence>
+        {Object.values(infos.payload).map((info: { message: string }) => (
+          <Info
+            key={info.message[0]}
+            info={info}
+          />
         ))}
       </AnimatePresence>
     )
   }
+
   return content;
 }
 
-const Toast = (props: {
-  undo: { message: string, data: Slot[] | Session[] }
+const Info = (props: {
+  info: { message: string }
+}) => {
+  const dispatch = useDispatch<AppDispatch>();
+  
+  React.useEffect(() => {
+    setTimeout(() => {
+      dispatch(infoRemoved(props.info.message[0]));
+    }, 5000);
+  },[dispatch, props])
+
+  return (
+    <motion.div
+      className='w-full fixed top-4 xs:-top-36 mx-auto flex justify-center px-3 xl:max-w-screen-xl 2xl:max-w-screen-2xl'
+      initial={{ y: 100, opacity: 0 }}
+      animate={{ y: 200, opacity: 1 }}
+      exit={{ y: 200, opacity: 0 }}
+      transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+    >
+      <div className='min-w-60 h-12 flex items-center gap-2 px-2 text-text-primary text-sm border border-border rounded-md shadow-shadow shadow-sm bg-background'>
+        <CrossCircledIcon className='rounded-full text-red-500' />
+        {props.info.message}
+      </div>
+    </motion.div>
+  )
+}
+
+const Undo = (props: {
+  undo: { message: string, data: Slot[] | Session[] },
 }) => {
   const dispatch = useDispatch<AppDispatch>();
   
@@ -55,7 +99,7 @@ const Toast = (props: {
   
   React.useEffect(() => {
     setTimeout(() => {
-      dispatch(undoRemoved(props.undo.data[0].id));
+      dispatch(undoRemoved({ message: props.undo.message, id: props.undo.data[0].id }));
     }, 5000);
   },[dispatch, props])
   
@@ -101,9 +145,9 @@ const Toast = (props: {
       const session = props.undo.data[0] as Session;
       undoDeleteSession({ session })
     }
-    dispatch(undoRemoved(props.undo.data[0].id));
+    dispatch(undoRemoved({ message: props.undo.message, id: props.undo.data[0].id }));
   }
-  
+
   return (
     <motion.div
       className='w-full fixed top-4 xs:-top-36 mx-auto flex justify-center px-3 xl:max-w-screen-xl 2xl:max-w-screen-2xl'
@@ -112,9 +156,9 @@ const Toast = (props: {
       exit={{ y: 200, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 260, damping: 20 }}
     >
-      <div className='h-12 flex items-center gap-2 px-2 border border-border rounded-md shadow-shadow shadow-sm bg-background'>
+      <div className='min-w-60 h-12 flex items-center gap-2 px-2 text-sm border border-border rounded-md shadow-shadow shadow-sm bg-background'>
         <CheckIcon className='bg-green-500 rounded-full text-background' />
-          {description}
+        {description}
         <Button onClick={ handleClick } variant='outline' size='sm' className='ml-8'>
           Undo
         </Button>

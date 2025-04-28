@@ -47,11 +47,6 @@ export const Days = (props: {
 
   return (
     <main>
-              <Switch
-          checked={isRecurringSlotsOnly}
-          onCheckedChange={() => setIsRecurringSlotsOnly(!isRecurringSlotsOnly)}
-          className='data-[state=checked]:bg-accent-secondary'
-        />
       <div className='w-full flex justify-end items-center gap-2 mb-4'>
         <label htmlFor='only-recurring' className='text-sm text-text-primary font-medium leading-none'>
           Recurring only
@@ -117,7 +112,7 @@ const Desktop = (props: {
   if (props.weekNumber === 1) {
     placeholdersBefore = (
       numOfPlaceholders.map((placeholder: number) => (
-        <div key={placeholder} style={{ aspectRatio: '3/4' }} className='relative h-full col-span-1 flex flex-col border border-border rounded-md bg-background' />
+        <div key={placeholder} className='aspect-[3/4] relative h-full col-span-1 flex flex-col border border-border rounded-md bg-background' />
       )
     ))
   }
@@ -126,7 +121,7 @@ const Desktop = (props: {
   if (props.weekNumber === 53) {
     placeholdersAfter = (
       numOfPlaceholders.map((placeholder: number) => (
-        <div key={placeholder} style={{ aspectRatio: '3/4' }} className='relative h-full col-span-1 flex flex-col border border-border rounded-md bg-background' />
+        <div key={placeholder} className='aspect-[3/4] relative h-full col-span-1 flex flex-col border border-border rounded-md bg-background' />
       )
     ))
   }
@@ -146,7 +141,7 @@ const Desktop = (props: {
   )
 
   return (
-    <div className='grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 xs:gap-4 mb-16'>
+    <div className='grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 xs:gap-4'>
       {placeholdersBefore}
       {content}
       {placeholdersAfter}

@@ -22,7 +22,7 @@ export const Actions = (props: {
   isMobile: boolean
 }) => {
   return (
-  <div className='absolute bottom-0 left-0 right-0 flex flex-col gap-2 p-3 bg-background-background'>
+  <div className='absolute bottom-0 left-0 right-0 flex justify-between gap-2 p-3 bg-background-background'>
     <div className='flex'>
       <DuplicateDay
         employeeId={props.employeeId}

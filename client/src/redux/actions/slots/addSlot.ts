@@ -22,8 +22,8 @@ const validateInput = (input: { employeeId: string, day: string }): void => {
     throw new Error('Invalid day format. Expected YYYY-MM-DD.');
   }
 
-  if (new Date() > new Date(day)) {
-    throw new Error('Invalid date');
+  if (new Date().getTime() > new Date(new Date(day).setHours(23,59,59,999)).getTime()) {
+    throw new Error('Invalid date. Expected non-past date.');
   }
 }
 

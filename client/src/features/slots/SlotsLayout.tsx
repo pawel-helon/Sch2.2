@@ -22,11 +22,10 @@ export const SlotsLayout = () => {
   const isMobile = useHandleBreakpoint({ windowInnerWidth: 480 });
 
   return (
-    <div className={cn(theme, 'bg-background h-[100vh]')}>
-      <ThemeToggle />
+    <div className={cn(theme, 'bg-background min-h-[100vh]')}>
       <div id='availability-layout' className='mx-auto xl:max-w-screen-xl 2xl:max-w-screen-2xl'>
-        <div className='w-full pl-3 pr-2 pb-12 xs:pl-6 xs:pr-5 xs:border-x-[1px] border-border overflow-y-scroll scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1'>
-          <div className='w-full flex justify-between items-center pt-4'>
+        <div className='w-full pl-3 pr-2 pb-8 xs:pl-6 xs:pr-5 xs:border-x-[1px] border-border overflow-y-auto scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1'>
+          <div className='hidden xs:flex gap-1 sticky z-20 top-0 pb-1 bg-background w-full justify-between items-center pt-4'>
             <Breadcrumbs year={year} weekNumber={weekNumber} />
             <ThemeToggle />
           </div>

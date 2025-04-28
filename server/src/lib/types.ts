@@ -8,7 +8,7 @@ export interface Slot {
   employeeId: string;
   type: 'AVAILABLE' | 'BLOCKED' | 'BOOKED';
   startTime: Date;
-  duration: string;
+  duration: { minutes: 30 } | { minutes: 45 } | { minutes: 60 };
   recurring: boolean;
   createdAt: Date;
   updatedAt: Date;

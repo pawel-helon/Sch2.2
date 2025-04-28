@@ -52,6 +52,7 @@ export const validateInput = (input: { slots: Slot[] } ): void => {
   }
 }
 
+
 const undoDeleteSlots = schedulingApi.injectEndpoints({
   endpoints: (builder) => ({
     /**

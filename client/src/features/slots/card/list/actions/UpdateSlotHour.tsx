@@ -20,7 +20,7 @@ export const UpdateSlotHour = (props: {
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant='outline' size='sm' className='w-16 min-w-[64px] bg-background-background-hover'>
-          {hour}
+          {String(hour).padStart(2, '0')}
           <ChevronDown className='size-4 ml-2 text-text-primary' />
         </Button>
       </DropdownMenuTrigger>
@@ -94,7 +94,7 @@ const Hour = (props: {
       size='sm' 
       className={cn(className, 'h-8 py-2')}
     >
-      {props.hour}
+      {String(props.hour).padStart(2, '0')}
     </Button>
   )
 }
