@@ -2,6 +2,7 @@ import React from 'react';
 import { CheckIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { AnimatePresence, motion } from 'framer-motion'; 
 import { useDispatch, useSelector } from 'react-redux';
+import { v4 as uuid } from 'uuid';
 import { AppDispatch, RootState } from 'src/redux/store';
 import { undoRemoved } from 'src/redux/slices/undoSlice';
 import { infoRemoved } from 'src/redux/slices/infoSlice';
@@ -15,11 +16,12 @@ import { useUndoDisableSlotRecurrenceMutation } from 'src/redux/actions/slots/un
 import { useUndoDeleteSessionMutation } from 'src/redux/actions/sessions/undoDeleteSession';
 import { useUndoUpdateSessionMutation } from 'src/redux/actions/sessions/undoUpdateSession';
 import { useUndoUpdateRecurringSlotMinutesMutation } from 'src/redux/actions/slots/undoUpdateRecurringSlotMinutes';
+import { useSetRecurringDayMutation } from 'src/redux/actions/slots/setRecurringDay';
+import { useDisableRecurringDayMutation } from 'src/redux/actions/slots/disableRecurringDay';
 import { Button } from 'src/components/Button';
 import { Paragraph } from 'src/components/typography/Paragraph';
 import { Slot } from 'src/types/slots';
 import { Session } from 'src/types/sessions';
-import { v4 as uuid } from 'uuid';
 
 export const Toasts = () => {
   const undos = useSelector((state: RootState) => state.undo);
@@ -95,7 +97,9 @@ const Undo = (props: {
   const [ undoSetSlotRecurrence ] = useUndoSetSlotRecurrenceMutation();
   const [ undoDisableSlotRecurrence ] = useUndoDisableSlotRecurrenceMutation();
   const [ undoUpdateSession ] = useUndoUpdateSessionMutation();
-  const [ undoDeleteSession ] = useUndoDeleteSessionMutation()
+  const [ undoDeleteSession ] = useUndoDeleteSessionMutation();
+  const [ setRecurringDay ] = useSetRecurringDayMutation();
+  const [ disableRecurringDay ] = useDisableRecurringDayMutation();
   
   React.useEffect(() => {
     setTimeout(() => {
@@ -138,6 +142,14 @@ const Undo = (props: {
     } else if (props.undo.message === 'Slot recurrence has been disabled.') {
       const slot = props.undo.data[0];
       undoDisableSlotRecurrence({ slotId: slot.id });
+    } else if (props.undo.message === 'Recurring day has been set.') {
+      const employeeId = props.undo.data[0].employeeId;
+      const day = props.undo.data[0].startTime.toISOString().split('T')[0];
+      disableRecurringDay({ employeeId, day });
+    } else if (props.undo.message === 'Recurring day has been disabled.') {
+      const employeeId = props.undo.data[0].employeeId;
+      const day = props.undo.data[0].startTime.toISOString().split('T')[0];
+      setRecurringDay({ employeeId, day });
     } else if (props.undo.message === 'Session has been updated.') {
       const session = props.undo.data[0] as Session;
       undoUpdateSession({ sessionId: session.id, slotId: session.slotId })

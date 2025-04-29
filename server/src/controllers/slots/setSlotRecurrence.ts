@@ -37,6 +37,10 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
       slotId
     ]);
 
+    if (!updatingInitalSlot.rows.length) {
+      createResponse(res, "Failed to update initial slot.")
+    } 
+
     // Inserting recurring slots
     const insertingSlotsQueryValue = `
       WITH slot_info AS (

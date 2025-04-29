@@ -1,6 +1,6 @@
 export interface SlotsAccumulator {
   byId: Record<string, Slot>;
-  allIds: string[]
+  allIds: string[];
 }
 
 export interface Slot {
@@ -14,9 +14,20 @@ export interface Slot {
   updatedAt: Date;
 }
 
+export interface SlotsRecurringDatesAccumulator {
+  byId: Record<string, SlotsRecurringDate>;
+  allIds: string[];
+}
+
+export interface SlotsRecurringDate {
+  id: string;
+  employeeId: string;
+  date: string;
+}
+
 export interface SessionsAccumulator {
   byId: Record<string, Session>;
-  allIds: string[]
+  allIds: string[];
 }
 
 export interface Session {

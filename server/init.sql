@@ -7,7 +7,7 @@ BEGIN
 END $$;
 
 -- Drop existing tables to start fresh
-DROP TABLE IF EXISTS "Sessions", "Slots", "Customers", "Employees";
+DROP TABLE IF EXISTS "Sessions", "Slots", "Customers", "Employees", "SlotsRecurringDates";
 
 -- Recreate the schema (from your revised version with fixes)
 CREATE TABLE "Employees" (
@@ -19,6 +19,14 @@ CREATE TABLE "Employees" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "Employees_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "SlotsRecurringDates" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "employeeId" UUID NOT NULL,
+    "date" DATE NOT NULL,
+    CONSTRAINT "RecurringDays_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "RecurringDays_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employees"("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 CREATE TABLE "Customers" (

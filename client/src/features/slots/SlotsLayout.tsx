@@ -1,24 +1,25 @@
 import { useParams } from 'react-router-dom';
-import { useGetWeekSlotsQuery } from 'src/api/schedulingApi';
+import { useGetWeekSlotsQuery, useGetWeekSlotsRecurringDatesQuery } from 'src/api/schedulingApi';
 import { ThemeToggle } from 'src/components/ThemeToggle';
 import { Toasts } from 'src/components/Toasts';
-import { useHandleTheme } from 'src/hooks/useHandleTheme';
-import { getWeekDays } from 'src/utils/dates/getWeekDays';
-import { destructureParams } from 'src/utils/destructureParams';
 import { Breadcrumbs } from 'src/features/slots/Breadcrumbs';
 import { Header } from 'src/features/slots/Header';
 import { Tabs } from 'src/components/Tabs';
-import { cn } from 'src/utils/cn';
 import { Days } from 'src/features/slots/Days';
+import { destructureParams } from 'src/utils/destructureParams';
 import { useHandleBreakpoint } from 'src/hooks/useHandleBreakpoint';
+import { useHandleTheme } from 'src/hooks/useHandleTheme';
+import { getWeekDays } from 'src/utils/dates/getWeekDays';
+import { cn } from 'src/utils/cn';
 
 export const SlotsLayout = () => {
-  const employeeId = '06daeca5-1878-4adf-abf4-58045206a555';
+  const employeeId = '071dcf39-b002-4588-95f4-dc7df1c2bc83';
   const { theme } = useHandleTheme();
   const { week } = useParams() as { week: string };
   const { year, weekNumber } = destructureParams(week);
   const weekDays = getWeekDays(year, weekNumber);
   useGetWeekSlotsQuery({ employeeId, start: weekDays[0], end: weekDays[weekDays.length - 1] });
+  useGetWeekSlotsRecurringDatesQuery({ employeeId, start: weekDays[0], end: weekDays[weekDays.length - 1] });
   const isMobile = useHandleBreakpoint({ windowInnerWidth: 480 });
 
   return (

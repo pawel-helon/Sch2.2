@@ -14,7 +14,6 @@ const infoSlice = createSlice({
   reducers: {
     infoAdded(state, action: PayloadAction<{ message: string }>) {
       const data = action.payload as { message: string };
-      console.log(data);
       state.payload.push(data);
     },
     infoRemoved(state, action: PayloadAction<string>) {

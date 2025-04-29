@@ -112,6 +112,12 @@ const NoSlots = (props: {
   if (!isPast(props.day)) {
     return (
       <div className={className}>
+        <div className='absolute top-3 left-3 right-3 flex justify-between items-center bg-transparent'>
+          <Paragraph variant='thick' size='sm' isMuted={isPast(props.day)}>
+            {capitalizeFirstLetter(getDayName(props.day))}
+          </Paragraph>
+          <Badge day={props.day} />
+        </div>
         <div className='absolute top-0 bottom-0 left-0 right-0 flex flex-col p-3 justify-center items-center gap-2 mt-4'>
           <Paragraph variant='thin' size='sm' className='w-full text-center text-text-tertiary text-balance'>
             There are no {props.isRecurringSlotsOnly && ' recurring '} slots created yet.
@@ -217,7 +223,7 @@ const Slots = (props: {
   } else {
     content = (
       <div className='aspect-[3/4] flex relative h-full col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background'>
-        <div className='absolute top-3 left-3 right-3 flex justify-between items-center'>
+        <div className='absolute top-3 left-3 right-3 flex justify-between items-center bg-transparent'>
           <Paragraph variant='thick' size='sm' isMuted={isPast(props.day)}>
             {capitalizeFirstLetter(getDayName(props.day))}
           </Paragraph>

@@ -68,7 +68,12 @@ const MoreActions = (props: {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end' className='w-[132px] flex flex-col bg-background shadow-shadow shadow-sm p-1'>
-        <DayRecurrence />
+        <DayRecurrence
+          employeeId={props.employeeId}
+          day={props.day}
+          dropdownOpen={open}
+          setDropdownOpen={setOpen}
+        />
         <DeleteSlots
           slots={props.slots}
           dropdownOpen={open}

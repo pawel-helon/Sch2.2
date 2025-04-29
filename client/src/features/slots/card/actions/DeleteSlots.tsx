@@ -1,4 +1,3 @@
-// TODO: add confirmation dialog
 import { Button } from 'src/components/Button';
 import { useDeleteSlotsMutation } from 'src/redux/actions/slots/deleteSlots';
 import { Slot } from 'src/types/slots';

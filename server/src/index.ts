@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import { Server } from "socket.io";
 import { createPool, setupDatabaseListeners } from "./db";
 import slotsRouter from "./routes/slots";
+import slotsRecurringDatesRouter  from "./routes/slots-recurring-dates";
 import sessionsRouter from "./routes/sessions";
 
 dotenv.config();
@@ -27,6 +28,7 @@ pool.connect((err, _, release) => {
 
 // Connect API routes
 app.use("/api/slots", slotsRouter);
+app.use("/api/slots-recurring-dates", slotsRecurringDatesRouter);
 app.use("/api/sessions", sessionsRouter)
 
 // Listen to api routes

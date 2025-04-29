@@ -57,11 +57,11 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
       )
       DELETE FROM "Slots"
       WHERE "employeeId" = (SELECT slot_employee_id FROM slot_info)::uuid
-      AND "startTime" IN (
-        SELECT (recurring_date::date || ' ' || slot_info.slot_start_time::time)::timestamp
-        FROM recurring_dates
-        CROSS JOIN slot_info
-      )
+        AND "startTime" IN (
+          SELECT (recurring_date::date || ' ' || slot_info.slot_start_time::time)::timestamp
+          FROM recurring_dates
+          CROSS JOIN slot_info
+        )
       RETURNING *;
     `;
 

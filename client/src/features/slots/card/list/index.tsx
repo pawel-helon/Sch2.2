@@ -12,7 +12,7 @@ export const List = (props: {
   slots: Slot[]
 }) => {
   return (
-    <div className='mt-10 mb-12 pl-3 pr-2 flex relative flex-col h-full overflow-y-auto scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1 bg-background'>
+    <div className='relative h-full flex flex-col gap-1 mt-10 mb-12 pl-3 pr-2 overflow-y-auto scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1 bg-background'>
       {props.slots.map((slot) => (
         <Item key={slot.id} slot={slot} />
       ))}
@@ -29,7 +29,7 @@ const Item = (props: {
   }
   
   return (
-    <div className='relative flex justify-between my-2'>
+    <div className='first:mt-2 relative flex justify-between'>
       {recurringIndicator}
       <div className='flex gap-1'>
         <UpdateSlotHour
@@ -67,7 +67,7 @@ const MoreActions = (props: {
           <EllipsisVertical size={16} />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side='bottom' align='end' className='flex flex-col shadow-shadow shadow-sm bg-background-background-hover'>
+      <DropdownMenuContent side='bottom' align='end' className='flex flex-col shadow-shadow shadow-sm bg-background background-hover'>
         <SlotRecurrence
           slotId={props.slotId} 
           isRecurring={props.isRecurring} 

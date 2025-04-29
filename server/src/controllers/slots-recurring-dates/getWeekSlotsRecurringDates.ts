@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { SlotsAccumulator } from "../../lib/types";
+import { SlotsRecurringDatesAccumulator } from "../../lib/types";
 import { pool } from "../../index";
 import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: SlotsAccumulator | null = null) => {
+const createResponse = (res: Response, message: string, data: SlotsRecurringDatesAccumulator | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -12,7 +12,7 @@ const createResponse = (res: Response, message: string, data: SlotsAccumulator |
   }});
 }
 
-export const getWeekSlots = async (req: Request, res: Response) => {
+export const getWeekSlotsRecurringDates = async (req: Request, res: Response) => {
   const { employeeId, start, end } = req.body as { employeeId: string, start: string, end: string };
 
   if (!employeeId || !start || !end) {
@@ -37,11 +37,11 @@ export const getWeekSlots = async (req: Request, res: Response) => {
 
   try {
     const queryValue = `
-      SELECT *
-      FROM "Slots"
+      SELECT "id", "employeeId", "date"::text
+      FROM "SlotsRecurringDates"
       WHERE "employeeId" = $1::uuid 
-        AND "startTime" >= ($2::date || ' 00:00:00.000')::timestamp
-        AND "startTime" <= ($3::date || ' 23:59:59.999')::timestamp
+        AND "date" >= $2::date
+        AND "date" <= $3::date
     `;
     const result = await pool.query(queryValue, [
       employeeId,
@@ -50,11 +50,11 @@ export const getWeekSlots = async (req: Request, res: Response) => {
     ]);
 
     if (!result.rows.length) {
-      return createResponse(res, "Failed to fetch slots.", { byId: {}, allIds: [] });
+      return createResponse(res, "Failed to fetch slots recurring dates.", { byId: {}, allIds: [] });
     }
 
     const normalizedResult = result.rows.reduce(
-      (acc: SlotsAccumulator, slot) => {
+      (acc: SlotsRecurringDatesAccumulator, slot) => {
         acc.byId[slot.id] = slot
         acc.allIds.push(slot.id)
         return acc;

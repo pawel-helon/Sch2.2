@@ -1,7 +1,7 @@
-import { Plus } from "lucide-react";
-import { Button } from "src/components/Button";
-import { useAddRecurringSlotMutation } from "src/redux/actions/slots/addRecurringSlot";
-import { useAddSlotMutation } from "src/redux/actions/slots/addSlot";
+import { Plus } from 'lucide-react';
+import { Button } from 'src/components/Button';
+import { useAddRecurringSlotMutation } from 'src/redux/actions/slots/addRecurringSlot';
+import { useAddSlotMutation } from 'src/redux/actions/slots/addSlot';
 
 export const AddSlot = (props: {
   employeeId: string,
