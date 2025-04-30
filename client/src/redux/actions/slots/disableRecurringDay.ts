@@ -32,7 +32,7 @@ const validateInput = (input: { employeeId: string, day: string }): void => {
 const disableRecurringDay = schedulingApi.injectEndpoints({
   endpoints: (builder) => ({
     /**
-     * Adds first available recurring slot for a specific employee on a given day.
+     * Removes duplicated day slots for recurring days.
      * 
      * @param {Object} body - The request payload.
      * @param {string} body.employeeId - The ID of the employee.
@@ -53,9 +53,7 @@ const disableRecurringDay = schedulingApi.injectEndpoints({
         const message = res.data.message;
         const data = res.data.data;
 
-        console.log(data);
-        
-        /** Stores message in cached undoSlice data (slot constant is being created only to fit undoSlice setup).*/
+        /** Stores message and slot in cached undoSlice data (slot constant is being created only to fit undoSlice setup).*/
         const slot = {
           id: args.employeeId,
           employeeId: args.employeeId,
@@ -69,7 +67,7 @@ const disableRecurringDay = schedulingApi.injectEndpoints({
 
         dispatch(undoAdded({ message, data: [slot] as Slot[] }));
 
-        /** Removes deleted session from cached getWeekSessions data. */
+        /** Removes first slotsRecurringDate in cached getWeekSlotsRecurringDates data. */
         const { start, end } = getWeekStartEndDatesFromDay(data.date);
         dispatch(schedulingApi.util.patchQueryData(
           'getWeekSlotsRecurringDates',

@@ -2,7 +2,7 @@ import { Button } from 'src/components/Button';
 import { useDisableSlotRecurrenceMutation } from 'src/redux/actions/slots/disableSlotRecurrence';
 import { useSetSlotRecurrenceMutation } from 'src/redux/actions/slots/setSlotRecurrence';
 
-export const SlotRecurrence = (props: {
+export const SlotRecurrenceMenuItem = (props: {
   slotId: string,
   isRecurring: boolean,
   open: boolean,

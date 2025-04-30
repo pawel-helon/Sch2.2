@@ -16,12 +16,12 @@ import { useUndoDisableSlotRecurrenceMutation } from 'src/redux/actions/slots/un
 import { useUndoDeleteSessionMutation } from 'src/redux/actions/sessions/undoDeleteSession';
 import { useUndoUpdateSessionMutation } from 'src/redux/actions/sessions/undoUpdateSession';
 import { useUndoUpdateRecurringSlotMinutesMutation } from 'src/redux/actions/slots/undoUpdateRecurringSlotMinutes';
-import { useSetRecurringDayMutation } from 'src/redux/actions/slots/setRecurringDay';
-import { useDisableRecurringDayMutation } from 'src/redux/actions/slots/disableRecurringDay';
 import { Button } from 'src/components/Button';
 import { Paragraph } from 'src/components/typography/Paragraph';
 import { Slot } from 'src/types/slots';
 import { Session } from 'src/types/sessions';
+import { useUndoSetRecurringDayMutation } from 'src/redux/actions/slots/undoSetRecurringDay';
+import { useUndoDisableRecurringDayMutation } from 'src/redux/actions/slots/undoDisableRecurringDay';
 
 export const Toasts = () => {
   const undos = useSelector((state: RootState) => state.undo);
@@ -98,8 +98,8 @@ const Undo = (props: {
   const [ undoDisableSlotRecurrence ] = useUndoDisableSlotRecurrenceMutation();
   const [ undoUpdateSession ] = useUndoUpdateSessionMutation();
   const [ undoDeleteSession ] = useUndoDeleteSessionMutation();
-  const [ setRecurringDay ] = useSetRecurringDayMutation();
-  const [ disableRecurringDay ] = useDisableRecurringDayMutation();
+  const [ undoSetRecurringDay ] = useUndoSetRecurringDayMutation();
+  const [ undoDisableRecurringDay ] = useUndoDisableRecurringDayMutation();
   
   React.useEffect(() => {
     setTimeout(() => {
@@ -145,11 +145,11 @@ const Undo = (props: {
     } else if (props.undo.message === 'Recurring day has been set.') {
       const employeeId = props.undo.data[0].employeeId;
       const day = props.undo.data[0].startTime.toISOString().split('T')[0];
-      disableRecurringDay({ employeeId, day });
+      undoSetRecurringDay({ employeeId, day });
     } else if (props.undo.message === 'Recurring day has been disabled.') {
       const employeeId = props.undo.data[0].employeeId;
       const day = props.undo.data[0].startTime.toISOString().split('T')[0];
-      setRecurringDay({ employeeId, day });
+      undoDisableRecurringDay({ employeeId, day });
     } else if (props.undo.message === 'Session has been updated.') {
       const session = props.undo.data[0] as Session;
       undoUpdateSession({ sessionId: session.id, slotId: session.slotId })

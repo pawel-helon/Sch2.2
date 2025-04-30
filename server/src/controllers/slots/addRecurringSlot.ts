@@ -40,7 +40,7 @@ export const addRecurringSlot = async (req: Request, res: Response) => {
         SELECT generate_series(
           $2::date,
           (year || '-12-31')::date,
-          interval '7 days'
+          INTERVAL '7 days'
         )::date AS date
         FROM recurring_dates_year
       ),
@@ -49,7 +49,7 @@ export const addRecurringSlot = async (req: Request, res: Response) => {
           SELECT generate_series(
             ($2::date || ' 08:00:00.000')::timestamp,
             ($2::date || ' 20:00:00.000')::timestamp,
-            interval '15 minutes'
+            INTERVAL '15 minutes'
           ) AS possible_time
         )
         SELECT possible_time::time AS time

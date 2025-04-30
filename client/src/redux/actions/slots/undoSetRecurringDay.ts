@@ -1,7 +1,5 @@
 import { schedulingApi } from 'src/api/schedulingApi';
-import { undoAdded } from 'src/redux/slices/undoSlice';
 import { DATE_REGEX, UUID_REGEX } from 'src/constants/regex';
-import { Slot } from 'src/types/slots';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { SlotsRecurringDate } from 'src/types/slots-recurring-dates';
 
@@ -29,58 +27,43 @@ const validateInput = (input: { employeeId: string, day: string }): void => {
   }
 }
 
-const setRecurringDay = schedulingApi.injectEndpoints({
+const undoSetRecurringDay = schedulingApi.injectEndpoints({
   endpoints: (builder) => ({
     /**
-     * Duplicates day slots for recurring days.
+     * Undoes duplicating day slots for recurring days.
      * 
      * @param {Object} body - The request payload.
      * @param {string} body.employeeId - The ID of the employee.
      * @param {string} body.day - The day to add the slot in YYYY-MM-DD format.
      * @returns {Object} - Message and SlotsRecurringDate object for the first day.
     */
-    setRecurringDay: builder.mutation<{ message: string, data: SlotsRecurringDate }, { employeeId: string, day: string }>({
+    undoSetRecurringDay: builder.mutation<{ message: string, data: SlotsRecurringDate }, { employeeId: string, day: string }>({
       query: (body) => {
         validateInput(body);
         return {
-          url: 'slots/set-recurring-day',
+          url: 'slots/disable-recurring-day',
           method: 'POST',
           body
         }
       },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const res = await queryFulfilled;
-        const message = res.data.message;
         const data = res.data.data;
-        
-        /** Stores message and slot in cached undoSlice data (slot constant is being created only to fit undoSlice setup).*/
-        const slot = {
-          id: data.employeeId,
-          employeeId: data.employeeId,
-          type: 'AVAILABLE',
-          startTime: new Date(data.date),
-          duration: { minutes: 30},
-          recurring: true,
-          createdAt: new Date(data.date),
-          updatedAt: new Date(data.date)
-        }
-        dispatch(undoAdded({ message, data: [slot] as Slot[] }));
 
-        /** Adds first slotsRecurringDate in cached getWeekSlotsRecurringDates data. */
+        /** Removes deleted session from cached getWeekSessions data. */
         const { start, end } = getWeekStartEndDatesFromDay(data.date);
         dispatch(schedulingApi.util.patchQueryData(
           'getWeekSlotsRecurringDates',
           { employeeId: data.employeeId, start: start, end: end },
             [
               {
-                op: 'add',
+                op: 'remove',
                 path: ['byId', data.id],
                 value: data
               },
               {
-                op: 'add',
+                op: 'remove',
                 path: ['allIds', '-'],
-                value: data.id
               }
             ]
         ))
@@ -89,4 +72,4 @@ const setRecurringDay = schedulingApi.injectEndpoints({
   }),
 })
 
-export const { useSetRecurringDayMutation } = setRecurringDay;
+export const { useUndoSetRecurringDayMutation } = undoSetRecurringDay;

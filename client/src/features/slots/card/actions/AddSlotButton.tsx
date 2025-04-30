@@ -3,7 +3,7 @@ import { Button } from 'src/components/Button';
 import { useAddRecurringSlotMutation } from 'src/redux/actions/slots/addRecurringSlot';
 import { useAddSlotMutation } from 'src/redux/actions/slots/addSlot';
 
-export const AddSlot = (props: {
+export const AddSlotButton = (props: {
   employeeId: string,
   day: string,
   isRecurringSlotsOnly: boolean,

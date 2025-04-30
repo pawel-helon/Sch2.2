@@ -1,10 +1,11 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { Loader, Plus } from 'lucide-react';
+import { useSelector } from 'react-redux';
 import { RootState } from 'src/redux/store';
 import { selectDaySlots } from 'src/redux/selectors/slots/selectDaySlots';
 import { useAddSlotMutation } from 'src/redux/actions/slots/addSlot';
 import { useAddRecurringSlotMutation } from 'src/redux/actions/slots/addRecurringSlot';
+import { infoAdded } from 'src/redux/slices/infoSlice';
 import { Actions } from './actions';
 import { List } from './list';
 import { Button } from 'src/components/Button';
@@ -15,7 +16,6 @@ import { getDayName } from 'src/utils/dates/getDayName';
 import { capitalizeFirstLetter } from 'src/utils/capitalizeFirstLetter';
 import { filterSlotsByRecurrence } from 'src/utils/data/filterSlotsByRecurrence';
 import { Slot } from 'src/types/slots'
-import { infoAdded } from 'src/redux/slices/infoSlice';
 
 export const Card = (props: {
   employeeId: string,
@@ -102,44 +102,76 @@ const NoSlots = (props: {
   isRecurringSlotsOnly: boolean,
   isMobile: boolean
 }) => {
-  let className: string = '';
+  const header = (
+    <div className='absolute top-3 left-3 right-3 flex justify-between items-center bg-transparent'>
+      <Paragraph variant='thick' size='sm' isMuted={isPast(props.day)}>
+        {capitalizeFirstLetter(getDayName(props.day))}
+      </Paragraph>
+      <Badge day={props.day} />
+    </div>
+  )
+
+  const noSlotsAvailable = (
+    <Paragraph variant='thin' size='sm' className='w-full text-center text-text-tertiary text-balance absolute top-0 bottom-0 left-0 right-0 flex flex-col p-3 justify-center items-center gap-2 mt-4'>
+      There are no slots available.
+    </Paragraph>
+  )
+  
+  let content: React.ReactNode = null;
   if (props.isMobile) {
-    className = 'aspect-square flex relative h-full col-span-1 flex-col bg-background';
+    if (!isPast(props.day)) {
+      content = (
+        <div className='aspect-square flex relative h-full col-span-1 flex-col bg-background'>
+          {header}
+          <div className='absolute top-0 bottom-0 left-0 right-0 flex flex-col p-3 justify-center items-center gap-2 mt-4'>
+            <Paragraph variant='thin' size='sm' className='w-full text-center text-text-tertiary text-balance'>
+              There are no {props.isRecurringSlotsOnly && ' recurring '} slots created yet.
+            </Paragraph>
+            <AddSlotButton
+              employeeId={props.employeeId}
+              day={props.day}
+              isRecurringSlotsOnly={props.isRecurringSlotsOnly}
+              isMobile={props.isMobile}
+            />
+          </div>
+        </div>
+      );
+    } else {
+      content = (
+        <div className='aspect-square flex relative h-full col-span-1 flex-col bg-background'>
+          {noSlotsAvailable}
+        </div>
+      );
+    }
   } else {
-    className = 'aspect-[3/4] flex relative h-full col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background';
+    if (!isPast(props.day)) {
+      content = (
+        <div className='aspect-[3/4] flex relative h-full col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background'>
+          {header}
+          <div className='absolute top-0 bottom-0 left-0 right-0 flex flex-col p-3 justify-center items-center gap-2 mt-4'>
+            <Paragraph variant='thin' size='sm' className='w-full text-center text-text-tertiary text-balance'>
+              There are no {props.isRecurringSlotsOnly && ' recurring '} slots created yet.
+            </Paragraph>
+            <AddSlotButton
+              employeeId={props.employeeId}
+              day={props.day}
+              isRecurringSlotsOnly={props.isRecurringSlotsOnly}
+              isMobile={props.isMobile}
+            />
+          </div>
+        </div>
+      );
+    } else {
+      content = (
+        <div className='aspect-[3/4] flex relative h-full col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background'>
+          {header}
+          {noSlotsAvailable}
+        </div>
+      );
+    }
   }
 
-  if (!isPast(props.day)) {
-    return (
-      <div className={className}>
-        <div className='absolute top-3 left-3 right-3 flex justify-between items-center bg-transparent'>
-          <Paragraph variant='thick' size='sm' isMuted={isPast(props.day)}>
-            {capitalizeFirstLetter(getDayName(props.day))}
-          </Paragraph>
-          <Badge day={props.day} />
-        </div>
-        <div className='absolute top-0 bottom-0 left-0 right-0 flex flex-col p-3 justify-center items-center gap-2 mt-4'>
-          <Paragraph variant='thin' size='sm' className='w-full text-center text-text-tertiary text-balance'>
-            There are no {props.isRecurringSlotsOnly && ' recurring '} slots created yet.
-          </Paragraph>
-          <AddSlotButton
-            employeeId={props.employeeId}
-            day={props.day}
-            isRecurringSlotsOnly={props.isRecurringSlotsOnly}
-            isMobile={props.isMobile}
-          />
-        </div>
-      </div>
-    );
-  } else {
-    return (
-      <div className={className}>
-        <Paragraph variant='thin' size='sm' className='w-full text-center text-text-tertiary text-balance absolute top-0 bottom-0 left-0 right-0 flex flex-col p-3 justify-center items-center gap-2 mt-4'>
-          There are no slots available.
-        </Paragraph>
-      </div>
-    );
-  }
+  return content;
 }
 
 const AddSlotButton = (props: {
@@ -176,7 +208,7 @@ const AddSlotButton = (props: {
       {isAddingSlot || isAddingRecurringSlot ? (
         <>
           <Loader className='w-4 h-4 -ml-2 mr-1 text-text-tertiary animate-spin' />
-          'Adding'
+          Adding
         </>
       ) : (
         props.isRecurringSlotsOnly ? (

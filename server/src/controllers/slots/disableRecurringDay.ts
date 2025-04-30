@@ -42,15 +42,21 @@ export const disableRecurringDay = async (req: Request, res: Response) => {
         SELECT generate_series(
           $2::date,
           (year || '-12-31')::date,
-          interval '7 days'
+          INTERVAL '7 days'
         )::date AS date
         FROM recurring_dates_year
+      ),
+      rows_to_delete AS (
+        SELECT "id"
+        FROM "SlotsRecurringDates"
+        WHERE "employeeId" = $1::uuid
+          AND "date" IN (
+            SELECT recurring_dates.date FROM recurring_dates
+          )
+        ORDER BY "date"
       )
       DELETE FROM "SlotsRecurringDates"
-      WHERE "employeeId" = $1::uuid
-        AND "date" IN (
-          SELECT recurring_dates.date FROM recurring_dates
-        )
+      WHERE "id" IN (SELECT "id" FROM rows_to_delete)
       RETURNING
         "id",
         "employeeId",
@@ -61,8 +67,6 @@ export const disableRecurringDay = async (req: Request, res: Response) => {
       employeeId,
       day
     ])
-
-    const initialSlotsRecurringDate = deletingSlotsRecurringDates.rows.find(r => r.date === day);
 
     if (!deletingSlotsRecurringDates.rows.length) {
       createResponse(res, "Failed to delete recurring dates.")
@@ -83,7 +87,7 @@ export const disableRecurringDay = async (req: Request, res: Response) => {
         SELECT generate_series(
           $2::date + INTERVAL '7 days',
           (year || '-12-31')::date,
-          interval '7 days'
+          INTERVAL '7 days'
         )::date AS date
         FROM recurring_dates_year
       )
@@ -108,7 +112,7 @@ export const disableRecurringDay = async (req: Request, res: Response) => {
       return createResponse(res, "Failed to disable recurring day.");
     }
 
-    createResponse(res, "Recurring day has been disabled.", initialSlotsRecurringDate);
+    createResponse(res, "Recurring day has been disabled.", deletingSlotsRecurringDates.rows[0]);
 
   } catch (error) {
     try {

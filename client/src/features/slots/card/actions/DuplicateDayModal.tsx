@@ -14,13 +14,13 @@ import {
 } from 'src/components/Sheet';
 import { useDuplicateDayMutation } from 'src/redux/actions/slots/duplicateDay';
 import { capitalizeFirstLetter } from 'src/utils/capitalizeFirstLetter';
-import { cn } from 'src/utils/cn';
 import { getNumOfPlaceholders } from 'src/utils/data/getNumOfPlaceholders';
 import { getDayName } from 'src/utils/dates/getDayName';
 import { getMonthAndDay } from 'src/utils/dates/getMonthAndDay';
 import { getWeekDays } from 'src/utils/dates/getWeekDays';
+import { cn } from 'src/utils/cn';
 
-export const DuplicateDay = (props: {
+export const DuplicateDayModal = (props: {
   employeeId: string,
   year: number,
   weekNumber: number,

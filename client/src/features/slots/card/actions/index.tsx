@@ -1,9 +1,9 @@
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
-import { DayRecurrence } from './DayRecurrence';
-import { DeleteSlots } from './DeleteSlots';
-import { DuplicateDay } from './DuplicateDay';
-import { AddSlot } from './AddSlot';
+import { DayRecurrenceMenuItem } from './DayRecurrenceMenuItem';
+import { DeleteSlotsMenuItem } from './DeleteSlotsMenuItem';
+import { DuplicateDayModal } from './DuplicateDayModal';
+import { AddSlotButton } from './AddSlotButton';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +24,7 @@ export const Actions = (props: {
   return (
   <div className='absolute bottom-0 left-0 right-0 flex justify-between gap-2 p-3 bg-background-background'>
     <div className='flex'>
-      <DuplicateDay
+      <DuplicateDayModal
         employeeId={props.employeeId}
         year={props.year}
         weekNumber={props.weekNumber}
@@ -40,7 +40,7 @@ export const Actions = (props: {
         isRecurringSlotsOnly={props.isRecurringSlotsOnly}
       />
     </div>
-    <AddSlot
+    <AddSlotButton
       employeeId={props.employeeId}
       day={props.day}
       isRecurringSlotsOnly={props.isRecurringSlotsOnly}
@@ -68,13 +68,13 @@ const MoreActions = (props: {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end' className='w-[132px] flex flex-col bg-background shadow-shadow shadow-sm p-1'>
-        <DayRecurrence
+        <DayRecurrenceMenuItem
           employeeId={props.employeeId}
           day={props.day}
           dropdownOpen={open}
           setDropdownOpen={setOpen}
         />
-        <DeleteSlots
+        <DeleteSlotsMenuItem
           slots={props.slots}
           dropdownOpen={open}
           setDropdownOpen={setOpen}

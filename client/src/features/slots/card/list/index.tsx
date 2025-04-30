@@ -1,9 +1,9 @@
 import React from 'react';
 import { EllipsisVertical } from 'lucide-react';
-import { SlotRecurrence } from 'src/features/slots/card/list/actions/SlotRecurrence';
-import { UpdateSlotHour } from 'src/features/slots/card/list/actions/UpdateSlotHour';
-import { UpdateSlotMinutes } from 'src/features/slots/card/list/actions/UpdateSlotMinutes';
-import { DeleteSlot } from 'src/features/slots/card/list/actions/DeleteSlot';
+import { SlotRecurrenceMenuItem } from 'src/features/slots/card/list/actions/SlotRecurrenceMenuItem';
+import { HourDropdown } from 'src/features/slots/card/list/actions/HourDropdown';
+import { MinutesDropdown } from 'src/features/slots/card/list/actions/MinutesDropdown';
+import { DeleteSlotButton } from 'src/features/slots/card/list/actions/DeleteSlotButton';
 import { Button } from 'src/components/Button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from 'src/components/DropdownMenu';
 import { Slot } from 'src/types/slots';
@@ -32,19 +32,19 @@ const Item = (props: {
     <div className='first:mt-2 relative flex justify-between'>
       {recurringIndicator}
       <div className='flex gap-1'>
-        <UpdateSlotHour
+        <HourDropdown
           slotId={props.slot.id}
           startTime={props.slot.startTime}
           isRecurring={props.slot.recurring}
         />
-        <UpdateSlotMinutes
+        <MinutesDropdown
           slotId={props.slot.id}
           startTime={props.slot.startTime}
           isRecurring={props.slot.recurring}
         />
       </div>
       <div className='flex gap-1'>
-        <DeleteSlot slot={props.slot} />
+        <DeleteSlotButton slot={props.slot} />
         <MoreActions
           slotId={props.slot.id}
           isRecurring={props.slot.recurring}
@@ -68,7 +68,7 @@ const MoreActions = (props: {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side='bottom' align='end' className='flex flex-col shadow-shadow shadow-sm bg-background background-hover'>
-        <SlotRecurrence
+        <SlotRecurrenceMenuItem
           slotId={props.slotId} 
           isRecurring={props.isRecurring} 
           open={open}

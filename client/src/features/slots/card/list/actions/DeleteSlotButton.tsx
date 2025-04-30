@@ -3,7 +3,7 @@ import { Button } from 'src/components/Button';
 import { useDeleteSlotsMutation } from 'src/redux/actions/slots/deleteSlots';
 import { Slot } from 'src/types/slots';
 
-export const DeleteSlot = (props: {
+export const DeleteSlotButton = (props: {
   slot: Slot
 }) => {
   const [ deleteSlots ] = useDeleteSlotsMutation();

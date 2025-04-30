@@ -2,7 +2,7 @@ import { Button } from 'src/components/Button';
 import { useDeleteSlotsMutation } from 'src/redux/actions/slots/deleteSlots';
 import { Slot } from 'src/types/slots';
 
-export const DeleteSlots = (props: {
+export const DeleteSlotsMenuItem = (props: {
   slots: Slot[],
   dropdownOpen: boolean,
   setDropdownOpen: (open: boolean) => void

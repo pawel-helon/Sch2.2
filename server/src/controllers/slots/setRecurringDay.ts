@@ -42,7 +42,7 @@ export const setRecurringDay = async (req: Request, res: Response) => {
         SELECT generate_series(
           $2::date,
           (year || '-12-31')::date,
-          interval '7 days'
+          INTERVAL '7 days'
         )::date AS date
         FROM recurring_dates_year
       )
@@ -88,7 +88,7 @@ export const setRecurringDay = async (req: Request, res: Response) => {
         SELECT generate_series(
           $2::date,
           (year || '-12-31')::date,
-          interval '7 days'
+          INTERVAL '7 days'
         )::date AS date
         FROM recurring_dates_year
       )

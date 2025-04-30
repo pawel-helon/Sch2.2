@@ -68,7 +68,7 @@ export const addSlots = async (req: Request, res: Response) => {
         SELECT unnest($2::uuid[]) AS slot_id,
           unnest($3::text[]) AS slot_type,
           unnest($4::timestamp[]) AS slot_start_time,
-          unnest($5::interval[]) AS slot_duration,
+          unnest($5::INTERVAL[]) AS slot_duration,
           unnest($6::boolean[]) AS slot_recurring,
           unnest($7::timestamp[]) AS slot_created_at
       )
@@ -80,7 +80,7 @@ export const addSlots = async (req: Request, res: Response) => {
         $1::uuid AS "employeeId",
         slot_type::text AS "type",
         slot_start_time::timestamp AS "startTime",
-        slot_duration::interval AS "duration",
+        slot_duration::INTERVAL AS "duration",
         slot_recurring::boolean AS "recurring",
         slot_created_at::timestamp AS "createdAt",
         NOW() 

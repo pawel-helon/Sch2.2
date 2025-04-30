@@ -5,7 +5,7 @@ import { useSetRecurringDayMutation } from 'src/redux/actions/slots/setRecurring
 import { selectSlotsRecurringDay } from 'src/redux/selectors/slots/selectSlotsRecurringDay';
 import { Button } from 'src/components/Button';
 
-export const DayRecurrence = (props: {
+export const DayRecurrenceMenuItem = (props: {
   employeeId: string,
   day: string,
   dropdownOpen: boolean,
