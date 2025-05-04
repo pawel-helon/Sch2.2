@@ -239,7 +239,7 @@ const Slots = (props: {
   let content: React.ReactNode = null;
   if (props.isMobile) {
     content = (
-      <div className='aspect-square flex xs:hidden relative h-full col-span-1 flex-col bg-background'>
+      <div className='aspect-square border border-border flex xs:hidden relative h-full col-span-1 flex-col bg-background'>
         <List slots={props.slots} />
         <Actions
           employeeId={props.employeeId}
@@ -254,7 +254,7 @@ const Slots = (props: {
     )
   } else {
     content = (
-      <div className='aspect-[3/4] flex relative h-full col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background'>
+      <div className='aspect-[3/4] flex relative h-full col-span-1 flex-col border border-border shadow-lg shadow-shadow rounded-md bg-background'>
         <div className='absolute top-3 left-3 right-3 flex justify-between items-center bg-transparent'>
           <Paragraph variant='thick' size='sm' isMuted={isPast(props.day)}>
             {capitalizeFirstLetter(getDayName(props.day))}

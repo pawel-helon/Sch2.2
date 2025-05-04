@@ -1,7 +1,7 @@
 import { Moon, Sun } from 'lucide-react';
 import { useHandleTheme } from 'src/hooks/useHandleTheme';
 
-export function ThemeToggle() {
+export const ThemeToggle = () => {
   const { theme, setTheme } = useHandleTheme();
 
   const handleClick = () => {

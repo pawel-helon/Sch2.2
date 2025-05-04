@@ -1,14 +1,15 @@
 import React from 'react';
-import { Switch } from 'src/components/Switch';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from 'src/components/Accordion';
 import { Paragraph } from 'src/components/typography/Paragraph';
-import { cn } from 'src/utils/cn';
+import { Card } from './card';
+import { RecurringSlotsToggle } from './RecurringSlotsToggle';
+import { Badge } from 'src/components/Badge';
+import { useHandleBreakpoint } from 'src/hooks/useHandleBreakpoint';
+import { useHandleIsRecurringSlotsOnly } from 'src/hooks/useHandleIsRecurringSlots';
 import { getDayOfWeek } from 'src/utils/dates/getDayOfWeek';
 import { isPast } from 'src/utils/dates/isPast';
 import { getNumOfPlaceholders } from 'src/utils/data/getNumOfPlaceholders';
-import { useHandleBreakpoint } from 'src/hooks/useHandleBreakpoint';
-import { Badge } from 'src/components/Badge';
-import { Card } from './card';
+import { cn } from 'src/utils/cn';
 
 export const Days = (props: {
   employeeId: string,
@@ -18,7 +19,7 @@ export const Days = (props: {
   isMobile: boolean
 }) => {
   const isMobile = useHandleBreakpoint({ windowInnerWidth: 480 });
-  const [isRecurringSlotsOnly, setIsRecurringSlotsOnly] = React.useState<boolean>(false);
+  const { isRecurringSlotsOnly, setRecurringSlotsOnly } = useHandleIsRecurringSlotsOnly();
 
   let content: React.ReactNode = null;
   if (props.isMobile) {
@@ -47,16 +48,10 @@ export const Days = (props: {
 
   return (
     <main>
-      <div className='w-full flex justify-end items-center gap-2 mb-4'>
-        <label htmlFor='only-recurring' className='text-sm text-text-primary font-medium leading-none'>
-          Recurring only
-        </label>
-        <Switch
-          checked={isRecurringSlotsOnly}
-          onCheckedChange={() => setIsRecurringSlotsOnly(!isRecurringSlotsOnly)}
-          className='data-[state=checked]:bg-accent-secondary'
-        />
-      </div>
+      <RecurringSlotsToggle
+        isRecurringSlotsOnly={isRecurringSlotsOnly}
+        setRecurringSlotsOnly={setRecurringSlotsOnly}
+      />
       {content}
     </main>
   )

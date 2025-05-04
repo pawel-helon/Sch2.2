@@ -1,14 +1,14 @@
 import React from 'react';
 import { getCurrentWeek } from 'src/utils/dates/getCurrentWeek';
 
-export function Tabs() {
+export const Tabs = () => {
   const { year, weekNumber, dayName } = getCurrentWeek();
   const [sessionsTabClassName, setSessionsTabClassName] = React.useState<string>('');
   const [availabilityTabClassName, setAvailabilityTabClassName] = React.useState<string>('');
 
   React.useEffect(() => {
-    const availabilityTab = document.getElementById('availability-layout');
-    const sessionsTab = document.getElementById('sessions-layout');
+    const availabilityTab = document.getElementById('slots');
+    const sessionsTab = document.getElementById('sessions');
 
     const activeTabClassName = '-mb-[2px] flex items-center justify-center px-3 text-sm font-medium text-accent-primary border-b-2 border-accent-primary hover:cursor-pointer transition-colors';
     const inactiveTabClassName = '-mb-[2px] flex items-center justify-center px-3 text-sm font-medium text-text-tertiary border-b-2 border-border hover:cursor-pointer transition-colors';

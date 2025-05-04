@@ -1,7 +1,7 @@
 import { BrowserRouter, Route, Routes, Navigate, useParams } from 'react-router-dom';
 import { StoreProvider } from 'src/redux/StoreProvider';
-import { SessionsLayout } from 'src/features/sessions/SessionsLayout';
-import { SlotsLayout } from 'src/features/slots/SlotsLayout';
+import { Sessions } from 'src/features/sessions/Sessions';
+import { Slots } from 'src/features/slots/Slots';
 import { getCurrentWeek } from 'src/utils/dates/getCurrentWeek';
 import { TooltipProvider } from './components/Tooltip';
 
@@ -18,9 +18,9 @@ const App = () => {
             <Route path='/' element={<Navigate to={defaultsessionsPath} replace />} />
             <Route path='/sessions' element={<Navigate to={defaultsessionsPath} replace />} />
             <Route path='/sessions/:week/' element={<Redirect />} />
-            <Route path='/sessions/:week/:day' element={<SessionsLayout />} />
+            <Route path='/sessions/:week/:day' element={<Sessions />} />
             <Route path='/availability' element={<Navigate to={defaultAvailabilityPath} replace />} />
-            <Route path='/availability/:week' element={<SlotsLayout />} />
+            <Route path='/availability/:week' element={<Slots />} />
             <Route path='*' element={<div>404 - Page Not Found</div>} />
           </Routes>
         </BrowserRouter>
