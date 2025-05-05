@@ -16,7 +16,7 @@ export const selectWeekSessions = createSelector(
     if (!queryData) {
       return {
         data: [],
-        status: 'idle',
+        status: 'fulfilled',
         error: null,
       };
     }

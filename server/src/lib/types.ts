@@ -36,6 +36,10 @@ export interface Session {
   employeeId: string;
   customerId: string;
   startTime: Date;
+  customerFirstName?: string;
+  customerLastName?: string;
+  customerEmail?: string;
+  customerPhoneNumber?: string;
   message: string | null;
   createdAt: Date;
   updatedAt: Date;

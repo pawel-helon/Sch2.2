@@ -10,8 +10,8 @@ export const Tabs = () => {
     const availabilityTab = document.getElementById('slots');
     const sessionsTab = document.getElementById('sessions');
 
-    const activeTabClassName = '-mb-[2px] flex items-center justify-center px-3 text-sm font-medium text-accent-primary border-b-2 border-accent-primary hover:cursor-pointer transition-colors';
-    const inactiveTabClassName = '-mb-[2px] flex items-center justify-center px-3 text-sm font-medium text-text-tertiary border-b-2 border-border hover:cursor-pointer transition-colors';
+    const activeTabClassName = '-mb-[2px] flex items-center justify-center px-3 text-sm font-medium text-accent-primary border-b-2 border-accent-primary hover:cursor-pointer ';
+    const inactiveTabClassName = '-mb-[2px] flex items-center justify-center px-3 text-sm font-medium text-text-tertiary border-b-2 border-border hover:cursor-pointer ';
 
     if (sessionsTab) {
       setSessionsTabClassName(activeTabClassName);

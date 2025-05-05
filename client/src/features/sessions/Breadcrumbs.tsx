@@ -11,9 +11,9 @@ export function Breadcrumbs(props: {
   
   return (
     <ul className='flex gap-1'>
-      <li className='inline-flex items-center gap-1.5 font-medium transition-colors text-sm text-text-primary hover:text-text-tertiary cursor-pointer'>
+      <li className='inline-flex items-center gap-1.5 font-medium  text-sm text-text-primary hover:text-text-tertiary cursor-pointer'>
         <a href={`/availability/${year}w${weekNumber}`} />
-        Meetings
+        Sessions
       </li>
       <Slash className='size-4 text-text-tertiary'/>
       <li className='inline-flex items-center gap-1.5 text-sm text-text-primary font-medium'>

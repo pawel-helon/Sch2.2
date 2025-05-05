@@ -39,22 +39,39 @@ export const getWeekSessions = async (req: Request, res: Response) => {
           "id" AS slot_id
         FROM "Slots"
         WHERE "employeeId" = $1::uuid
+      ),
+      employee_sessions_info AS (
+        SELECT
+          "id",
+          "slotId",
+          "employeeId",
+          "customerId",
+          employee_slots_info.slot_start_time AS "session_start_time",
+          "message",
+          "createdAt",
+          "updatedAt"
+        FROM "Sessions"
+        INNER JOIN employee_slots_info
+          ON "slotId" = employee_slots_info.slot_id
+        WHERE "employeeId" = $1::uuid
+          AND slot_start_time >= ($2::date || ' 00:00:00.000')::timestamp
+          AND slot_start_time <= ($3::date || ' 23:59:59.999')::timestamp
       )
       SELECT
-        "id",
-        "slotId",
-        "employeeId",
-        "customerId",
-        employee_slots_info.slot_start_time AS "startTime",
-        "message",
-        "createdAt",
-        "updatedAt"
-      FROM "Sessions"
-      INNER JOIN employee_slots_info
-        ON "slotId" = employee_slots_info.slot_id
-      WHERE "employeeId" = $1::uuid
-        AND slot_start_time >= ($2::date || ' 00:00:00.000')::timestamp
-        AND slot_start_time <= ($3::date || ' 23:59:59.999')::timestamp
+        employee_sessions_info."id",
+        employee_sessions_info."slotId",
+        employee_sessions_info."employeeId",
+        employee_sessions_info."customerId",
+        employee_sessions_info."session_start_time" AS "startTime",
+        "firstName" AS "customerFirstName",
+        "lastName" AS "customerLastName",
+        "email" AS "customerEmail",
+        "phoneNumber" AS "customerPhoneNumber",
+        employee_sessions_info."message",
+        employee_sessions_info."createdAt",
+        employee_sessions_info."updatedAt"
+      FROM "Customers", employee_sessions_info
+      WHERE "Customers"."id" = employee_sessions_info."customerId"::uuid
     `;
     
     const result = await pool.query(queryValue, [

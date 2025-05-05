@@ -4,7 +4,6 @@ import { Paragraph } from 'src/components/typography/Paragraph';
 import { Card } from './card';
 import { RecurringSlotsToggle } from './RecurringSlotsToggle';
 import { Badge } from 'src/components/Badge';
-import { useHandleBreakpoint } from 'src/hooks/useHandleBreakpoint';
 import { useHandleIsRecurringSlotsOnly } from 'src/hooks/useHandleIsRecurringSlots';
 import { getDayOfWeek } from 'src/utils/dates/getDayOfWeek';
 import { isPast } from 'src/utils/dates/isPast';
@@ -18,7 +17,6 @@ export const Days = (props: {
   weekDays: string[],
   isMobile: boolean
 }) => {
-  const isMobile = useHandleBreakpoint({ windowInnerWidth: 480 });
   const { isRecurringSlotsOnly, setRecurringSlotsOnly } = useHandleIsRecurringSlotsOnly();
 
   let content: React.ReactNode = null;
@@ -30,7 +28,7 @@ export const Days = (props: {
         weekNumber={props.weekNumber}
         weekDays={props.weekDays}
         isRecurringSlotsOnly={isRecurringSlotsOnly}
-        isMobile={isMobile}
+        isMobile={props.isMobile}
       />
     );
   } else {
@@ -41,7 +39,7 @@ export const Days = (props: {
         weekNumber={props.weekNumber}
         weekDays={props.weekDays}
         isRecurringSlotsOnly={isRecurringSlotsOnly}
-        isMobile={isMobile}
+        isMobile={props.isMobile}
       />
     );
   }
@@ -71,7 +69,7 @@ const Mobile = (props: {
         <AccordionItem key={day} value={day} className={cn('border border-border rounded-sm shadow-lg shadow-shadow bg-background')}>
          <AccordionTrigger className='px-2 hover:no-underline'>
            <div className='flex items-center gap-2'>
-             <Badge day={day} />
+             <Badge day={day} tab='slots' />
              <Paragraph variant='thick' size='sm' isMuted={isPast(new Date(new Date(day).setHours(23,59,59,999)))} className='leading-none'>
                {getDayOfWeek(day)}
              </Paragraph>

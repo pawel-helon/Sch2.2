@@ -37,11 +37,9 @@ export const Sessions = () => {
             isMobile={isMobile}
           />
           <Tabs />
-          <div className='w-full flex md:hidden justify-end mb-4'>
-            <DayDropdown year={year} weekNumber={weekNumber} dayName={day} weekDays={weekDays} />
-          </div>
+          <DayDropdown year={year} weekNumber={weekNumber} dayName={day} weekDays={weekDays} />
           <main className='grid grid-cols-1 md:grid-cols-3 gap-4 md:pt-9'>
-            <DaySessions year={year} weekNumber={weekNumber} dayName={day} />
+            <DaySessions year={year} weekNumber={weekNumber} dayName={day} isMobile={isMobile} />
             <Week year={year} weekNumber={weekNumber} dayName={day} />
           </main>
         </div>
