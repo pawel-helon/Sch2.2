@@ -30,9 +30,20 @@ export const schedulingApi = createApi({
       transformResponse: (response: { message: string; data: NormalizedSlots }) => {
         return response.data;
       },
-      providesTags: ['Slots']
     }),
-        /**
+    getSlots: builder.query<NormalizedSlots, { employeeId: string }>({
+      query: (body) => {
+        return {
+          url: 'slots/get-slots',
+          method: 'POST',
+          body
+        }
+      },
+      transformResponse: (response: { message: string; data: NormalizedSlots }) => {
+        return response.data;
+      },
+    }),
+    /**
      * Fetches weekly slots recurring dates for a specific employee within a date range.
      * 
      * @param {Object} body - The request payload.
@@ -53,7 +64,6 @@ export const schedulingApi = createApi({
       transformResponse: (response: { message: string; data: NormalizedSlotsRecurringDates }) => {
         return response.data;
       },
-      providesTags: ['SlotsRecurringDates']
     }),
     /**
      * Fetches weekly sessions for a specific employee within a date range.
@@ -76,7 +86,6 @@ export const schedulingApi = createApi({
       transformResponse: (response: { message: string, data: NormalizedSessions}) => {
         return response.data;
       },
-      providesTags: ['Sessions']
     }),
     /**
      * Remaining endpoints:
@@ -88,11 +97,12 @@ export const schedulingApi = createApi({
 
 export const {
   useGetWeekSlotsQuery,
+  useGetSlotsQuery,
   useGetWeekSlotsRecurringDatesQuery,
   useGetWeekSessionsQuery,
 } = schedulingApi;
 
-export const validateGetWeekSlotsInput = (input: { employeeId: string, start: string, end: string }): void => {
+const validateGetWeekSlotsInput = (input: { employeeId: string, start: string, end: string }): void => {
   if (!input || typeof input !== 'object') {
     throw new Error('Input is required. Expected an object.');
   }
@@ -116,7 +126,7 @@ export const validateGetWeekSlotsInput = (input: { employeeId: string, start: st
   }
 }
 
-export const validateGetWeekSlotsRecurringDatesInput = (input: { employeeId: string, start: string, end: string }): void => {
+const validateGetWeekSlotsRecurringDatesInput = (input: { employeeId: string, start: string, end: string }): void => {
   if (!input || typeof input !== 'object') {
     throw new Error('Input is required. Expected an object.');
   }
@@ -140,7 +150,7 @@ export const validateGetWeekSlotsRecurringDatesInput = (input: { employeeId: str
   }
 }
 
-export const validateGetWeekSessionsInput = (input: { employeeId: string, start: string, end: string }): void => {
+const validateGetWeekSessionsInput = (input: { employeeId: string, start: string, end: string }): void => {
   if (!input || typeof input !== 'object') {
     throw new Error('Input is required. Expected an object.');
   }

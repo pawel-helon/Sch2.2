@@ -14,10 +14,12 @@ import { setSlotRecurrence } from "../controllers/slots/setSlotRecurrence";
 import { disableSlotRecurrence } from "../controllers/slots/disableSlotRecurrence";
 import { setRecurringDay } from "../controllers/slots/setRecurringDay";
 import { disableRecurringDay } from "../controllers/slots/disableRecurringDay";
+import { getSlots } from "../controllers/slots/getSlots";
 
 const router = express.Router();
 
 router.post("/get-week-slots", getWeekSlots);
+router.post("/get-slots", getSlots);
 router.post("/add-slot", addSlot);
 router.post("/add-recurring-slot", addRecurringSlot);
 router.post("/undo-add-recurring-slot", undoAddRecurringSlot)

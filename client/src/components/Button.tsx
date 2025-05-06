@@ -21,7 +21,7 @@ const buttonVariants = cva(
         icon: 'h-9 w-9',
       },
       isPressed: {
-        true: 'bg-background-hover',
+        true: 'bg-text-tertiary/25',
         false: '',
       },
     },

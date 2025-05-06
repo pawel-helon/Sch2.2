@@ -7,7 +7,7 @@ export const store = configureStore({
   reducer: {
     [schedulingApi.reducerPath]: schedulingApi.reducer,
     undo: undoSlice,
-    info: infoSlice
+    info: infoSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

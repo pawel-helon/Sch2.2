@@ -18,7 +18,7 @@ export const DayDropdown = (props: {
     <div className='w-full flex md:hidden justify-end mb-4'>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger>
-          <div className='min-w-[9rem] h-8 inline-flex items-center justify-between px-3 text-xs text-text-tertiary font-semibold border border-border rounded-full shadow-shadow shadow-sm'>
+          <div className='min-w-[9rem] h-8 inline-flex items-center justify-between px-3 text-xs text-text-primary font-semibold border border-border rounded-full shadow-shadow shadow-sm'>
             {capitalizeFirstLetter(props.dayName)}
             <ChevronDown size={16} className='ml-2 -mr-1'/>
           </div>
@@ -33,8 +33,8 @@ export const DayDropdown = (props: {
               onClick={() => setOpen(!open)}
               className='h-8 flex justify-between text-xs text-right px-1.5 py-2 rounded-md hover:bg-background-hover hover:text-text-tertiary'
               >
-                <Paragraph variant='thick' size='sm'>{capitalizeFirstLetter(getDayName(d))}</Paragraph>
-                <Paragraph variant='thin' size='sm' className='text-text-tertiary'>{getMonthAndDay(d)}</Paragraph>
+                <Paragraph variant='thick' size='sm' className='text-text-tertiary'>{capitalizeFirstLetter(getDayName(d))}</Paragraph>
+                <Paragraph variant='thin' size='sm' className='text-text-primary'>{getMonthAndDay(d)}</Paragraph>
               </a>
             ))}
         </DropdownMenuContent>

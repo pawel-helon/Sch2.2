@@ -44,7 +44,7 @@ export const CancelSessionModal = (props: {
             {' ?'} 
           </Paragraph>
           <div className='w-full absolute bottom-0 left-0 right-0 flex flex-col p-6 gap-2'>
-            <Button onClick={handleRemoveSession} className='min-w-[108px]'>
+            <Button onClick={handleRemoveSession}>
               Cancel meeting
             </Button>
           </div>
@@ -70,8 +70,8 @@ export const CancelSessionModal = (props: {
             </span>
             {' ?'} 
           </Paragraph>
-          <div className='w-full absolute bottom-0 left-0 right-0 flex flex-col p-6 gap-2'>
-            <Button onClick={handleRemoveSession} className='min-w-[108px]'>
+          <div className='w-full absolute bottom-0 left-0 right-0 flex justify-end p-6 gap-2'>
+            <Button onClick={handleRemoveSession} className='w-fit'>
               Cancel meeting
             </Button>
           </div>
