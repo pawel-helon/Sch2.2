@@ -1,4 +1,4 @@
-import { schedulingApi } from 'src/api/schedulingApi';
+import { api } from 'src/redux/api';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { TIMESTAMP_REGEX, UUID_REGEX } from 'src/constants/regex';
 import { Session } from 'src/types/sessions';
@@ -47,7 +47,7 @@ const validateInput = (input: { session: Session }): void => {
   }
 }
 
-const undoDeleteSession = schedulingApi.injectEndpoints({
+const undoDeleteSession = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
      * Undoes deleting session for a specific employee.
@@ -67,28 +67,32 @@ const undoDeleteSession = schedulingApi.injectEndpoints({
       },
       /** Inserts restored session into cached getWeekSessions data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        const res = await queryFulfilled;
-        const { data: session } = res.data;
-        const employeeId = session.employeeId;
-        const date = new Date(session.startTime).toISOString().split('T')[0];
-        const { start, end } = getWeekStartEndDatesFromDay(date);
-  
-        dispatch(schedulingApi.util.patchQueryData(
-          'getWeekSessions',
-          { employeeId: employeeId, start: start, end: end },
-            [
-              {
-                op: 'add',
-                path: ['byId', session.id],
-                value: session
-              },
-              {
-                op: 'add',
-                path: ['allIds', '-'],
-                value: session.id
-              }
-            ]
-        ))
+        try {
+          const res = await queryFulfilled;
+          const { data: session } = res.data;
+          const employeeId = session.employeeId;
+          const date = new Date(session.startTime).toISOString().split('T')[0];
+          const { start, end } = getWeekStartEndDatesFromDay(date);
+    
+          dispatch(api.util.patchQueryData(
+            'getWeekSessions',
+            { employeeId: employeeId, start: start, end: end },
+              [
+                {
+                  op: 'add',
+                  path: ['byId', session.id],
+                  value: session
+                },
+                {
+                  op: 'add',
+                  path: ['allIds', '-'],
+                  value: session.id
+                }
+              ]
+          ));
+        } catch (error) {
+          console.error(error);
+        }
       },
     }),
   }),

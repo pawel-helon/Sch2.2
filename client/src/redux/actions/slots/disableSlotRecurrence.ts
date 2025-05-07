@@ -1,4 +1,4 @@
-import { schedulingApi } from 'src/api/schedulingApi';
+import { api } from 'src/redux/api';
 import { undoAdded } from 'src/redux/slices/undoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { UUID_REGEX } from 'src/constants/regex';
@@ -20,7 +20,7 @@ const validateInput = (input: { slotId: string }): void => {
   }
 }
 
-const disableSlotRecurrence = schedulingApi.injectEndpoints({
+const disableSlotRecurrence = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
      * Disables the recurrence of a slot for a given employee.
@@ -39,38 +39,42 @@ const disableSlotRecurrence = schedulingApi.injectEndpoints({
         }
       },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        const res = await queryFulfilled;
-        const { data: slot } = res.data;
-        const employeeId = slot.employeeId;
-        const date = new Date(slot.startTime).toISOString().split('T')[0];
-        const { start, end } = getWeekStartEndDatesFromDay(date);
-
-        /** Stores message and initial slot previous state in undoSlice data. */
-        const message = 'Slot recurrence has been disabled.';
-        const prevSlotState = {
-          id: slot.id,
-          employeeId: slot.employeeId,
-          type: slot.type,
-          startTime: slot.startTime,
-          duration: slot.duration,
-          recurring: false,
-          createdAt: slot.createdAt,
-          updatedAt: new Date()
+        try {
+          const res = await queryFulfilled;
+          const { data: slot } = res.data;
+          const employeeId = slot.employeeId;
+          const date = new Date(slot.startTime).toISOString().split('T')[0];
+          const { start, end } = getWeekStartEndDatesFromDay(date);
+  
+          /** Stores message and initial slot previous state in undoSlice data. */
+          const message = 'Slot recurrence has been disabled.';
+          const prevSlotState = {
+            id: slot.id,
+            employeeId: slot.employeeId,
+            type: slot.type,
+            startTime: slot.startTime,
+            duration: slot.duration,
+            recurring: false,
+            createdAt: slot.createdAt,
+            updatedAt: new Date()
+          }
+          dispatch(undoAdded({ message, data: [prevSlotState] }));
+          
+          /** Updates initial slot in cached getWeekSlots data. */
+          dispatch(api.util.patchQueryData(
+            'getWeekSlots',
+            { employeeId: employeeId, start: start, end: end },
+              [
+                {
+                  op: 'replace',
+                  path: ['byId', slot.id],
+                  value: slot
+                },
+              ]
+          ));
+        } catch (error) {
+          console.error(error);
         }
-        dispatch(undoAdded({ message, data: [prevSlotState] }));
-        
-        /** Updates initial slot in cached getWeekSlots data. */
-        dispatch(schedulingApi.util.patchQueryData(
-          'getWeekSlots',
-          { employeeId: employeeId, start: start, end: end },
-            [
-              {
-                op: 'replace',
-                path: ['byId', slot.id],
-                value: slot
-              },
-            ]
-        ));
       },
     }),
   }),

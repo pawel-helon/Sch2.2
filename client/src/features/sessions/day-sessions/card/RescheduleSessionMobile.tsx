@@ -1,22 +1,23 @@
-import { Loader } from "lucide-react";
-import React from "react";
-import { useSelector } from "react-redux";
-import { Button } from "src/components/Button";
-import { Calendar } from "src/components/Calendar";
+import React from 'react';
+import { Loader } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { useUpdateSessionMutation } from 'src/redux/actions/sessions/updateSession';
+import { useUpdateSlotsForReschedulingSessionMutation } from 'src/redux/actions/slots/updateSlotsForReschedulingSession';
+import { selectSlotsForReschedulingSession } from 'src/redux/selectors/slots/selectSlotsForReschedulingSession';
+import { infoAdded } from 'src/redux/slices/infoSlice';
+import { RootState } from 'src/redux/store';
+import { Button } from 'src/components/Button';
+import { Calendar } from 'src/components/Calendar';
 import { Sheet, SheetTrigger, SheetContent, SheetTitle } from 'src/components/Sheet';
-import { Paragraph } from "src/components/typography/Paragraph";
-import { useUpdateSessionMutation } from "src/redux/actions/sessions/updateSession";
-import { selectDaySlots } from "src/redux/selectors/slots/selectDaySlots";
-import { infoAdded } from "src/redux/slices/infoSlice";
-import { RootState } from "src/redux/store";
-import { Session } from "src/types/sessions";
-import { Slot } from "src/types/slots";
-import { sortAndFilterSlots } from "src/utils/data/sortAndFilterSlots";
-import { getDate } from "src/utils/dates/getDate";
-import { getTime } from "src/utils/dates/getTime";
+import { Paragraph } from 'src/components/typography/Paragraph';
+import { sortAndFilterSlots } from 'src/utils/data/sortAndFilterSlots';
+import { getDate } from 'src/utils/dates/getDate';
+import { getTime } from 'src/utils/dates/getTime';
+import { Slot } from 'src/types/slots';
 
-export const Mobile = (props: {
-  session: Session
+export const RescheduleSessionMobile = (props: {
+  employeeId: string,
+  sessionId: string,
 }) => {
   const [open, setOpen] = React.useState<boolean>(false);
   
@@ -31,34 +32,43 @@ export const Mobile = (props: {
         <SheetTitle className='mb-8'>
           Reschedule
         </SheetTitle>
-        <Form session={props.session} open={open} setOpen={setOpen} />
+        <Form
+          employeeId={props.employeeId}
+          sessionId={props.sessionId}
+          open={open}
+          setOpen={setOpen}
+        />
       </SheetContent>
     </Sheet>
   )
 }
 
 const Form = (props: {
-  session: Session,
+  employeeId: string,
+  sessionId: string,
   open: boolean,
-  setOpen: (open: boolean) =>  void
+  setOpen: (open: boolean) => void
 }) => {
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
-  const [selectedSlot, setSelectedSlot] = React.useState<string>('');
+  const [ date, setDate ] = React.useState<Date | undefined>(new Date());
+  const [ selectedSlot, setSelectedSlot ] = React.useState<string>('');
   const [ updateSession ] = useUpdateSessionMutation();
-  const { data: slots, status } = useSelector((state: RootState) => selectDaySlots(state, getDate(date || new Date())));
-  
+  const { data: slots, status } = useSelector((state: RootState) => selectSlotsForReschedulingSession(state));
+
+  const [ updateSlotsForReschedulingSession ] = useUpdateSlotsForReschedulingSessionMutation();
+
+  React.useEffect(() => {
+    updateSlotsForReschedulingSession({ employeeId: props.employeeId, day: getDate(date || new Date()) })
+  },[updateSlotsForReschedulingSession, props.employeeId, date]);
+
   const handleSubmit = async () => {
     props.setOpen(false);
     try {
-      await updateSession({ sessionId: props.session.id, slotId: selectedSlot})
+      await updateSession({ sessionId: props.sessionId, slotId: selectedSlot})
     } catch (error) {
       infoAdded({ message: 'Failed to update session.' });
       console.error(error);
     }
   }
-  
-  const customerFullName = props.session.customerFirstName! + props.session.customerLastName;
-
   let content: React.ReactNode = null;
   if (status !== 'fulfilled') {
     content = <Loading />;
@@ -70,8 +80,6 @@ const Form = (props: {
         slots={slots}
         selectedSlot={selectedSlot}
         setSelectedSlot={setSelectedSlot}
-        sessionId={props.session.id}
-        customerFullName={customerFullName}
       />
     );
   }
@@ -81,7 +89,7 @@ const Form = (props: {
       <Calendar autoFocus selected={date} onSelect={setDate} mode='single' className='mb-4' />
       {content}
       <div className='w-full absolute bottom-0 left-0 right-0 flex p-4 pb-8'>
-        <Button type='submit' disabled={selectedSlot === ''}className='w-full'>Reschedule</Button>
+        <Button type='submit' disabled={selectedSlot === ''} className='w-full'>Reschedule</Button>
       </div>
     </form>
   )
@@ -109,8 +117,6 @@ const SelectSlot = (props: {
   slots: Slot[],
   selectedSlot: string,
   setSelectedSlot: (selectedSlot: string) => void,
-  sessionId: string,
-  customerFullName: string
 }) => {
   const [firstSlot, setFirstSlot] = React.useState<number>(0);
   const [lastSlot, setlastSlot] = React.useState<number>(5);

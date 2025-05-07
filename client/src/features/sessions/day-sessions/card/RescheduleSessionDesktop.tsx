@@ -1,21 +1,22 @@
 import React from 'react';
+import { Loader } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { useUpdateSessionMutation } from 'src/redux/actions/sessions/updateSession';
+import { infoAdded } from 'src/redux/slices/infoSlice';
+import { RootState } from 'src/redux/store';
+import { selectSlotsForReschedulingSession } from 'src/redux/selectors/slots/selectSlotsForReschedulingSession';
+import { useUpdateSlotsForReschedulingSessionMutation } from 'src/redux/actions/slots/updateSlotsForReschedulingSession';
 import { Button } from 'src/components/Button';
 import { Calendar } from 'src/components/Calendar';
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from 'src/components/Dialog';
-import { useUpdateSessionMutation } from 'src/redux/actions/sessions/updateSession';
-import { infoAdded } from 'src/redux/slices/infoSlice';
-import { Session } from 'src/types/sessions';
-import { Loader } from 'lucide-react';
 import { Paragraph } from 'src/components/typography/Paragraph';
-import { Slot } from 'src/types/slots';
 import { getTime } from 'src/utils/dates/getTime';
-import { RootState } from 'src/redux/store';
-import { useSelector } from 'react-redux';
-import { selectDaySlots } from 'src/redux/selectors/slots/selectDaySlots';
 import { getDate } from 'src/utils/dates/getDate';
+import { Slot } from 'src/types/slots';
 
-export const Desktop = (props: {
-  session: Session
+export const RescheduleSessionDesktop = (props: {
+  employeeId: string,
+  sessionId: string,
 }) => {
   const [open, setOpen] = React.useState<boolean>(false);
 
@@ -30,34 +31,44 @@ export const Desktop = (props: {
         <DialogTitle>
           Reschedule meeting
         </DialogTitle>
-        <Form session={props.session} open={open} setOpen={setOpen} />
+        <Form
+          employeeId={props.employeeId}
+          sessionId={props.sessionId}
+          open={open}
+          setOpen={setOpen}
+        />
       </DialogContent>
     </Dialog>
   )
 }
 
 const Form = (props: {
-  session: Session,
+  employeeId: string,
+  sessionId: string,
   open: boolean,
   setOpen: (open: boolean) => void
 }) => {
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
-  const [selectedSlot, setSelectedSlot] = React.useState<string>('');
+  const [ date, setDate ] = React.useState<Date | undefined>(new Date());
+  const [ selectedSlot, setSelectedSlot ] = React.useState<string>('');
   const [ updateSession ] = useUpdateSessionMutation();
+  const { data: slots, status } = useSelector((state: RootState) => selectSlotsForReschedulingSession(state));
 
-  const customerFullName = props.session.customerFirstName! + props.session.customerLastName;
+  const [ updateSlotsForReschedulingSession ] = useUpdateSlotsForReschedulingSessionMutation();
 
-  const { data: slots, status } = useSelector((state: RootState) => selectDaySlots(state, getDate(date || new Date())))
+  React.useEffect(() => {
+    updateSlotsForReschedulingSession({ employeeId: props.employeeId, day: getDate(date || new Date()) })
+  },[updateSlotsForReschedulingSession, props.employeeId, date]);
 
   const handleSubmit = async () => {
     props.setOpen(false);
     try {
-      await updateSession({ sessionId: props.session.id, slotId: selectedSlot})
+      await updateSession({ sessionId: props.sessionId, slotId: selectedSlot})
     } catch (error) {
       infoAdded({ message: 'Failed to update session.' });
       console.error(error);
     }
   }
+
   let content: React.ReactNode = null;
   if (status !== 'fulfilled') {
     content = <Loading />;
@@ -69,8 +80,6 @@ const Form = (props: {
         slots={slots}
         selectedSlot={selectedSlot}
         setSelectedSlot={setSelectedSlot}
-        sessionId={props.session.id}
-        customerFullName={customerFullName}
       />
     );
   }
@@ -82,7 +91,7 @@ const Form = (props: {
         {content}
       </div>
       <div className='absolute bottom-0 left-0 right-0 w-full flex justify-end p-6 pt-8'>
-        <Button type='submit'>Reschedule</Button>
+        <Button disabled={selectedSlot === ''} type='submit'>Reschedule</Button>
       </div>
     </form>
   )
@@ -110,8 +119,6 @@ const SelectSlot = (props: {
   slots: Slot[],
   selectedSlot: string,
   setSelectedSlot: (selectedSlot: string) => void,
-  sessionId: string,
-  customerFullName: string
 }) => {
   return (
     <div className='max-h-[266px] pr-1 flex flex-col gap-2 overflow-y-scroll scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1'>

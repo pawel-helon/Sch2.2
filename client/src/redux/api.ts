@@ -4,7 +4,7 @@ import { NormalizedSessions } from 'src/types/sessions';
 import { DATE_REGEX, UUID_REGEX } from 'src/constants/regex';
 import { NormalizedSlotsRecurringDates } from 'src/types/slots-recurring-dates';
 
-export const schedulingApi = createApi({
+export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: import.meta.env.VITE_API_URL }),
   tagTypes: ['Slots', 'SlotsRecurringDates', 'Sessions', 'Customers', 'Employees'],
@@ -31,10 +31,19 @@ export const schedulingApi = createApi({
         return response.data;
       },
     }),
-    getSlots: builder.query<NormalizedSlots, { employeeId: string }>({
+    /**
+     * Fetches slots for a specific employee in a given day.
+     * 
+     * @param {Object} body - The request payload.
+     * @param {string} body.employeeId - The ID of the employee.
+     * @param {string} body.day - Day in YYYY-MM-DD format.
+     * @returns {NormalizedSlots} - Normalized slots object.
+    */
+    getSlotsForReschedulingSession: builder.query<NormalizedSlots, { employeeId: string }>({
       query: (body) => {
+        validateGetSlotsForReschedulingSessionInput(body);
         return {
-          url: 'slots/get-slots',
+          url: 'slots/get-slots-for-rescheduling-session',
           method: 'POST',
           body
         }
@@ -97,10 +106,10 @@ export const schedulingApi = createApi({
 
 export const {
   useGetWeekSlotsQuery,
-  useGetSlotsQuery,
+  useGetSlotsForReschedulingSessionQuery,
   useGetWeekSlotsRecurringDatesQuery,
   useGetWeekSessionsQuery,
-} = schedulingApi;
+} = api;
 
 const validateGetWeekSlotsInput = (input: { employeeId: string, start: string, end: string }): void => {
   if (!input || typeof input !== 'object') {
@@ -123,6 +132,22 @@ const validateGetWeekSlotsInput = (input: { employeeId: string, start: string, e
 
   if (!DATE_REGEX.test(end)) {
     throw new Error('Invalid end date format. Expected YYYY-MM-DD.');
+  }
+}
+
+const validateGetSlotsForReschedulingSessionInput = (input: { employeeId: string }): void => {
+  if (!input || typeof input !== 'object') {
+    throw new Error('Input is required. Expected an object.');
+  }
+  
+  const { employeeId } = input;
+  
+  if (!employeeId) {
+    throw new Error('employeeId is required.');
+  }
+
+  if (!UUID_REGEX.test(employeeId)) {
+    throw new Error('Invalid employeeId format. Expected UUID.');
   }
 }
 

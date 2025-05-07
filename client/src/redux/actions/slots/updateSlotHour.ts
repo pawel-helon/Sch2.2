@@ -1,4 +1,4 @@
-import { schedulingApi } from 'src/api/schedulingApi';
+import { api } from 'src/redux/api';
 import { undoAdded } from 'src/redux/slices/undoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { UUID_REGEX } from 'src/constants/regex';
@@ -24,7 +24,7 @@ const validateInput = (input: { slotId: string, hour: number }): void => {
   }
 }
 
-const updateSlotHour = schedulingApi.injectEndpoints({
+const updateSlotHour = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
      * Updates the hour of a specific slot for a given employee.
@@ -44,39 +44,43 @@ const updateSlotHour = schedulingApi.injectEndpoints({
         }
       },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        const res = await queryFulfilled;
-        const updatedSlot = res.data.data.slot;
-        const prevHour = Number(res.data.data.prevHour);
-        const date = new Date(updatedSlot.startTime).toISOString().split('T')[0];
-        const { start, end } = getWeekStartEndDatesFromDay(date);
-        
-        /** Stores message and slot's previous state in cached undoSlice data. */
-        const message = 'Slot hour has been updated.';
-        const slotPrevStartTimeMinutes = new Date(updatedSlot.startTime).getMinutes();  
-        const slotPrevState = {
-          id: updatedSlot.id,
-          employeeId: updatedSlot.employeeId,
-          type: updatedSlot.type,
-          startTime: new Date(new Date(updatedSlot.startTime).setHours(prevHour, slotPrevStartTimeMinutes)),
-          duration: updatedSlot.duration,
-          recurring: updatedSlot.recurring,
-          createdAt: updatedSlot.createdAt,
-          updatedAt: updatedSlot.updatedAt
+        try {
+          const res = await queryFulfilled;
+          const updatedSlot = res.data.data.slot;
+          const prevHour = Number(res.data.data.prevHour);
+          const date = new Date(updatedSlot.startTime).toISOString().split('T')[0];
+          const { start, end } = getWeekStartEndDatesFromDay(date);
+          
+          /** Stores message and slot's previous state in cached undoSlice data. */
+          const message = 'Slot hour has been updated.';
+          const slotPrevStartTimeMinutes = new Date(updatedSlot.startTime).getMinutes();  
+          const slotPrevState = {
+            id: updatedSlot.id,
+            employeeId: updatedSlot.employeeId,
+            type: updatedSlot.type,
+            startTime: new Date(new Date(updatedSlot.startTime).setHours(prevHour, slotPrevStartTimeMinutes)),
+            duration: updatedSlot.duration,
+            recurring: updatedSlot.recurring,
+            createdAt: updatedSlot.createdAt,
+            updatedAt: updatedSlot.updatedAt
+          }
+          dispatch(undoAdded({ message, data: [slotPrevState] }));
+          
+          /** Updates slot in cached getWeekSlots data. */
+          dispatch(api.util.patchQueryData(
+            'getWeekSlots',
+            { employeeId: updatedSlot.employeeId, start: start, end: end },
+            [
+              {
+                op: 'replace',
+                path: ['byId', updatedSlot.id],
+                value: updatedSlot
+              } 
+            ]
+          ));
+        } catch (error) {
+          console.error(error);
         }
-        dispatch(undoAdded({ message, data: [slotPrevState] }));
-        
-        /** Updates slot in cached getWeekSlots data. */
-        dispatch(schedulingApi.util.patchQueryData(
-          'getWeekSlots',
-          { employeeId: updatedSlot.employeeId, start: start, end: end },
-          [
-            {
-              op: 'replace',
-              path: ['byId', updatedSlot.id],
-              value: updatedSlot
-            } 
-          ]
-        ))
       },
     }),
   }),

@@ -1,4 +1,4 @@
-import { schedulingApi } from 'src/api/schedulingApi';
+import { api } from 'src/redux/api';
 import { undoAdded } from 'src/redux/slices/undoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { TIMESTAMP_REGEX, UUID_REGEX } from 'src/constants/regex';
@@ -52,7 +52,7 @@ const validateInput = (input: { slots: Slot[] }): void => {
   }
 }
 
-const deleteSlots = schedulingApi.injectEndpoints({
+const deleteSlots = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
      * Deletes slots for a given employee.
@@ -72,32 +72,36 @@ const deleteSlots = schedulingApi.injectEndpoints({
         }
       },
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
-        const res = await queryFulfilled;
-        const { employeeId, date, slotIds } = res.data.data;
-        const { start, end } = getWeekStartEndDatesFromDay(date);
-        
-        /** Stores message and deleted slots in cached undoSlice data. */
-        const message = 'Slots have been deleted.';
-        dispatch(undoAdded({ message, data: args.slots }))
-
-        /** Removes deleted slots from cached getWeekSlots data. */
-        dispatch(schedulingApi.util.patchQueryData(
-          'getWeekSlots',
-          { employeeId: employeeId, start: start, end: end },
-          slotIds.flatMap((slotId) =>
-            [
-              {
-                op: 'remove',
-                path: ['byId', slotId],
-                value: slotId
-              },
-              {
-                op: 'remove',
-                path: ['allIds', '-']
-              }
-            ]
-          )
-        ));
+        try {
+          const res = await queryFulfilled;
+          const { employeeId, date, slotIds } = res.data.data;
+          const { start, end } = getWeekStartEndDatesFromDay(date);
+          
+          /** Stores message and deleted slots in cached undoSlice data. */
+          const message = 'Slots have been deleted.';
+          dispatch(undoAdded({ message, data: args.slots }))
+  
+          /** Removes deleted slots from cached getWeekSlots data. */
+          dispatch(api.util.patchQueryData(
+            'getWeekSlots',
+            { employeeId: employeeId, start: start, end: end },
+            slotIds.flatMap((slotId) =>
+              [
+                {
+                  op: 'remove',
+                  path: ['byId', slotId],
+                  value: slotId
+                },
+                {
+                  op: 'remove',
+                  path: ['allIds', '-']
+                }
+              ]
+            )
+          ));
+        } catch (error) {
+          console.error(error);
+        }
       },
     }),
   }),

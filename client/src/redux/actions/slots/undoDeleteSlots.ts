@@ -1,4 +1,4 @@
-import { schedulingApi } from 'src/api/schedulingApi';
+import { api } from 'src/redux/api';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { TIMESTAMP_REGEX, UUID_REGEX } from 'src/constants/regex';
 import { getSlotsFromNormalized } from 'src/utils/data/getSlotsFromNormalized';
@@ -53,7 +53,7 @@ export const validateInput = (input: { slots: Slot[] } ): void => {
 }
 
 
-const undoDeleteSlots = schedulingApi.injectEndpoints({
+const undoDeleteSlots = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
      * Undoes delete slots for a given employee.
@@ -73,27 +73,31 @@ const undoDeleteSlots = schedulingApi.injectEndpoints({
       },
       /** Inserts restored slots into cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        const res = await queryFulfilled;
-        const data = getSlotsFromNormalized(res.data.data);
-        const date = new Date(data[0].startTime).toISOString().split('T')[0];
-        const { start, end } = getWeekStartEndDatesFromDay(date);
-
-        dispatch(schedulingApi.util.patchQueryData(
-          'getWeekSlots',
-          { employeeId: data[0].employeeId, start: start, end: end },
-          data.flatMap(slot => [
-            {
-              op: 'add',
-              path: ['byId', slot.id],
-              value: slot
-            },
-            {
-              op: 'add',
-              path: ['allIds', '-'],
-              value: slot.id
-            }
-          ])
-        ))
+        try {
+          const res = await queryFulfilled;
+          const data = getSlotsFromNormalized(res.data.data);
+          const date = new Date(data[0].startTime).toISOString().split('T')[0];
+          const { start, end } = getWeekStartEndDatesFromDay(date);
+  
+          dispatch(api.util.patchQueryData(
+            'getWeekSlots',
+            { employeeId: data[0].employeeId, start: start, end: end },
+            data.flatMap(slot => [
+              {
+                op: 'add',
+                path: ['byId', slot.id],
+                value: slot
+              },
+              {
+                op: 'add',
+                path: ['allIds', '-'],
+                value: slot.id
+              }
+            ])
+          ));
+        } catch (error) {
+          console.error(error);
+        }
       }
     }),
   }),

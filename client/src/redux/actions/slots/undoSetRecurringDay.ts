@@ -1,4 +1,4 @@
-import { schedulingApi } from 'src/api/schedulingApi';
+import { api } from 'src/redux/api';
 import { DATE_REGEX, UUID_REGEX } from 'src/constants/regex';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { SlotsRecurringDate } from 'src/types/slots-recurring-dates';
@@ -27,7 +27,7 @@ const validateInput = (input: { employeeId: string, day: string }): void => {
   }
 }
 
-const undoSetRecurringDay = schedulingApi.injectEndpoints({
+const undoSetRecurringDay = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
      * Undoes duplicating day slots for recurring days.
@@ -47,26 +47,30 @@ const undoSetRecurringDay = schedulingApi.injectEndpoints({
         }
       },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        const res = await queryFulfilled;
-        const data = res.data.data;
-
-        /** Removes deleted session from cached getWeekSessions data. */
-        const { start, end } = getWeekStartEndDatesFromDay(data.date);
-        dispatch(schedulingApi.util.patchQueryData(
-          'getWeekSlotsRecurringDates',
-          { employeeId: data.employeeId, start: start, end: end },
-            [
-              {
-                op: 'remove',
-                path: ['byId', data.id],
-                value: data
-              },
-              {
-                op: 'remove',
-                path: ['allIds', '-'],
-              }
-            ]
-        ))
+        try {
+          const res = await queryFulfilled;
+          const data = res.data.data;
+  
+          /** Removes deleted session from cached getWeekSessions data. */
+          const { start, end } = getWeekStartEndDatesFromDay(data.date);
+          dispatch(api.util.patchQueryData(
+            'getWeekSlotsRecurringDates',
+            { employeeId: data.employeeId, start: start, end: end },
+              [
+                {
+                  op: 'remove',
+                  path: ['byId', data.id],
+                  value: data
+                },
+                {
+                  op: 'remove',
+                  path: ['allIds', '-'],
+                }
+              ]
+          ));
+        } catch (error) {
+          console.error(error);
+        }
       }
     }),
   }),

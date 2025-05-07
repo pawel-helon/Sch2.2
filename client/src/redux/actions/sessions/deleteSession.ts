@@ -1,4 +1,4 @@
-import { schedulingApi } from 'src/api/schedulingApi';
+import { api } from 'src/redux/api';
 import { undoAdded } from 'src/redux/slices/undoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { TIMESTAMP_REGEX, UUID_REGEX } from 'src/constants/regex';
@@ -48,7 +48,7 @@ export const validateInput = (input: { session: Session }): void => {
   }
 }
 
-const deleteSession = schedulingApi.injectEndpoints({
+const deleteSession = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
      * Deletes a session for a specific employee.
@@ -67,31 +67,35 @@ const deleteSession = schedulingApi.injectEndpoints({
         }
       },
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
-        const res = await queryFulfilled;
-        const { sessionId, employeeId, startTime } = res.data.data;
-        const date = new Date(startTime).toISOString().split('T')[0];
-        const { start, end } = getWeekStartEndDatesFromDay(date);
-
-        /** Stores message and session in cached undoSlice data.*/
-        const message = 'Session has been deleted.';
-        dispatch(undoAdded({ message, data: [args.session] }));
-        
-        /** Removes deleted session from cached getWeekSessions data. */
-        dispatch(schedulingApi.util.patchQueryData(
-          'getWeekSessions',
-          { employeeId: employeeId, start: start, end: end },
-            [
-              {
-                op: 'remove',
-                path: ['byId', sessionId],
-                value: sessionId
-              },
-              {
-                op: 'remove',
-                path: ['allIds', '-'],
-              }
-            ]
-        ))
+        try {
+          const res = await queryFulfilled;
+          const { sessionId, employeeId, startTime } = res.data.data;
+          const date = new Date(startTime).toISOString().split('T')[0];
+          const { start, end } = getWeekStartEndDatesFromDay(date);
+  
+          /** Stores message and session in cached undoSlice data.*/
+          const message = 'Session has been deleted.';
+          dispatch(undoAdded({ message, data: [args.session] }));
+          
+          /** Removes deleted session from cached getWeekSessions data. */
+          dispatch(api.util.patchQueryData(
+            'getWeekSessions',
+            { employeeId: employeeId, start: start, end: end },
+              [
+                {
+                  op: 'remove',
+                  path: ['byId', sessionId],
+                  value: sessionId
+                },
+                {
+                  op: 'remove',
+                  path: ['allIds', '-'],
+                }
+              ]
+          ));
+        } catch (error) {
+          console.error(error);
+        }
       },
     }),
   }),

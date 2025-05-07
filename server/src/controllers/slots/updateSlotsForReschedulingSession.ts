@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { SlotsAccumulator } from "../../lib/types";
 import { pool } from "../../index";
-import { UUID_REGEX } from "../../lib/constants";
+import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
 
 const createResponse = (res: Response, message: string, data: SlotsAccumulator | null = null) => {
   res.format({"application/json": () => {
@@ -12,25 +12,33 @@ const createResponse = (res: Response, message: string, data: SlotsAccumulator |
   }});
 }
 
-export const getSlots = async (req: Request, res: Response) => {
-  const { employeeId } = req.body as { employeeId: string };
+export const updateSlotsForReschedulingSession = async (req: Request, res: Response) => {
+  const { employeeId, day } = req.body as { employeeId: string, day: string };
 
   if (!employeeId) {
     return createResponse(res, "All fields are required: employeeId, day.");
   }
   
   if (!UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Invalid employeeId format in slots. Expected UUID.");
+    return createResponse(res, "Invalid employeeId format. Expected UUID.");
   }
-  
+
+  if (!DATE_REGEX.test(day)) {
+    return createResponse(res, "Invalid day format. Expected YYYY-MM-DD.");
+  }
+
   try {
     const queryValue = `
       SELECT *
       FROM "Slots"
       WHERE "employeeId" = $1::uuid 
+        AND "startTime" >= ($2::date || ' ' || '00:00:00.000'::time)::timestamp
+        AND "startTime" <= ($2::date || ' ' || '23:59:59.999'::time)::timestamp
+        AND "type" = 'AVAILABLE'
     `;
     const result = await pool.query(queryValue, [
       employeeId,
+      day
     ]);
 
     if (!result.rows.length) {

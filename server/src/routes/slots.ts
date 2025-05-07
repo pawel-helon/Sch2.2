@@ -14,12 +14,13 @@ import { setSlotRecurrence } from "../controllers/slots/setSlotRecurrence";
 import { disableSlotRecurrence } from "../controllers/slots/disableSlotRecurrence";
 import { setRecurringDay } from "../controllers/slots/setRecurringDay";
 import { disableRecurringDay } from "../controllers/slots/disableRecurringDay";
-import { getSlots } from "../controllers/slots/getSlots";
+
+import { getSlotsForReschedulingSession } from "../controllers/slots/getSlotsForReschedulingSession";
+import { updateSlotsForReschedulingSession } from "../controllers/slots/updateSlotsForReschedulingSession";
 
 const router = express.Router();
 
 router.post("/get-week-slots", getWeekSlots);
-router.post("/get-slots", getSlots);
 router.post("/add-slot", addSlot);
 router.post("/add-recurring-slot", addRecurringSlot);
 router.post("/undo-add-recurring-slot", undoAddRecurringSlot)
@@ -34,5 +35,8 @@ router.post("/set-slot-recurrence", setSlotRecurrence);
 router.post("/disable-slot-recurrence", disableSlotRecurrence);
 router.post("/set-recurring-day", setRecurringDay);
 router.post("/disable-recurring-day", disableRecurringDay);
+
+router.post("/get-slots-for-rescheduling-session", getSlotsForReschedulingSession);
+router.post("/update-slots-for-rescheduling-session", updateSlotsForReschedulingSession);
 
 export default router;

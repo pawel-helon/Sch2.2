@@ -1,4 +1,4 @@
-import { schedulingApi } from 'src/api/schedulingApi';
+import { api } from 'src/redux/api';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { UUID_REGEX } from 'src/constants/regex';
 import { Slot } from 'src/types/slots';
@@ -23,7 +23,7 @@ const validateInput = (input: { slotId: string, minutes: number }): void => {
   }
 }
 
-const undoUpdateRecurringSlotMinutes = schedulingApi.injectEndpoints({
+const undoUpdateRecurringSlotMinutes = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
      * Undoes update of the recurring slot hour for a given employee
@@ -43,23 +43,27 @@ const undoUpdateRecurringSlotMinutes = schedulingApi.injectEndpoints({
         }
       },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        const res = await queryFulfilled;
-        const slot = res.data.data.slot;
-        const date = new Date(slot.startTime).toISOString().split('T')[0];
-        const { start, end } = getWeekStartEndDatesFromDay(date);
-        
-        /** Updates initial slot in cached getWeekSlots data. */
-        dispatch(schedulingApi.util.patchQueryData(
-          'getWeekSlots',
-          { employeeId: slot.employeeId, start: start, end: end },
-          [
-            {
-              op: 'replace',
-              path: ['byId', slot.id],
-              value: slot
-            },
-          ]
-        ))
+        try {
+          const res = await queryFulfilled;
+          const slot = res.data.data.slot;
+          const date = new Date(slot.startTime).toISOString().split('T')[0];
+          const { start, end } = getWeekStartEndDatesFromDay(date);
+          
+          /** Updates initial slot in cached getWeekSlots data. */
+          dispatch(api.util.patchQueryData(
+            'getWeekSlots',
+            { employeeId: slot.employeeId, start: start, end: end },
+            [
+              {
+                op: 'replace',
+                path: ['byId', slot.id],
+                value: slot
+              },
+            ]
+          ));
+        } catch (error) {
+          console.error(error);
+        }
       },
     }),
   }),

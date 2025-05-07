@@ -28,7 +28,45 @@ export const updateSession = async (req: Request, res: Response) => {
   }
 
   try {
-    const queryValue = `
+    await pool.query("BEGIN");
+
+    const updatePrevSlotQueryValue = `
+      WITH session_info AS (
+        SELECT "slotId" AS slot_id
+        FROM "Sessions"
+        WHERE "id" = $1::uuid
+      )
+      UPDATE "Slots"
+      SET "type" = 'AVAILABLE'
+      FROM session_info
+      WHERE "Slots"."id" = session_info.slot_id
+      RETURNING *
+    `;
+
+    const updatePrevSlot = await pool.query(updatePrevSlotQueryValue, [
+      sessionId
+    ]);
+
+    if (!updatePrevSlot.rows.length) {
+      return createResponse(res, "Failed to update previous slot.");
+    }
+
+    const updateNewSlotQueryValue = `
+      UPDATE "Slots"
+      SET "type" = 'BOOKED'
+      WHERE "id" = $1::uuid
+      RETURNING *
+    `;
+
+    const updateNewSlot = await pool.query(updateNewSlotQueryValue, [
+      slotId
+    ]);
+
+    if (!updateNewSlot.rows.length) {
+      return createResponse(res, "Failed to update new slot.");
+    }
+
+    const updateSessionQueryValue = `
       WITH session_info AS (
         SELECT "slotId" AS slot_id
         FROM "Sessions"
@@ -61,34 +99,41 @@ export const updateSession = async (req: Request, res: Response) => {
         (SELECT slot_start_time FROM prev_slot_info) AS "prevStartTime"
     `;
 
-    const result = await pool.query(queryValue, [
+    const updateSession = await pool.query(updateSessionQueryValue, [
       slotId,
       sessionId
     ])
+
+    await pool.query("COMMIT");
     
-    if (!result.rows.length) {
+    if (!updateSession.rows.length) {
       return createResponse(res, "Failed to update session.");
     }
-
+    
     const session = {
-      id: result.rows[0].id,
-      slotId: result.rows[0].slotId,
-      employeeId: result.rows[0].employeeId,
-      customerId: result.rows[0].customerId,
-      startTime: result.rows[0].startTime,
-      message: result.rows[0].message,
-      createdAt: result.rows[0].createdAt,
-      updatedAt: result.rows[0].updatedAt,
+      id: updateSession.rows[0].id,
+      slotId: updateSession.rows[0].slotId,
+      employeeId: updateSession.rows[0].employeeId,
+      customerId: updateSession.rows[0].customerId,
+      startTime: updateSession.rows[0].startTime,
+      message: updateSession.rows[0].message,
+      createdAt: updateSession.rows[0].createdAt,
+      updatedAt: updateSession.rows[0].updatedAt,
     }
 
     createResponse(res, "Session has been updated.", {
-      prevSlotId: result.rows[0].prevSlotId,
-      prevStartTime: result.rows[0].prevStartTime,
+      prevSlotId: updateSession.rows[0].prevSlotId,
+      prevStartTime: updateSession.rows[0].prevStartTime,
       session: session
     });
     
   } catch (error) {
+    try {
+      await pool.query("ROLLBACK");
+    } catch (rollbackError) {
+      console.error("Rollback failed: ", rollbackError);
+    }
     console.error("Failed to update session: ", error);
     res.status(500).json({ error: "Internal server error." });
   }
-}
+} 

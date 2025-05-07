@@ -16,12 +16,13 @@ import { useUndoDisableSlotRecurrenceMutation } from 'src/redux/actions/slots/un
 import { useUndoDeleteSessionMutation } from 'src/redux/actions/sessions/undoDeleteSession';
 import { useUndoUpdateSessionMutation } from 'src/redux/actions/sessions/undoUpdateSession';
 import { useUndoUpdateRecurringSlotMinutesMutation } from 'src/redux/actions/slots/undoUpdateRecurringSlotMinutes';
-import { Button } from 'src/components/Button';
-import { Paragraph } from 'src/components/typography/Paragraph';
-import { Slot } from 'src/types/slots';
-import { Session } from 'src/types/sessions';
 import { useUndoSetRecurringDayMutation } from 'src/redux/actions/slots/undoSetRecurringDay';
 import { useUndoDisableRecurringDayMutation } from 'src/redux/actions/slots/undoDisableRecurringDay';
+import { Button } from 'src/components/Button';
+import { Paragraph } from 'src/components/typography/Paragraph';
+import { useHandleBreakpoint } from 'src/hooks/useHandleBreakpoint';
+import { Slot } from 'src/types/slots';
+import { Session } from 'src/types/sessions';
 
 export const Toasts = () => {
   const undos = useSelector((state: RootState) => state.undo);
@@ -85,6 +86,7 @@ const Info = (props: {
 const Undo = (props: {
   undo: { message: string, data: Slot[] | Session[] },
 }) => {
+  const isMobile = useHandleBreakpoint({ windowInnerWidth: 480 });
   const dispatch = useDispatch<AppDispatch>();
   
   const [ undoUpdateSlotHour ] = useUndoUpdateSlotHourMutation();
@@ -160,12 +162,16 @@ const Undo = (props: {
     dispatch(undoRemoved({ message: props.undo.message, id: props.undo.data[0].id }));
   }
 
+  const initialY = isMobile ? 10 : 100;
+  const animateY = isMobile ? 20 : 200;
+  const exitY = isMobile ? 20 : 200;
+
   return (
     <motion.div
       className='w-full fixed top-4 xs:-top-36 mx-auto flex justify-center px-3 xl:max-w-screen-xl 2xl:max-w-screen-2xl'
-      initial={{ y: 100, opacity: 0 }}
-      animate={{ y: 200, opacity: 1 }}
-      exit={{ y: 200, opacity: 0 }}
+      initial={{ y: initialY, opacity: 0 }}
+      animate={{ y: animateY, opacity: 1 }}
+      exit={{ y: exitY, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 260, damping: 20 }}
     >
       <div className='min-w-60 h-12 flex items-center gap-2 px-2 text-sm border border-border rounded-md shadow-shadow shadow-sm bg-background'>

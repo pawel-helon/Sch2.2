@@ -1,4 +1,4 @@
-import { schedulingApi } from 'src/api/schedulingApi';
+import { api } from 'src/redux/api';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { UUID_REGEX } from 'src/constants/regex';
 import { Slot } from 'src/types/slots';
@@ -23,7 +23,7 @@ const validateInput = (input: { slotId: string, minutes: number }): void => {
   }
 }
 
-const undoUpdateSlotMinutes = schedulingApi.injectEndpoints({
+const undoUpdateSlotMinutes = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
      * Undoes minutes updates of the a specyfic slot for a given employee.
@@ -44,22 +44,26 @@ const undoUpdateSlotMinutes = schedulingApi.injectEndpoints({
       },
       /** Updates slot in cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        const res = await queryFulfilled;
-        const slot = res.data.data.slot;
-        const date = new Date(slot.startTime).toISOString().split('T')[0];
-        const { start, end } = getWeekStartEndDatesFromDay(date);
-        
-        dispatch(schedulingApi.util.patchQueryData(
-          'getWeekSlots',
-          { employeeId: slot.employeeId, start: start, end: end },
-          [
-            {
-              op: 'replace',
-              path: ['byId', slot.id],
-              value: slot
-            },
-          ]
-        ))
+        try {
+          const res = await queryFulfilled;
+          const slot = res.data.data.slot;
+          const date = new Date(slot.startTime).toISOString().split('T')[0];
+          const { start, end } = getWeekStartEndDatesFromDay(date);
+          
+          dispatch(api.util.patchQueryData(
+            'getWeekSlots',
+            { employeeId: slot.employeeId, start: start, end: end },
+            [
+              {
+                op: 'replace',
+                path: ['byId', slot.id],
+                value: slot
+              },
+            ]
+          ));
+        } catch (error) {
+          console.error(error);
+        }
       },
     }),
   }),

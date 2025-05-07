@@ -1,11 +1,11 @@
 import { Action, configureStore, ThunkAction } from '@reduxjs/toolkit';
-import { schedulingApi } from 'src/api/schedulingApi';
+import { api } from 'src/redux/api';
 import undoSlice from 'src/redux/slices/undoSlice';
 import infoSlice from 'src/redux/slices/infoSlice';
 
 export const store = configureStore({
   reducer: {
-    [schedulingApi.reducerPath]: schedulingApi.reducer,
+    [api.reducerPath]: api.reducer,
     undo: undoSlice,
     info: infoSlice,
   },
@@ -15,7 +15,7 @@ export const store = configureStore({
         ignoredActions: ['undo/undoAdded'],
         ignoredPaths: ['undo', 'payload.startTime'],
       },
-    }).concat(schedulingApi.middleware)
+    }).concat(api.middleware)
 });
 
 export type AppStore = typeof store;

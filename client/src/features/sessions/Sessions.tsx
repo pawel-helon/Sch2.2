@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useGetSlotsQuery, useGetWeekSessionsQuery } from 'src/api/schedulingApi';
+import { useGetWeekSessionsQuery } from 'src/redux/api';
 import { ThemeToggle } from 'src/components/ThemeToggle';
 import { Toasts } from 'src/components/Toasts';
 import { Breadcrumbs } from './Breadcrumbs';
@@ -19,7 +19,6 @@ export const Sessions = () => {
   const { year, weekNumber } = destructureParams(week);
   const weekDays = getWeekDays(year, weekNumber);
   useGetWeekSessionsQuery({ employeeId, start: weekDays[0], end: weekDays[weekDays.length - 1] });
-  useGetSlotsQuery({ employeeId });
   useHandleTheme();
   const isMobile = useHandleBreakpoint({ windowInnerWidth: 480 });
 

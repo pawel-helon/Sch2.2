@@ -1,4 +1,4 @@
-import { schedulingApi } from 'src/api/schedulingApi';
+import { api } from 'src/redux/api';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { TIMESTAMP_REGEX, UUID_REGEX } from 'src/constants/regex';
 import { Slot } from 'src/types/slots';
@@ -51,7 +51,7 @@ const validateInput = (input: { slots: Slot[] }): void => {
   }
 }
 
-const undoDuplicateDay = schedulingApi.injectEndpoints({
+const undoDuplicateDay = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
      * Undoes duplicate day for a given employee.
@@ -71,28 +71,32 @@ const undoDuplicateDay = schedulingApi.injectEndpoints({
         }
       },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        const res = await queryFulfilled;
-        const { employeeId, date, slotIds } = res.data.data;
-        const { start, end } = getWeekStartEndDatesFromDay(date);
-        
-        /** Removes deleted slots from cached getWeekSlots data. */
-        dispatch(schedulingApi.util.patchQueryData(
-          'getWeekSlots',
-          { employeeId: employeeId, start: start, end: end },
-          slotIds.flatMap((slotId) =>
-            [
-              {
-                op: 'remove',
-                path: ['byId', slotId],
-                value: slotId
-              },
-              {
-                op: 'remove',
-                path: ['allIds', '-']
-              }
-            ]
-          )
-        ));
+        try {
+          const res = await queryFulfilled;
+          const { employeeId, date, slotIds } = res.data.data;
+          const { start, end } = getWeekStartEndDatesFromDay(date);
+          
+          /** Removes deleted slots from cached getWeekSlots data. */
+          dispatch(api.util.patchQueryData(
+            'getWeekSlots',
+            { employeeId: employeeId, start: start, end: end },
+            slotIds.flatMap((slotId) =>
+              [
+                {
+                  op: 'remove',
+                  path: ['byId', slotId],
+                  value: slotId
+                },
+                {
+                  op: 'remove',
+                  path: ['allIds', '-']
+                }
+              ]
+            )
+          ));
+        } catch (error) {
+          console.error(error);
+        }
       },
     }),
   }),

@@ -1,4 +1,4 @@
-import { schedulingApi } from 'src/api/schedulingApi';
+import { api } from 'src/redux/api';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { UUID_REGEX } from 'src/constants/regex';
 import { Session } from 'src/types/sessions';
@@ -23,7 +23,7 @@ const validateInput = (input: { sessionId: string, slotId: string }): void => {
   }
 }
 
-const undoUpdateSession = schedulingApi.injectEndpoints({
+const undoUpdateSession = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
      * Undoes updating the session for a specific employee.
@@ -43,42 +43,46 @@ const undoUpdateSession = schedulingApi.injectEndpoints({
         }
       },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        const res = await queryFulfilled;
-        const { prevStartTime, session } = res.data.data;
-        const employeeId = session.employeeId;
-        const prevDate = new Date(prevStartTime).toISOString().split('T')[0];
-        const { start: prevStart } = getWeekStartEndDatesFromDay(prevDate);
-        const nextDate = new Date(session.startTime).toISOString().split('T')[0];
-        const { start: nextStart, end } = getWeekStartEndDatesFromDay(nextDate);
-        
-        /** Updates session in cached getWeekSessions data, if session stays in the same week*/
-        if (prevStart === nextStart) {
-          dispatch(schedulingApi.util.patchQueryData(
-            'getWeekSessions',
-            { employeeId: employeeId, start: nextStart, end: end },
-            [
-              {
-                op: 'replace',
-                path: ['byId', session.id],
-                value: session
-              },
-            ]
-          ))
-        } else {
-          dispatch(schedulingApi.util.patchQueryData(
-            'getWeekSessions',
-            { employeeId: employeeId, start: nextStart, end: end },
-            [
-              {
-                op: 'remove',
-                path: ['byId', session.id],
-              },
-              {
-                op: 'remove',
-                path: ['allIds', '-']
-              }
-            ]
-          ))
+        try {
+          const res = await queryFulfilled;
+          const { prevStartTime, session } = res.data.data;
+          const employeeId = session.employeeId;
+          const prevDate = new Date(prevStartTime).toISOString().split('T')[0];
+          const { start: prevStart } = getWeekStartEndDatesFromDay(prevDate);
+          const nextDate = new Date(session.startTime).toISOString().split('T')[0];
+          const { start: nextStart, end } = getWeekStartEndDatesFromDay(nextDate);
+          
+          /** Updates session in cached getWeekSessions data, if session stays in the same week*/
+          if (prevStart === nextStart) {
+            dispatch(api.util.patchQueryData(
+              'getWeekSessions',
+              { employeeId: employeeId, start: nextStart, end: end },
+              [
+                {
+                  op: 'replace',
+                  path: ['byId', session.id],
+                  value: session
+                },
+              ]
+            ));
+          } else {
+            dispatch(api.util.patchQueryData(
+              'getWeekSessions',
+              { employeeId: employeeId, start: nextStart, end: end },
+              [
+                {
+                  op: 'remove',
+                  path: ['byId', session.id],
+                },
+                {
+                  op: 'remove',
+                  path: ['allIds', '-']
+                }
+              ]
+            ));
+          }
+        } catch (error) {
+          console.error(error);
         }
       },
     }),

@@ -39,7 +39,7 @@ export const CancelSessionModal = (props: {
           <Paragraph variant='thin' size='base' className='leading-relaxed text-text-secondary'>
             {`Are you sure you want to cancel meeting with `}
             <span className='text-text-primary'>
-              {props.session.customerFirstName}{' '}{props.session.customerLastName}
+              {props.session.customerFullName}
             </span>
             {' ?'} 
           </Paragraph>
@@ -66,7 +66,7 @@ export const CancelSessionModal = (props: {
           <Paragraph variant='thin' size='base' className='mt-12 mb-20 leading-relaxed text-text-secondary'>
             {`Are you sure you want to cancel meeting with `}
             <span className='text-text-primary'>
-              {props.session.customerFirstName}{' '}{props.session.customerLastName}
+              {props.session.customerFullName}
             </span>
             {' ?'} 
           </Paragraph>

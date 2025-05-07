@@ -1,4 +1,4 @@
-import { schedulingApi } from 'src/api/schedulingApi';
+import { api } from 'src/redux/api';
 import { undoAdded } from 'src/redux/slices/undoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { DATE_REGEX, UUID_REGEX } from 'src/constants/regex';
@@ -30,7 +30,7 @@ const validateInput = (input: { employeeId: string, day: string, selectedDays: s
 }
 
 
-const duplicateDay = schedulingApi.injectEndpoints({
+const duplicateDay = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
      * Duplicates slots from a specific day for a given employee.
@@ -51,36 +51,40 @@ const duplicateDay = schedulingApi.injectEndpoints({
         }
       },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        const res = await queryFulfilled;
-        const { data } = res.data;
-        const slots = getSlotsFromNormalized(data);
-        const employeeId = slots[0].employeeId;
-        const date = new Date(slots[0].startTime).toISOString().split('T')[0];
-        const { start, end } = getWeekStartEndDatesFromDay(date);
-
-        /** Stores message and duplicated slots in undoSlice data. */
-        const message = 'Day has been duplicated.';
-        dispatch(undoAdded({ message, data: slots }));
-        
-        /** Inserts duplicated slots into cached getWeekSlots data. */
-        dispatch(schedulingApi.util.patchQueryData(
-          'getWeekSlots',
-          { employeeId: employeeId, start: start, end: end },
-          slots.flatMap((slot) =>
-            [
-              {
-                op: 'add',
-                path: ['byId', slot.id],
-                value: slot
-              },
-              {
-                op: 'add',
-                path: ['allIds', '-'],
-                value: slot.id
-              }
-            ]
-          )
-        ))
+        try {
+          const res = await queryFulfilled;
+          const { data } = res.data;
+          const slots = getSlotsFromNormalized(data);
+          const employeeId = slots[0].employeeId;
+          const date = new Date(slots[0].startTime).toISOString().split('T')[0];
+          const { start, end } = getWeekStartEndDatesFromDay(date);
+  
+          /** Stores message and duplicated slots in undoSlice data. */
+          const message = 'Day has been duplicated.';
+          dispatch(undoAdded({ message, data: slots }));
+          
+          /** Inserts duplicated slots into cached getWeekSlots data. */
+          dispatch(api.util.patchQueryData(
+            'getWeekSlots',
+            { employeeId: employeeId, start: start, end: end },
+            slots.flatMap((slot) =>
+              [
+                {
+                  op: 'add',
+                  path: ['byId', slot.id],
+                  value: slot
+                },
+                {
+                  op: 'add',
+                  path: ['allIds', '-'],
+                  value: slot.id
+                }
+              ]
+            )
+          ));
+        } catch (error) {
+          console.error(error);
+        }
       },
     }),
   }),

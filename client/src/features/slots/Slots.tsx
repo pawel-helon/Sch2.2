@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useGetWeekSlotsQuery, useGetWeekSlotsRecurringDatesQuery } from 'src/api/schedulingApi';
+import { useGetWeekSlotsQuery, useGetWeekSlotsRecurringDatesQuery } from 'src/redux/api';
 import { ThemeToggle } from 'src/components/ThemeToggle';
 import { Toasts } from 'src/components/Toasts';
 import { Breadcrumbs } from 'src/features/slots/Breadcrumbs';

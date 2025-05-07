@@ -1,12 +1,17 @@
 import { Paragraph } from 'src/components/typography/Paragraph';
-import { Session } from 'src/types/sessions';
-import { Actions } from './actions';
 import { Badge } from 'src/components/Badge';
+import { RescheduleSessionDesktop } from './RescheduleSessionDesktop';
+import { useGetSlotsForReschedulingSessionQuery } from 'src/redux/api';
+import { CancelSessionModal } from './CancelSessionModal';
+import { RescheduleSessionMobile } from './RescheduleSessionMobile';
+import { Session } from 'src/types/sessions';
 
 export const Card = (props: {
   session: Session,
   isMobile: boolean
 }) => {
+  useGetSlotsForReschedulingSessionQuery({ employeeId: props.session.employeeId });
+  
   if (props.isMobile) {
     return (
       <div className='flex flex-col gap-2 px-4'>
@@ -28,7 +33,10 @@ export const Card = (props: {
             {props.session.message || ''}
           </div>
         </div>
-        <Actions session={props.session} isMobile={props.isMobile} />
+        <div className='w-full flex-col gap-2 my-4'>
+          <CancelSessionModal session={props.session} isMobile={props.isMobile} />
+          <RescheduleSessionMobile employeeId={props.session.employeeId} sessionId={props.session.id} />
+        </div>
       </div>
     )
   } else {
@@ -36,7 +44,7 @@ export const Card = (props: {
       <>
         <div key={props.session.id} className='w-full flex flex-col p-4 border border-border rounded-md shadow-shadow shadow-lg bg-background'>
           <div className='w-full flex justify-between mb-8'>
-            <Paragraph variant='thick' size='base'>{props.session.customerFirstName}</Paragraph>
+            <Paragraph variant='thick' size='base'>{props.session.customerFullName}</Paragraph>
             <Badge day={props.session.startTime} tab='sessions' />
           </div>
           <div className='grid grid-cols-2 gap-4'>
@@ -65,7 +73,10 @@ export const Card = (props: {
               </div>
             </div>
           </div>
-          <Actions session={props.session} isMobile={props.isMobile} />
+          <div className='w-full flex justify-end gap-2 mt-8'>
+            <CancelSessionModal session={props.session} isMobile={props.isMobile} />
+            <RescheduleSessionDesktop employeeId={props.session.employeeId} sessionId={props.session.id} />
+          </div>
       </div>
     </>
     )

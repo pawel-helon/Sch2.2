@@ -1,4 +1,4 @@
-import { schedulingApi } from 'src/api/schedulingApi';
+import { api } from 'src/redux/api';
 import { undoAdded } from 'src/redux/slices/undoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { UUID_REGEX } from 'src/constants/regex';
@@ -20,7 +20,7 @@ const validateInput = (input: { slotId: string }): void => {
   }
 }
 
-const setSlotRecurrence = schedulingApi.injectEndpoints({
+const setSlotRecurrence = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
      * Sets a slot as recurring for a given employee.
@@ -40,28 +40,32 @@ const setSlotRecurrence = schedulingApi.injectEndpoints({
         }
       },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        const res = await queryFulfilled;
-        const { data: slot } = res.data;
-        const employeeId = slot.employeeId;
-        const date = new Date(slot.startTime).toISOString().split('T')[0];
-        const { start, end } = getWeekStartEndDatesFromDay(date);
-        
-        /** Stores message and slot in cached undoSlice data. */
-        const message = 'Slot recurrence has been set.';
-        dispatch(undoAdded({ message, data: [slot] }));
-        
-        /** Updates initial slot in cached getWeekSlots data. */
-        dispatch(schedulingApi.util.patchQueryData(
-          'getWeekSlots',
-          { employeeId: employeeId, start: start, end: end },
-            [
-              {
-                op: 'replace',
-                path: ['byId', slot.id],
-                value: slot
-              },
-            ]
-        ))
+        try {
+          const res = await queryFulfilled;
+          const { data: slot } = res.data;
+          const employeeId = slot.employeeId;
+          const date = new Date(slot.startTime).toISOString().split('T')[0];
+          const { start, end } = getWeekStartEndDatesFromDay(date);
+          
+          /** Stores message and slot in cached undoSlice data. */
+          const message = 'Slot recurrence has been set.';
+          dispatch(undoAdded({ message, data: [slot] }));
+          
+          /** Updates initial slot in cached getWeekSlots data. */
+          dispatch(api.util.patchQueryData(
+            'getWeekSlots',
+            { employeeId: employeeId, start: start, end: end },
+              [
+                {
+                  op: 'replace',
+                  path: ['byId', slot.id],
+                  value: slot
+                },
+              ]
+          ));
+        } catch (error) {
+          console.error(error);
+        }
       },
     }),
   }),
