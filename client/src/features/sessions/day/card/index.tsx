@@ -45,7 +45,7 @@ export const Card = (props: {
         <div key={props.session.id} className='w-full flex flex-col p-4 border border-border rounded-md shadow-shadow shadow-lg bg-background'>
           <div className='w-full flex justify-between mb-8'>
             <Paragraph variant='thick' size='base'>{props.session.customerFullName}</Paragraph>
-            <Badge day={props.session.startTime} tab='sessions' />
+            <Badge day={props.session.startTime} value='time' />
           </div>
           <div className='grid grid-cols-2 gap-4'>
             <div className='col-span-1 flex flex-col gap-4'>

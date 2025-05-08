@@ -1,3 +1,4 @@
+import React from 'react';
 import { Loader } from 'lucide-react';
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/redux/store'
@@ -11,13 +12,13 @@ import { capitalizeFirstLetter } from 'src/utils/capitalizeFirstLetter';
 import { cn } from 'src/utils/cn';
 import { Session } from 'src/types/sessions';
 
-export const DaySessions = (props: {
+export const Day = (props: {
   year: number,
   weekNumber: number,
-  dayName: string,
+  currentDay: string,
   isMobile: boolean
 }) => {
-  const day = getDateFromParams(props.year, props.weekNumber, props.dayName);
+  const day = getDateFromParams(props.year, props.weekNumber, props.currentDay);
   const { data: sessions, status } = useSelector((state: RootState) => selectDaySessions(state, day))
 
   let content: React.ReactNode = null;
@@ -28,7 +29,7 @@ export const DaySessions = (props: {
       <Loaded
         year={props.year}
         weekNumber={props.weekNumber}
-        dayName={props.dayName}
+        dayName={props.currentDay}
         sessions={sessions}
         isMobile={props.isMobile}
       />
@@ -36,7 +37,7 @@ export const DaySessions = (props: {
   }
 
   return (
-    <div className='col-span-2 md:col-span-2 flex flex-col gap-4'>
+    <div className='col-span-2 flex flex-col gap-4'>
       {content}
     </div>
   )
@@ -45,19 +46,21 @@ export const DaySessions = (props: {
 const Loading = (props: {
   isMobile: boolean
 }) => {
+  let content: React.ReactNode = null;
   if (props.isMobile) {
-    return (
+    content = (
       <div className='flex relative h-[120px] col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background'>
         <Loader className='size-6 text-text-tertiary animate-spin' />
       </div>
     )
   } else {
-    return (
+    content =(
       <div className='aspect-[3/4] flex relative h-full col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background'>
         <Loader className='size-6 text-text-tertiary absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 animate-spin' />
       </div>
     );
   }
+  return content;
 }
 
 const Loaded = (props: {
@@ -110,7 +113,7 @@ const Sessions = (props: {
           <AccordionItem key={session.id} value={session.id} className={cn('border border-border rounded-sm shadow-lg shadow-shadow bg-background')}>
             <AccordionTrigger className='px-2 hover:no-underline'>
               <div className='flex items-center gap-2'>
-                <Badge day={new Date(session.startTime)} tab='sessions' />
+                <Badge day={new Date(session.startTime)} value='time' />
               </div>
             </AccordionTrigger>
             <AccordionContent className='pb-0'>
@@ -125,7 +128,7 @@ const Sessions = (props: {
     )
   } else {
     content = (
-      <div>
+      <div className='flex flex-col gap-4'>
         {props.sessions.map((session) => (
           <Card key={session.id} session={session} isMobile={props.isMobile} />
         ))}

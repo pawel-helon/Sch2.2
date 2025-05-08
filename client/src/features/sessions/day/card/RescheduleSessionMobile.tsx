@@ -97,7 +97,7 @@ const Form = (props: {
 
 const Loading = () => {
   return (
-    <div className='w-full animate-fade-in transition-all duration-300 relative h-full col-span-1 flex justify-center items-center border rounded-md border-border shadow-lg shadow-shadow bg-background-sh'>
+    <div className='w-full animate-fade-in transition-none duration-300 relative h-full col-span-1 flex justify-center items-center border rounded-md border-border shadow-lg shadow-shadow bg-background-sh'>
       <Loader className='size-6 animate-spin' />
     </div>
   )

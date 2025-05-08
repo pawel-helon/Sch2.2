@@ -28,11 +28,11 @@ export const Card = (props: {
   const { data, status } = useSelector((state: RootState) => selectDaySlots(state, props.day));
   const slots = filterSlotsByRecurrence(data, props.isRecurringSlotsOnly);
 
-  
+  let content: React.ReactNode = null;
   if (status === 'pending') {
-    return <Loading isMobile={props.isMobile} />;
+    content = <Loading isMobile={props.isMobile} />;
   } else {
-    return (
+    content = (
       <Loaded
         employeeId={props.employeeId}
         slots={slots}
@@ -44,6 +44,8 @@ export const Card = (props: {
       />
     )
   }
+
+  return content;
 }
 
 const Loading = (props: {
@@ -108,7 +110,7 @@ const NoSlots = (props: {
       <Paragraph variant='thick' size='sm' isMuted={isPast(props.day)}>
         {capitalizeFirstLetter(getDayName(props.day))}
       </Paragraph>
-      <Badge day={props.day} tab='slots' />
+      <Badge day={props.day} value='date' />
     </div>
   )
 
@@ -260,7 +262,7 @@ const Slots = (props: {
           <Paragraph variant='thick' size='sm' isMuted={isPast(props.day)}>
             {capitalizeFirstLetter(getDayName(props.day))}
           </Paragraph>
-          <Badge day={props.day} tab='slots' />
+          <Badge day={props.day} value='date' />
         </div>
         <List slots={props.slots} />
         <Actions

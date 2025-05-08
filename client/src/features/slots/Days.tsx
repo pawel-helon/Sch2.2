@@ -69,7 +69,7 @@ const Mobile = (props: {
         <AccordionItem key={day} value={day} className={cn('border border-border rounded-sm shadow-lg shadow-shadow bg-background')}>
          <AccordionTrigger className='px-2 hover:no-underline'>
            <div className='flex items-center gap-2'>
-             <Badge day={day} tab='slots' />
+             <Badge day={day} value='date' />
              <Paragraph variant='thick' size='sm' isMuted={isPast(new Date(new Date(day).setHours(23,59,59,999)))} className='leading-none'>
                {getDayOfWeek(day)}
              </Paragraph>

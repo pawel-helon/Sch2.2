@@ -7,7 +7,7 @@ import { Header } from './Header';
 import { Tabs } from 'src/components/Tabs';
 import { DayDropdown } from './DayDropdown';
 import { Week } from './week';
-import { DaySessions } from './day-sessions';
+import { Day } from './day';
 import { useHandleBreakpoint } from 'src/hooks/useHandleBreakpoint';
 import { useHandleTheme } from 'src/hooks/useHandleTheme';
 import { getWeekDays } from 'src/utils/dates/getWeekDays';
@@ -21,6 +21,7 @@ export const Sessions = () => {
   useGetWeekSessionsQuery({ employeeId, start: weekDays[0], end: weekDays[weekDays.length - 1] });
   useHandleTheme();
   const isMobile = useHandleBreakpoint({ windowInnerWidth: 480 });
+  const isTablet = useHandleBreakpoint({ windowInnerWidth: 640 });
 
   return (
     <div className='bg-background min-h-[100vh]'>
@@ -30,17 +31,12 @@ export const Sessions = () => {
             <Breadcrumbs year={year} weekNumber={weekNumber} day={day} />
             <ThemeToggle />
           </div>
-          <Header
-            year={year}
-            weekNumber={weekNumber}
-            weekDays={weekDays}
-            isMobile={isMobile}
-          />
+          <Header year={year} weekNumber={weekNumber} weekDays={weekDays} isMobile={isMobile} />
           <Tabs />
-          <DayDropdown year={year} weekNumber={weekNumber} dayName={day} weekDays={weekDays} />
+          {isTablet && <DayDropdown year={year} weekNumber={weekNumber} dayName={day} weekDays={weekDays} />}
           <main className='grid grid-cols-1 md:grid-cols-3 gap-4 md:pt-9'>
-            <DaySessions year={year} weekNumber={weekNumber} dayName={day} isMobile={isMobile} />
-            <Week year={year} weekNumber={weekNumber} dayName={day} />
+            <Day year={year} weekNumber={weekNumber} currentDay={day} isMobile={isMobile} />
+            {!isMobile && <Week year={year} weekNumber={weekNumber} currentDay={day} />}
           </main>
         </div>
         <Toasts />

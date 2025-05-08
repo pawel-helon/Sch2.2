@@ -5,14 +5,14 @@ import { getTime } from 'src/utils/dates/getTime';
 
 export function Badge(props: {
   day: string | Date,
-  tab: 'slots' | 'sessions'
+  value: 'time' | 'date'
 }) {
   const textColor = isPast(props.day) ? 'text-text-tertiary' : 'text-text-primary';
 
   let copy: string = '';
-  if (props.tab === 'slots') {
+  if (props.value === 'date') {
     copy = getMonthAndDay(props.day);
-  } else if (props.tab === 'sessions') {
+  } else if (props.value === 'time') {
     copy = getTime(props.day)
   }
   

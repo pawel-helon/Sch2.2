@@ -15,7 +15,7 @@ export const DayDropdown = (props: {
   const [open, setOpen] = React.useState<boolean>(false);
 
   return (
-    <div className='w-full flex md:hidden justify-end mb-4'>
+    <div className='w-full flex justify-end mb-4'>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger>
           <div className='min-w-[9rem] h-8 inline-flex items-center justify-between px-3 text-xs text-text-primary font-semibold border border-border rounded-full shadow-shadow shadow-sm'>
