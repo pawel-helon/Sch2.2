@@ -16,6 +16,12 @@ export const Card = (props: {
     return (
       <div className='flex flex-col gap-2 px-4'>
         <div className='flex flex-col gap-2 mt-4'>
+          <Paragraph variant='thick' size='sm' className='text-text-tertiary'>Full name</Paragraph>
+          <Paragraph variant='thick' size='sm' className='w-full h-9 flex items-center rounded-md border border-border bg-transparent px-3 py-1 shadow-sm'>
+            {props.session.customerFullName}
+          </Paragraph>
+        </div>
+        <div className='flex flex-col gap-2 mt-4'>
           <Paragraph variant='thick' size='sm' className='text-text-tertiary'>Phone number</Paragraph>
           <Paragraph variant='thick' size='sm' className='w-full h-9 flex items-center rounded-md border border-border bg-transparent px-3 py-1 shadow-sm'>
             {props.session.customerPhoneNumber}
@@ -49,6 +55,12 @@ export const Card = (props: {
           </div>
           <div className='grid grid-cols-2 gap-4'>
             <div className='col-span-1 flex flex-col gap-4'>
+              <div className='flex flex-col gap-2'>
+                <Paragraph variant='thick' size='sm' className='text-text-tertiary'>Full name</Paragraph>
+                <Paragraph variant='thick' size='sm' className='w-full h-9 flex items-center rounded-md border border-border bg-transparent px-3 py-1 shadow-sm'>
+                  {props.session.customerFullName}
+                </Paragraph>
+              </div>
               <div className='flex flex-col gap-2'>
                 <Paragraph variant='thick' size='sm' className='text-text-tertiary'>Phone number</Paragraph>
                 <Paragraph variant='thick' size='sm' className='w-full h-9 flex items-center rounded-md border border-border bg-transparent px-3 py-1 shadow-sm'>

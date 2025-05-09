@@ -47,7 +47,6 @@ const updateSession = api.injectEndpoints({
         try {
           const res = await queryFulfilled;
           const { prevSlotId, prevStartTime, session } = res.data.data;
-          console.log(res);
           const employeeId = session.employeeId;
           const prevDate = new Date(prevStartTime).toISOString().split('T')[0];
           const { start: prevStart } = getWeekStartEndDatesFromDay(prevDate);

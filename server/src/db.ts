@@ -58,21 +58,78 @@ export async function setupDatabaseListeners() {
     await client.query(`
       CREATE OR REPLACE FUNCTION notify_session_change()
       RETURNS TRIGGER AS $$
+      DECLARE slot_start_time TIMESTAMP;
+      DECLARE customer_full_name TEXT;
+      DECLARE customer_email TEXT;
+      DECLARE customer_phone_number TEXT;
+
       BEGIN
+        SELECT "startTime" INTO slot_start_time
+        FROM "Slots"
+        WHERE "id" = NEW."slotId";
+
+        SELECT ("firstName" || "lastName") INTO customer_full_name
+        FROM "Customers"
+        WHERE "id" = OLD."customerId";
+
+        SELECT "email" INTO customer_email
+        FROM "Customers"
+        WHERE "id" = OLD."customerId";
+
+        SELECT "phoneNumber" INTO customer_phone_number
+        FROM "Customers"
+        WHERE "id" = OLD."customerId";
+
         IF TG_OP = 'INSERT' THEN
           PERFORM pg_notify('session_changes', json_build_object(
             'action', 'create',
-            'data', row_to_json(NEW)
+            'data', json_build_object(
+              'id', NEW."id",
+              'slotId', NEW."slotId",
+              'employeeId', NEW."employeeId",
+              'customerId', NEW."customerId",
+              'message', NEW."message",
+              'createdAt', NEW."createdAt",
+              'updatedAt', NEW."updatedAt",
+              'startTime', slot_start_time,
+              'customerEmail', customer_email,
+              'customerFullName', customer_full_name,
+              'customerPhoneNumber', customer_phone_number
+            )
           )::text);
         ELSIF TG_OP = 'UPDATE' THEN
           PERFORM pg_notify('session_changes', json_build_object(
             'action', 'update',
-            'data', row_to_json(NEW)
+            'data', json_build_object(
+              'id', NEW."id",
+              'slotId', NEW."slotId",
+              'employeeId', NEW."employeeId",
+              'customerId', NEW."customerId",
+              'message', NEW."message",
+              'createdAt', NEW."createdAt",
+              'updatedAt', NEW."updatedAt",
+              'startTime', slot_start_time,
+              'customerEmail', customer_email,
+              'customerFullName', customer_full_name,
+              'customerPhoneNumber', customer_phone_number
+            )
           )::text);
         ELSIF TG_OP = 'DELETE' THEN
           PERFORM pg_notify('session_changes', json_build_object(
             'action', 'delete',
-            'data', row_to_json(OLD)
+            'data', json_build_object(
+              'id', OLD."id",
+              'slotId', OLD."slotId",
+              'employeeId', OLD."employeeId",
+              'customerId', OLD."customerId",
+              'message', OLD."message",
+              'createdAt', OLD."createdAt",
+              'updatedAt', OLD."updatedAt",
+              'startTime', slot_start_time,
+              'customerEmail', customer_email,
+              'customerFullName', customer_full_name,
+              'customerPhoneNumber', customer_phone_number
+            )
           )::text);
         END IF;
         RETURN NULL;
@@ -105,7 +162,6 @@ export async function setupDatabaseListeners() {
         }
       }
     });
-
   } catch (error) {
     console.error("Error setting up database listeners:", error);
   } finally {

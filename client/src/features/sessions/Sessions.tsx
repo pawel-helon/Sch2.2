@@ -10,6 +10,7 @@ import { Week } from './week';
 import { Day } from './day';
 import { useHandleBreakpoint } from 'src/hooks/useHandleBreakpoint';
 import { useHandleTheme } from 'src/hooks/useHandleTheme';
+import { useSessionsStream } from 'src/hooks/useSessionsStream';
 import { getWeekDays } from 'src/utils/dates/getWeekDays';
 import { destructureParams } from 'src/utils/destructureParams';
 
@@ -40,7 +41,19 @@ export const Sessions = () => {
           </main>
         </div>
         <Toasts />
+        <StreamReceiver
+          employeeId={employeeId}
+          weekDays={weekDays}
+        />
       </div>
     </div>
   )
+}
+
+const StreamReceiver = (props: {
+  employeeId: string,
+  weekDays: string[]
+}) => {
+  useSessionsStream(props.employeeId, props.weekDays);
+  return null;
 }

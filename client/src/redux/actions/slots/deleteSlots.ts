@@ -78,7 +78,7 @@ const deleteSlots = api.injectEndpoints({
           const { start, end } = getWeekStartEndDatesFromDay(date);
           
           /** Stores message and deleted slots in cached undoSlice data. */
-          const message = 'Slots have been deleted.';
+          const message = 'Slot(s) have been deleted.';
           dispatch(undoAdded({ message, data: args.slots }))
   
           /** Removes deleted slots from cached getWeekSlots data. */
