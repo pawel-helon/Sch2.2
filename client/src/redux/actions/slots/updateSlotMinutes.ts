@@ -3,6 +3,7 @@ import { undoAdded } from 'src/redux/slices/undoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { UUID_REGEX } from 'src/constants/regex';
 import { Slot } from 'src/types/slots';
+import { MINUTES } from 'src/constants/data';
 
 const validateInput = (input: { slotId: string, minutes: number }): void => {
   if (!input || typeof input !== 'object') {
@@ -11,15 +12,15 @@ const validateInput = (input: { slotId: string, minutes: number }): void => {
   
   const { slotId, minutes } = input;
 
-  if (!slotId || !minutes) {
-    throw new Error('All fields are required: slotId, hour.');
+  if (!slotId || !MINUTES.includes(minutes)) {
+    throw new Error('All fields are required: slotId, minutes.');
   }
 
   if (!UUID_REGEX.test(slotId)) {
     throw new Error('Invalid slotId format. Expected UUID.');
   }
 
-  if (minutes < 0 || minutes > 59 || typeof minutes !== "number") {
+  if (minutes < 0 || minutes > 59 || typeof minutes !== 'number') {
     throw new Error('Invalid minutes format. Expected MM.');
   }
 }

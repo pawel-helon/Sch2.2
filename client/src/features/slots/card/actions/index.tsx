@@ -12,52 +12,56 @@ import {
 import { Button } from 'src/components/Button';
 import { Slot } from 'src/types/slots';
 
-export const Actions = (props: {
-  employeeId: string,
-  slots: Slot[],
-  year: number,
-  weekNumber: number,
-  day: string,
-  isRecurringSlotsOnly: boolean,
-  isMobile: boolean
-}) => {
-  return (
-  <div className='absolute bottom-0 left-0 right-0 flex justify-between gap-2 p-3 bg-background-background'>
-    <div className='flex'>
-      <DuplicateDayModal
-        employeeId={props.employeeId}
-        year={props.year}
-        weekNumber={props.weekNumber}
-        day={props.day}
-        isMobile={props.isMobile}
-      />
-      <MoreActions
-        employeeId={props.employeeId}
-        slots={props.slots}
-        year={props.year}
-        weekNumber={props.weekNumber}
-        day={props.day}
-        isRecurringSlotsOnly={props.isRecurringSlotsOnly}
-      />
-    </div>
-    <AddSlotButton
-      employeeId={props.employeeId}
-      day={props.day}
-      isRecurringSlotsOnly={props.isRecurringSlotsOnly}
-      isMobile={props.isMobile}
-    />
-  </div>
-  )
+interface ActionsProps {
+  employeeId: string;
+  slots: Slot[];
+  year: number;
+  weekNumber: number;
+  day: string;
+  isRecurringSlotsOnly: boolean;
+  isMobile: boolean;
 }
 
-const MoreActions = (props: {
-  employeeId: string,
-  slots: Slot[],
-  year: number,
-  weekNumber: number,
-  day: string,
-  isRecurringSlotsOnly: boolean
-}) => {
+export const Actions = React.memo((props: ActionsProps) => {
+  return (
+    <div className='absolute bottom-0 left-0 right-0 flex justify-between gap-2 p-3 bg-background-background'>
+      <div className='flex'>
+        <DuplicateDayModal
+          employeeId={props.employeeId}
+          year={props.year}
+          weekNumber={props.weekNumber}
+          day={props.day}
+          isMobile={props.isMobile}
+        />
+        <MoreActions
+          employeeId={props.employeeId}
+          slots={props.slots}
+          year={props.year}
+          weekNumber={props.weekNumber}
+          day={props.day}
+          isRecurringSlotsOnly={props.isRecurringSlotsOnly}
+        />
+      </div>
+      <AddSlotButton
+        employeeId={props.employeeId}
+        day={props.day}
+        isRecurringSlotsOnly={props.isRecurringSlotsOnly}
+        isMobile={props.isMobile}
+      />
+    </div>
+  )
+});
+
+interface MoreActionsProps {
+  employeeId: string;
+  slots: Slot[];
+  year: number;
+  weekNumber: number;
+  day: string;
+  isRecurringSlotsOnly: boolean;
+}
+
+const MoreActions = React.memo((props: MoreActionsProps) => {
   const [open, setOpen] = React.useState<boolean>(false);
 
   return (
@@ -82,4 +86,4 @@ const MoreActions = (props: {
       </DropdownMenuContent>
     </DropdownMenu>
   )
-}
+});

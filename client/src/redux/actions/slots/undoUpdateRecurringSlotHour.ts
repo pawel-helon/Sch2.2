@@ -2,6 +2,7 @@ import { api } from 'src/redux/api';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { UUID_REGEX } from 'src/constants/regex';
 import { Slot } from 'src/types/slots';
+import { HOURS } from 'src/constants/data';
 
 const validateInput = (input: { slotId: string, hour: number }): void => {
   if (!input || typeof input !== 'object') {
@@ -10,7 +11,7 @@ const validateInput = (input: { slotId: string, hour: number }): void => {
   
   const { slotId, hour } = input;
   
-  if (!slotId || !hour) {
+  if (!slotId || !HOURS.includes(hour)) {
     throw new Error('All fields are required: slotId, hour.');
   }
 

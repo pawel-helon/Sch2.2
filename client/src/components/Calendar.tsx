@@ -146,11 +146,11 @@ function Calendar({
     props.rangeMiddleClassName
   )
   const _selectedClassName = cn(
-    "[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary [&>button]:hover:text-primary-foreground",
+    "[&>button]:bg-text-tertiary/25 [&>button]:text-primary-foreground [&>button]:hover:bg-primary [&>button]:hover:text-primary-foreground",
     props.selectedClassName
   )
   const _todayClassName = cn(
-    "[&>button]:bg-accent [&>button]:text-accent-foreground",
+    "[&>button]:border [&>button]:border-border [&>button]:text-accent-foreground",
     props.todayClassName
   )
   const _outsideClassName = cn(

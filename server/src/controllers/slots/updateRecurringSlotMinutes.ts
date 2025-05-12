@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { Slot } from "../../lib/types";
 import { pool } from "../../index";
-import { UUID_REGEX } from "../../lib/constants";
+import { MINUTES, UUID_REGEX } from "../../lib/constants";
 
 const createResponse = (res: Response, message: string, data: { prevMinutes: string, slot: Slot } | null = null) => {
   res.format({"application/json": () => {
@@ -15,7 +15,7 @@ const createResponse = (res: Response, message: string, data: { prevMinutes: str
 export const updateRecurringSlotMinutes = async (req: Request, res: Response) => {
   const { slotId, minutes } = req.body as { slotId: string, minutes: number };
   
-  if (!slotId || !minutes) {
+  if (!slotId || !MINUTES.includes(minutes)) {
     return createResponse(res, "All fields are required: employeeId, slotId and minutes.");
   }
   

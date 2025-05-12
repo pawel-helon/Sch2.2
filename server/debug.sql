@@ -1,2 +1,2 @@
--- psql -U postgres -d bookings -f debug.sql
--- psql -U postgres -d bookings -f init.sql
+-- psql -U postgres -d scheduling -f debug.sql
+-- psql -U postgres -d scheduling -f init.sql

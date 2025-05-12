@@ -43,7 +43,7 @@ app.listen(process.env.API_ROUTES_PORT, () => {
 // Listen to streamed database changes
 const server = http.createServer(app);
 export const io = new Server(server, {
-  cors: { origin: true },
+  cors: { origin: true }
 });
 server.listen(process.env.STREAMING_PORT, async () => {
   try {

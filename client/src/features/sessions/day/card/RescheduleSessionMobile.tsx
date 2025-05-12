@@ -172,13 +172,13 @@ const NextPrevButtons = (props: {
   }
   
   return (
-    <>
-      <Button disabled={props.firstSlot === 0} onClick={handlePrevSlots} type='button' variant='outline' className='w-full text-xs pr-6 mt-2'>
+    <div className='w-full flex gap-2 mt-2'>
+      <Button disabled={props.firstSlot === 0} onClick={handlePrevSlots} type='button' variant='outline' className='w-full text-xs'>
         Previous
       </Button>
-      <Button disabled={props.lastSlot >= props.slots.length} onClick={handleNextSlots} type='button' variant='outline' className='w-full text-xs pl-6'>
+      <Button disabled={props.lastSlot >= props.slots.length} onClick={handleNextSlots} type='button' variant='outline' className='w-full text-xs'>
         Next
       </Button>
-    </>
+    </div>
   )
 }

@@ -71,23 +71,26 @@ const Minute = (props: {
 }) => {
   const [ updateSlotMinutes ] = useUpdateSlotMinutesMutation();
   const [ updateRecurringSlotMinutes ] = useUpdateRecurringSlotMinutesMutation();
-  
-  const handleClick = async () => {
+
+  const handleUpdateSlotMinutes = async () => {
     props.setOpen(false);
-    let errorMessage: string = '';
     try {
-      if (!props.isRecurring) {
-        await updateSlotMinutes({ slotId: props.slotId, minutes: props.minute });
-        errorMessage = 'Failed to update slot minutes: ';
-      } else {
-        await updateRecurringSlotMinutes({ slotId: props.slotId, minutes: props.minute });
-        errorMessage = 'Failed to update recurring slot minutes: ';
-      }
+      await updateSlotMinutes({ slotId: props.slotId, minutes: props.minute });
     } catch (error) {
-      console.error(errorMessage, error);
+      console.error('Failed to update slot minutes: ', error);
     }
   }
 
+  const handleUpdateRecurringSlotMinutes = async () => {
+    props.setOpen(false);
+    try {
+      await updateRecurringSlotMinutes({ slotId: props.slotId, minutes: props.minute });
+    } catch (error) {
+      console.error('Failed to update recurring slot minutes: ', error);
+    }
+  }
+
+  const handleClick = props.isRecurring ? handleUpdateRecurringSlotMinutes : handleUpdateSlotMinutes
   const className = props.currentSlotMinute === props.minute ? 'bg-background-hover text-text-tertiary' : ''
   
   return (

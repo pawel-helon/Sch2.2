@@ -13,7 +13,7 @@ import { useSlotsStream } from 'src/hooks/useSlotsStream';
 import { getWeekDays } from 'src/utils/dates/getWeekDays';
 
 export const Slots = () => {
-  const employeeId = '071dcf39-b002-4588-95f4-dc7df1c2bc83';
+  const employeeId = '52ccfcd2-5825-4a2f-9a84-3a9d90b030a1';
   const { week } = useParams() as { week: string };
   const { year, weekNumber } = destructureParams(week);
   const weekDays = getWeekDays(year, weekNumber);
