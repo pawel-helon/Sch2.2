@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo, ReactNode, useEffect } from 'react';
 import { CheckIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { AnimatePresence, motion } from 'framer-motion'; 
 import { useDispatch, useSelector } from 'react-redux';
@@ -28,7 +28,7 @@ export const Toasts = () => {
   const undos = useSelector((state: RootState) => state.undo);
   const infos = useSelector((state: RootState) => state.info);
   
-  let content: React.ReactNode = null;
+  let content: ReactNode = null;
   if (Object.values(undos.payload).length > 0) {
     content = (
       <AnimatePresence>
@@ -54,14 +54,16 @@ export const Toasts = () => {
   }
 
   return content;
+};
+
+interface InfoProps {
+  info: { message: string };
 }
 
-const Info = (props: {
-  info: { message: string }
-}) => {
+const Info = (props: InfoProps) => {
   const dispatch = useDispatch<AppDispatch>();
   
-  React.useEffect(() => {
+  useEffect(() => {
     setTimeout(() => {
       dispatch(infoRemoved(props.info.message[0]));
     }, 5000);
@@ -83,9 +85,11 @@ const Info = (props: {
   )
 }
 
-const Undo = (props: {
-  undo: { message: string, data: Slot[] | Session[] },
-}) => {
+interface UndoProps {
+  undo: { message: string, data: Slot[] | Session[] };
+}
+
+const Undo = (props: UndoProps) => {
   const isMobile = useHandleBreakpoint({ windowInnerWidth: 480 });
   const dispatch = useDispatch<AppDispatch>();
   
@@ -103,7 +107,7 @@ const Undo = (props: {
   const [ undoSetRecurringDay ] = useUndoSetRecurringDayMutation();
   const [ undoDisableRecurringDay ] = useUndoDisableRecurringDayMutation();
   
-  React.useEffect(() => {
+  useEffect(() => {
     setTimeout(() => {
       dispatch(undoRemoved({ message: props.undo.message, id: props.undo.data[0].id }));
     }, 5000);

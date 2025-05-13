@@ -1,10 +1,10 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { cn } from 'src/utils/cn';
 
 export const useHandleTheme = () => {
-  const [theme, setTheme] = React.useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   
-  React.useEffect(() => {
+  useEffect(() => {
     document.body.className = cn(theme);
     setTheme(localStorage.getItem('theme') as 'light' | 'dark');
     return () => {

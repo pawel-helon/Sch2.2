@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Loader } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { useUpdateSessionMutation } from 'src/redux/actions/sessions/updateSession';
@@ -19,7 +19,7 @@ export const RescheduleSessionMobile = (props: {
   employeeId: string,
   sessionId: string,
 }) => {
-  const [open, setOpen] = React.useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(false);
   
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -49,15 +49,15 @@ const Form = (props: {
   open: boolean,
   setOpen: (open: boolean) => void
 }) => {
-  const [ date, setDate ] = React.useState<Date | undefined>(new Date());
-  const [ selectedSlot, setSelectedSlot ] = React.useState<string>('');
+  const [ date, setDate ] = useState<Date | undefined>(new Date());
+  const [ selectedSlot, setSelectedSlot ] = useState<string>('');
   const [ updateSession ] = useUpdateSessionMutation();
   const { data: slots, status } = useSelector((state: RootState) => selectSlotsForReschedulingSession(state));
 
   const [ updateSlotsForReschedulingSession ] = useUpdateSlotsForReschedulingSessionMutation();
 
-  React.useEffect(() => {
-    updateSlotsForReschedulingSession({ employeeId: props.employeeId, day: getDate(date || new Date()) })
+  useEffect(() => {
+    updateSlotsForReschedulingSession({ employeeId: props.employeeId, day: getDate(date || new Date()) });
   },[updateSlotsForReschedulingSession, props.employeeId, date]);
 
   const handleSubmit = async () => {
@@ -69,7 +69,7 @@ const Form = (props: {
       console.error(error);
     }
   }
-  let content: React.ReactNode = null;
+  let content: ReactNode = null;
   if (status !== 'fulfilled') {
     content = <Loading />;
   } else if (slots.length === 0) {
@@ -118,8 +118,8 @@ const SelectSlot = (props: {
   selectedSlot: string,
   setSelectedSlot: (selectedSlot: string) => void,
 }) => {
-  const [firstSlot, setFirstSlot] = React.useState<number>(0);
-  const [lastSlot, setlastSlot] = React.useState<number>(5);
+  const [firstSlot, setFirstSlot] = useState<number>(0);
+  const [lastSlot, setlastSlot] = useState<number>(5);
   const displayedSlots = sortAndFilterSlots(props.slots, firstSlot, lastSlot);
   
   return (

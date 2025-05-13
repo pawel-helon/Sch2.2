@@ -23,5 +23,5 @@ export const getWeeks = (year: number) => {
       weeks.push({week, firstDay, lastDay})
     }
   }
-  return weeks
+  return weeks;
 }

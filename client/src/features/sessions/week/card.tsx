@@ -1,4 +1,3 @@
-import React from 'react'
 import { Loader } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { Badge } from 'src/components/Badge'
@@ -19,22 +18,10 @@ export const Card = (props: {
   day: string
 }) => {
   const { data: sessions, status } = useSelector((state: RootState) => selectDaySessions(state, props.day))
-
-  let content: React.ReactNode = null;
-  if (status === 'pending') {
-    content = <Loading />;
-  } else {
-    content = (
-      <Loaded
-        year={props.year}
-        weekNumber={props.weekNumber}
-        day={props.day}
-        sessions={sessions}
-      />
-    )
-  }
-
-  return content;
+  
+  return status === 'pending'
+    ? <Loading />
+    : <Loaded {...props} sessions={sessions} />
 }
 
 const Loading = () => {
@@ -53,12 +40,9 @@ const Loaded = (props: {
 }) => {
   const link = getSessionsLink(props.year, props.weekNumber, props.day);
 
-  let content: React.ReactNode = null;
-  if (props.sessions.length === 0) {
-    content = <NoSessions day={props.day} />
-  } else {
-    content = <Sessions sessions={props.sessions} />
-  }
+  const content = props.sessions.length === 0
+    ? <NoSessions day={props.day} />
+    : <Sessions sessions={props.sessions} />
 
   return (
     <a onClick={handleScrollToTop} href={link} className='min-h-[180px] relative flex h-full flex-col border border-border rounded-md shadow-md bg-background animation duration-200 transition-none hover:bg-background-hover'>
@@ -76,7 +60,9 @@ const Loaded = (props: {
 const NoSessions = (props: {
   day: string,
 }) => {
-  const copy = isPast(props.day) ? `There were no meetings scheduled.` : 'There are no meetings scheduled yet.';
+  const copy = isPast(props.day)
+    ? `There were no meetings scheduled.`
+    : 'There are no meetings scheduled yet.'
   
   return (
     <div className='absolute top-0 bottom-0 left-0 right-0 flex flex-col p-3 justify-center items-center mt-4'>

@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo, useCallback } from 'react';
 import { Button } from 'src/components/Button';
 import { useDeleteSlotsMutation } from 'src/redux/actions/slots/deleteSlots';
 import { Slot } from 'src/types/slots';
@@ -9,10 +9,10 @@ interface DeleteSlotsMenuItemProps {
   setDropdownOpen: (open: boolean) => void;
 }
 
-export const DeleteSlotsMenuItem = React.memo((props: DeleteSlotsMenuItemProps) => {
+export const DeleteSlotsMenuItem = memo((props: DeleteSlotsMenuItemProps) => {
   const [ deleteSlots ] = useDeleteSlotsMutation();
   
-  const handleClick = React.useCallback(async () => {
+  const handleClick = useCallback(async () => {
     props.setDropdownOpen(false);
     try {
       deleteSlots({ slots: props.slots });

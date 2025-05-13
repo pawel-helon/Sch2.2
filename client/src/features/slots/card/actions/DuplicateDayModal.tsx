@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { useDuplicateDayMutation } from 'src/redux/actions/slots/duplicateDay';
 import { Button } from 'src/components/Button';
 import {
@@ -28,21 +28,10 @@ interface DuplicateDayModalProps {
   isMobile: boolean;
 }
 
-export const DuplicateDayModal = React.memo((props: DuplicateDayModalProps) => {
-  let content: React.ReactNode = null;
-  if (props.isMobile) {
-    content = React.useMemo(() =>
-      <Mobile {...props} />,
-      [props.employeeId, props.year, props.weekNumber, props.day]
-    )
-  } else {
-    content = React.useMemo(() =>
-      <Desktop {...props} />,
-      [props.employeeId, props.year, props.weekNumber, props.day]
-    )
-  }
-  
-  return content;
+export const DuplicateDayModal = memo((props: DuplicateDayModalProps) => {
+  return props.isMobile
+    ? <Mobile {...props} />
+    : <Desktop {...props} />
 });
 
 interface MobileProps {
@@ -52,8 +41,8 @@ interface MobileProps {
   day: string;
 }
 
-const Mobile = React.memo((props: MobileProps) => {
-  const [open, setOpen] = React.useState<boolean>(false);
+const Mobile = memo((props: MobileProps) => {
+  const [open, setOpen] = useState<boolean>(false);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -81,11 +70,11 @@ interface DesktopProps {
   day: string;
 }
 
-const Desktop = React.memo((props: DesktopProps) => {
-  const [open, setOpen] = React.useState<boolean>(false);
+const Desktop = memo((props: DesktopProps) => {
+  const [open, setOpen] = useState<boolean>(false);
   
   return (
-    <Dialog open={open} onOpenChange={setOpen} >
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size='sm' variant='outline' className='w-[100px] rounded-r-none px-1.5'>
           Duplicate
@@ -112,11 +101,11 @@ interface FormProps {
   setDialogOpen: (dialogOpen: boolean) => void;
 }
 
-const Form = React.memo((props: FormProps) => {
+const Form = memo((props: FormProps) => {
   const [ duplicateDay ] = useDuplicateDayMutation();
-  const [selectedDays, setSelectedDays] = React.useState<string[]>([]);
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
-  const handleSubmit = React.useCallback(async () => {
+  const handleSubmit = useCallback(async () => {
     props.setDialogOpen(false);
     try {
       await duplicateDay({ employeeId: props.employeeId, day: props.day, selectedDays });
@@ -125,38 +114,25 @@ const Form = React.memo((props: FormProps) => {
     }
   },[props.setDialogOpen, duplicateDay, props.employeeId, props.day, selectedDays])
 
-  let placeholdersBefore: React.ReactNode = null;
-  if (props.weekNumber === 1) {
-    placeholdersBefore = React.useMemo(() =>
-      <Placeholders year={props.year} weekNumber={props.weekNumber} />,
-      [props.year, props.weekNumber]
-    )
-  }
+  const placeholdersBefore = props.weekNumber === 1
+    ? <Placeholders year={props.year} weekNumber={props.weekNumber} />
+    : null
 
-  let placeholdersAfter: React.ReactNode = null;
-  if (props.weekNumber === 53) {
-    placeholdersAfter = React.useMemo(() =>
-      <Placeholders year={props.year} weekNumber={props.weekNumber} />,
-      [props.year, props.weekNumber]
-    );
-  }
-
-  const content = React.useMemo(() =>
-    <SelectDays 
-      year={props.year} 
-      weekNumber={props.weekNumber} 
-      day={props.day} 
-      selectedDays={selectedDays} 
-      setSelectedDays={setSelectedDays}
-    />,
-    [props.year, props.weekNumber, props.day, selectedDays]
-  );
+  const placeholdersAfter = props.weekNumber === 53
+  ? <Placeholders year={props.year} weekNumber={props.weekNumber} />
+  : null
   
   return (
     <>
       <div className='grid grid-cols-3 xs:grid-cols-5 gap-4 xs:gap-2 mt-8'>
         {placeholdersBefore}
-        {content}
+        <SelectDays 
+          year={props.year} 
+          weekNumber={props.weekNumber} 
+          day={props.day} 
+          selectedDays={selectedDays} 
+          setSelectedDays={setSelectedDays}
+        />
         {placeholdersAfter}
       </div>
       <div className='w-full flex justify-end mt-8 gap-2'>
@@ -173,24 +149,14 @@ interface PlaceholdersProps {
   weekNumber: number;
 }
 
-const Placeholders = React.memo((props: PlaceholdersProps) => {
-  const weekDays = React.useMemo(() =>
-    getWeekDays(props.year, props.weekNumber),
-    [props.year, props.weekNumber]
-  );
-  const placeholders = React.useMemo(() =>
-    getNumOfPlaceholders(weekDays.length),
-    [weekDays]
-  );
+const Placeholders = memo((props: PlaceholdersProps) => {
+  const weekDays = getWeekDays(props.year, props.weekNumber);
+  const placeholders = getNumOfPlaceholders(weekDays.length);
 
-  return (
-    placeholders.map((placeholder: number) => (
-      <div
-        key={placeholder}
-        className='relative size-[88px] border border-border rounded-md bg-background shadow-md shadow-shadow'
-      />
-    )))
-  });
+  return placeholders.map((placeholder: number) => (
+    <div key={placeholder} className='relative size-[88px] border border-border rounded-md bg-background shadow-md shadow-shadow' />
+  ))
+});
 
 interface SelectDaysProps {
   year: number;
@@ -200,23 +166,17 @@ interface SelectDaysProps {
   setSelectedDays: (selectedDays: string[]) => void;
 }
 
-const SelectDays = React.memo((props: SelectDaysProps) => {
-  const weekDays = React.useMemo(() =>
-    getWeekDays(props.year, props.weekNumber),
-    [props.year, props.weekNumber]
-  )
+const SelectDays = memo((props: SelectDaysProps) => {
+  const weekDays = getWeekDays(props.year, props.weekNumber);
   
-  return (
-    weekDays.map((weekDay: string, i: number) => (
-      <Day
-        key={i} 
-        initialDay={props.day} 
-        weekDay={weekDay} 
-        selectedDays={props.selectedDays}
-        setSelectedDays={props.setSelectedDays}
-      />
-    ))
-  )
+  return weekDays.map((weekDay: string, i: number) => (
+    <Day key={i} 
+      initialDay={props.day} 
+      weekDay={weekDay} 
+      selectedDays={props.selectedDays}
+      setSelectedDays={props.setSelectedDays}
+    />
+  ))
 });
 
 interface DayProps {
@@ -226,13 +186,11 @@ interface DayProps {
   setSelectedDays: (selectedDays: string[]) => void;
 }
 
-const Day = React.memo((props: DayProps) => {
-  const handleClick = React.useCallback((weekDay: string) => {
-    if (!props.selectedDays.includes(weekDay)) {
-      props.setSelectedDays([...props.selectedDays, weekDay])
-    } else {
-      props.setSelectedDays(props.selectedDays.filter(day => day !== weekDay ))
-    }
+const Day = memo((props: DayProps) => {
+  const handleClick = useCallback((weekDay: string) => {
+    props.selectedDays.includes(weekDay)
+      ? props.setSelectedDays(props.selectedDays.filter(day => day !== weekDay))
+      : props.setSelectedDays([...props.selectedDays, weekDay])
   },[props.selectedDays, props.setSelectedDays]);
 
   const isSelected = props.selectedDays.includes(props.weekDay);

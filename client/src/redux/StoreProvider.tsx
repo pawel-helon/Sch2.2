@@ -1,12 +1,14 @@
-import React from 'react';
+import { ReactNode, useEffect } from 'react';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { Provider } from 'react-redux';
 import { store } from 'src/redux/store';
 
-export const StoreProvider = (props: {
-  children: React.ReactNode
-}) => {
-  React.useEffect(() => {
+interface StoreProviderProps {
+  children: ReactNode;
+}
+
+export const StoreProvider = (props: StoreProviderProps) => {
+  useEffect(() => {
     const unsubscribe = setupListeners(store.dispatch);
     return unsubscribe;
   },[])

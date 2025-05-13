@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useUpdateSlotHourMutation } from 'src/redux/actions/slots/updateSlotHour';
 import { useUpdateRecurringSlotHourMutation } from 'src/redux/actions/slots/updateRecurringSlotHour';
@@ -8,12 +8,14 @@ import { HOURS } from 'src/constants/data';
 import { cn } from 'src/utils/cn';
 import { getSlotHourAndMinutes } from 'src/utils/dates/getSlotHourAndMinutes';
 
-export const HourDropdown = (props: {
-  slotId: string,
-  startTime: Date,
-  isRecurring: boolean,
-}) => {
-  const [open, setOpen] = React.useState<boolean>(false);
+interface HourDropdownProps {
+  slotId: string;
+  startTime: Date;
+  isRecurring: boolean;
+}
+
+export const HourDropdown = memo((props: HourDropdownProps) => {
+  const [open, setOpen] = useState<boolean>(false);
   const { hour } = getSlotHourAndMinutes(props.startTime);
 
   return (
@@ -35,15 +37,17 @@ export const HourDropdown = (props: {
       </DropdownMenuContent>
     </DropdownMenu>
   )
+});
+
+interface HoursProps {
+  slotId: string;
+  hour: number;
+  isRecurring: boolean;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }
 
-const Hours = (props: {
-  slotId: string,
-  hour: number,
-  isRecurring: boolean,
-  open: boolean,
-  setOpen: (open: boolean) => void
-}) => {
+const Hours = memo((props: HoursProps) => {
   return (
     <div className='w-full max-h-[320px] flex flex-col gap-0.5 overflow-y-scroll scrollbar scrollbar-thumb-muted scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1'>
       {HOURS.map((hour) => (
@@ -59,32 +63,46 @@ const Hours = (props: {
       ))}
     </div>
   )
+});
+
+interface HourProps {
+  slotId: string;
+  currentSlotHour: number;
+  hour: number;
+  isRecurring: boolean;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }
 
-const Hour = (props: {
-  slotId: string,
-  currentSlotHour: number,
-  hour: number,
-  isRecurring: boolean,
-  open: boolean,
-  setOpen: (open: boolean) => void,
-}) => {
+const Hour = memo((props: HourProps) => {
   const [ updateSlotHour ] = useUpdateSlotHourMutation();
   const [ updateRecurringSlotHour ] = useUpdateRecurringSlotHourMutation();
   
-  const handleClick = async () => {
+  const handleUpdateSlotHour = useCallback(async () => {
     props.setOpen(false);
     try {
-      if (props.isRecurring) {
-        await updateRecurringSlotHour({ slotId: props.slotId, hour: props.hour });
-      } else {
-        await updateSlotHour({ slotId: props.slotId, hour: props.hour });
-      }
+      await updateSlotHour({ slotId: props.slotId, hour: props.hour });
     } catch (error) {
-      console.error(error);
+      console.error('Failed to update slot hour', error);
     }
-  }
-  const className = props.currentSlotHour === props.hour ? 'bg-background-hover text-text-tertiary' : ''   
+
+  },[props.setOpen, updateSlotHour, props.slotId, props.hour]);
+
+  const handleUpdateRecurringSlotHour = useCallback(async () => {
+    props.setOpen(false);
+    try {
+      await updateRecurringSlotHour({ slotId: props.slotId, hour: props.hour });
+    } catch (error) {
+      console.error('Failed to update recurring slot hour', error);
+    }
+
+  },[props.setOpen, updateRecurringSlotHour, props.slotId, props.hour]);
+
+  const handleClick = useMemo(() => !props.isRecurring ? handleUpdateSlotHour : handleUpdateRecurringSlotHour,
+    [props.isRecurring, handleUpdateRecurringSlotHour, handleUpdateSlotHour]
+  );
+  
+  const isCurrentSlotHour = props.currentSlotHour === props.hour;
 
   return (
     <Button 
@@ -92,9 +110,12 @@ const Hour = (props: {
       onClick={handleClick} 
       variant='ghost' 
       size='sm' 
-      className={cn(className, 'h-8 py-2')}
+      className={cn(
+        isCurrentSlotHour ? 'bg-background-hover text-text-tertiary' : '',
+        'h-8 py-2'
+      )}
     >
       {String(props.hour).padStart(2, '0')}
     </Button>
   )
-}
+});

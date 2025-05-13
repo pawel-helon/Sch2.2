@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo, useState } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from 'src/components/DropdownMenu';
 import { Tooltip, TooltipContent, TooltipTrigger } from 'src/components/Tooltip';
@@ -10,92 +10,65 @@ import { getPrevNextWeeksDateRanges } from 'src/utils/dates/getPrevNextWeeksDate
 import { getWeeks } from 'src/utils/dates/getWeeks';
 import { cn } from 'src/utils/cn';
 
-export const Header = (props: {
-  year: number,
-  weekNumber: number,
-  weekDays: string[],
-  isMobile: boolean
-}) => {
-
-  let content: React.ReactNode = null;
-  if (props.isMobile) {
-    content = (
-      <Mobile
-        year={props.year}
-        weekNumber={props.weekNumber}
-        weekDays={props.weekDays}
-      />
-    );
-  } else {
-    content = (
-      <Desktop
-        year={props.year}
-        weekNumber={props.weekNumber}
-        weekDays={props.weekDays}
-      />
-    );
-  }
-
-  return content;
+interface HeaderProps {
+  year: number;
+  weekNumber: number;
+  weekDays: string[];
+  isMobile: boolean;
 }
 
-const Mobile = (props: {
-  year: number,
-  weekNumber: number,
-  weekDays: string[]
-}) => {
+export const Header = memo((props: HeaderProps) => {
+  return props.isMobile
+    ? <Mobile year={props.year} weekNumber={props.weekNumber} weekDays={props.weekDays} />
+    : <Desktop year={props.year} weekNumber={props.weekNumber} weekDays={props.weekDays} />
+});
+
+interface MobileProps {
+  year: number;
+  weekNumber: number;
+  weekDays: string[];
+}
+
+const Mobile = memo((props: MobileProps) => {
   return (
     <div className='flex flex-col my-[4rem]'>
       <div className='flex justify-between items-start'>
-        <SelectWeek
-          year={props.year}
-          weekNumber={props.weekNumber}
-          weekDays={props.weekDays}
-        />
-        <PrevNextButtons
-          year={props.year}
-          weekNumber={props.weekNumber}
-          weekDays={props.weekDays}
-        />
+        <SelectWeek {...props} />
+        <PrevNextButtons {...props} />
       </div>
       <Heading variant='h1'>Scheduling</Heading>
     </div>
   )
+});
+
+interface DesktopProps {
+  year: number;
+  weekNumber: number;
+  weekDays: string[];
 }
 
-
-const Desktop = (props: {
-  year: number,
-  weekNumber: number,
-  weekDays: string[]
-}) => {
+const Desktop = memo((props: DesktopProps) => {
   return (
     <div className='flex flex-col gap-2 my-[4rem]'>
       <div className='flex gap-2 items-center'>
-        <PrevNextButtons
-          year={props.year}
-          weekDays={props.weekDays}
-          weekNumber={props.weekNumber}
-        />
+        <PrevNextButtons {...props} />
       </div>
       <div className='flex items-start gap-2'>
         <Heading variant='h1'>Scheduling</Heading>
-        <SelectWeek
-          year={props.year}
-          weekDays={props.weekDays}
-          weekNumber={props.weekNumber}
-        />
+        <SelectWeek {...props} />
       </div>
     </div>
   )
+});
+
+interface SelectWeekProps {
+  year: number;
+  weekNumber: number;
+  weekDays: string[];
 }
 
-const SelectWeek = (props: {
-  year: number,
-  weekNumber: number,
-  weekDays: string[]
-}) => {
-  const [open, setOpen] = React.useState<boolean>(false);
+const SelectWeek = memo((props: SelectWeekProps) => {
+  const [open, setOpen] = useState<boolean>(false);
   const weeks = getWeeks(props.year);
   
   return (
@@ -117,13 +90,15 @@ const SelectWeek = (props: {
       </DropdownMenuContent>
     </DropdownMenu>
   )
+});
+
+interface PrevNextButtonsProps {
+  year: number;
+  weekDays: string[];
+  weekNumber: number;
 }
 
-const PrevNextButtons = (props: {
-  year: number,
-  weekDays: string[],
-  weekNumber: number
-}) => {
+const PrevNextButtons = memo((props: PrevNextButtonsProps) => {
   const weeks = getWeeks(props.year);
   const { prevWeekNumber, nextWeekNumber, yearOnBackwardNavigation, yearOnForewardNavigation } = getPrevNextWeeks(props.weekDays, props.weekNumber);
 
@@ -155,4 +130,4 @@ const PrevNextButtons = (props: {
       </Tooltip>
     </div>
   )
-}
+});

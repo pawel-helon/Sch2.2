@@ -1,4 +1,3 @@
-import React from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from 'src/components/Accordion';
 import { Paragraph } from 'src/components/typography/Paragraph';
 import { Card } from './card';
@@ -19,30 +18,9 @@ export const Days = (props: {
 }) => {
   const { isRecurringSlotsOnly, setRecurringSlotsOnly } = useHandleIsRecurringSlotsOnly();
 
-  let content: React.ReactNode = null;
-  if (props.isMobile) {
-    content = (
-      <Mobile
-        employeeId={props.employeeId}
-        year={props.year}
-        weekNumber={props.weekNumber}
-        weekDays={props.weekDays}
-        isRecurringSlotsOnly={isRecurringSlotsOnly}
-        isMobile={props.isMobile}
-      />
-    );
-  } else {
-    content = (
-      <Desktop
-        employeeId={props.employeeId}
-        year={props.year}
-        weekNumber={props.weekNumber}
-        weekDays={props.weekDays}
-        isRecurringSlotsOnly={isRecurringSlotsOnly}
-        isMobile={props.isMobile}
-      />
-    );
-  }
+  const content = props.isMobile
+    ? <Mobile {...props} isRecurringSlotsOnly={isRecurringSlotsOnly} />
+    : <Desktop {...props} isRecurringSlotsOnly={isRecurringSlotsOnly} />
 
   return (
     <main>
@@ -100,38 +78,30 @@ const Desktop = (props: {
   isMobile: boolean
 }) => {
   const numOfPlaceholders = getNumOfPlaceholders(props.weekDays.length);
-  
-  let placeholdersBefore: React.ReactNode = null;
-  if (props.weekNumber === 1) {
-    placeholdersBefore = (
-      numOfPlaceholders.map((placeholder: number) => (
-        <div key={placeholder} className='aspect-[3/4] relative h-full col-span-1 flex flex-col border border-border rounded-md bg-background' />
-      )
-    ))
-  }
 
-  let placeholdersAfter: React.ReactNode;
-  if (props.weekNumber === 53) {
-    placeholdersAfter = (
-      numOfPlaceholders.map((placeholder: number) => (
+  const placeholdersBefore = props.weekNumber === 1
+    ? numOfPlaceholders.map((placeholder: number) => (
         <div key={placeholder} className='aspect-[3/4] relative h-full col-span-1 flex flex-col border border-border rounded-md bg-background' />
-      )
-    ))
-  }
+      ))
+    : null
   
-  const content = (
-    props.weekDays.map((day) => (
-      <Card
-        employeeId={props.employeeId}
-        year={props.year}
-        weekNumber={props.weekNumber}
-        key={day}
-        day={day}
-        isRecurringSlotsOnly={props.isRecurringSlotsOnly}
-        isMobile={props.isMobile}
-      />
-    ))
-  )
+  const placeholdersAfter = props.weekNumber === 53
+    ? numOfPlaceholders.map((placeholder: number) => (
+      <div key={placeholder} className='aspect-[3/4] relative h-full col-span-1 flex flex-col border border-border rounded-md bg-background' />
+      ))
+    : null
+
+  const content = props.weekDays.map((day) => (
+    <Card
+      key={day}
+      day={day}
+      employeeId={props.employeeId}
+      year={props.year}
+      weekNumber={props.weekNumber}
+      isRecurringSlotsOnly={props.isRecurringSlotsOnly}
+      isMobile={props.isMobile}
+    />
+  ))
 
   return (
     <div className='grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 xs:gap-4'>

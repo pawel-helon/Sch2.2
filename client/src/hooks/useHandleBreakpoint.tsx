@@ -1,11 +1,11 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 
 export const useHandleBreakpoint = (props: {
   windowInnerWidth: number
 }) => {
-  const [ isBreakpoint, setIsBreakpoint ] = React.useState<boolean>(false);
+  const [ isBreakpoint, setIsBreakpoint ] = useState<boolean>(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const callback = () => {
       if (window.innerWidth < props.windowInnerWidth) {
         setIsBreakpoint(true);

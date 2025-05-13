@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { ReactNode, useCallback, useMemo, useState } from 'react';
 import { differenceInCalendarDays } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {
@@ -65,12 +65,12 @@ function Calendar({
   components,
   ...props
 }: CalendarProps) {
-  const [navView, setNavView] = React.useState<NavView>("days")
-  const [displayYears, setDisplayYears] = React.useState<{
+  const [navView, setNavView] = useState<NavView>("days")
+  const [displayYears, setDisplayYears] = useState<{
     from: number
     to: number
   }>(
-    React.useMemo(() => {
+    useMemo(() => {
       const currentYear = new Date().getFullYear()
       return {
         from: currentYear - Math.floor(yearRange / 2 - 1),
@@ -300,7 +300,7 @@ function Nav({
     return !nextMonth
   })()
 
-  const handlePreviousClick = React.useCallback(() => {
+  const handlePreviousClick = useCallback(() => {
     if (!previousMonth) return
     if (navView === "years") {
       setDisplayYears((prev) => ({
@@ -320,7 +320,7 @@ function Nav({
     onPrevClick?.(previousMonth)
   }, [previousMonth, goToMonth])
 
-  const handleNextClick = React.useCallback(() => {
+  const handleNextClick = useCallback(() => {
     if (!nextMonth) return
     if (navView === "years") {
       setDisplayYears((prev) => ({
@@ -417,7 +417,7 @@ function MonthGrid({
   ...props
 }: {
   className?: string
-  children: React.ReactNode
+  children: ReactNode
   displayYears: { from: number; to: number }
   startMonth?: Date
   endMonth?: Date

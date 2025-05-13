@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { useDeleteSessionMutation } from 'src/redux/actions/sessions/deleteSession';
 import { infoAdded } from 'src/redux/slices/infoSlice';
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from 'src/components/Dialog';
@@ -11,7 +11,7 @@ export const CancelSessionModal = (props: {
   session: Session,
   isMobile: boolean
 }) => {
-  const [ open, setOpen ] = React.useState<boolean>(false);
+  const [ open, setOpen ] = useState<boolean>(false);
   const [ deleteSession ] = useDeleteSessionMutation();
   const handleRemoveSession = async () => {
     setOpen(false);
@@ -23,9 +23,8 @@ export const CancelSessionModal = (props: {
     }
   }
   
-  let content: React.ReactNode = null;
-  if (props.isMobile) {
-    content = (
+  return props.isMobile
+    ? (
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button variant='ghost' size='sm' className='w-full'>
@@ -50,9 +49,7 @@ export const CancelSessionModal = (props: {
           </div>
         </SheetContent>
       </Sheet>
-    )
-  } else {
-    content = (
+    ) : (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button variant='ghost' size='sm' className='w-fit'>
@@ -78,6 +75,4 @@ export const CancelSessionModal = (props: {
         </DialogContent>
       </Dialog>
     )
-  }
-  return content;
-}
+};

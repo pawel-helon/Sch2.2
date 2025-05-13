@@ -1,4 +1,4 @@
-import React from 'react';
+import { RefObject, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useDispatch } from 'react-redux';
 import { api } from 'src/redux/api';
@@ -12,10 +12,9 @@ export const useSessionsStream = (
   weekDays: string[]
 ) => {
   const dispatch = useDispatch<AppDispatch>();
+  const socketRef: RefObject<Socket | null> = useRef(null);
 
-  const socketRef: React.RefObject<Socket | null> = React.useRef(null);
-
-  React.useEffect(() => {
+  useEffect(() => {
     socketRef.current = io(import.meta.env.VITE_STREAMING_URL);
 
     const handleSessionsUpdate = (payload: {

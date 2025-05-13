@@ -1,7 +1,7 @@
-import React from 'react';
+import { useState } from 'react';
 
 export const useHandleIsRecurringSlotsOnly = () => {
-  const [isRecurringSlotsOnly, setIsRecurringSlotsOnly] = React.useState<boolean>(() => {
+  const [isRecurringSlotsOnly, setIsRecurringSlotsOnly] = useState<boolean>(() => {
     return localStorage.getItem('recurringSlotsOnly') === 'true';
   });
 

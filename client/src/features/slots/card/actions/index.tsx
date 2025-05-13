@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { DayRecurrenceMenuItem } from './DayRecurrenceMenuItem';
 import { DeleteSlotsMenuItem } from './DeleteSlotsMenuItem';
@@ -22,7 +22,7 @@ interface ActionsProps {
   isMobile: boolean;
 }
 
-export const Actions = React.memo((props: ActionsProps) => {
+export const Actions = memo((props: ActionsProps) => {
   return (
     <div className='absolute bottom-0 left-0 right-0 flex justify-between gap-2 p-3 bg-background-background'>
       <div className='flex'>
@@ -61,8 +61,8 @@ interface MoreActionsProps {
   isRecurringSlotsOnly: boolean;
 }
 
-const MoreActions = React.memo((props: MoreActionsProps) => {
-  const [open, setOpen] = React.useState<boolean>(false);
+const MoreActions = memo((props: MoreActionsProps) => {
+  const [open, setOpen] = useState<boolean>(false);
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>

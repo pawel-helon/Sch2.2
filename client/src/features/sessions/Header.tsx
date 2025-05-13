@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from 'src/components/DropdownMenu';
 import { Tooltip, TooltipContent, TooltipTrigger } from 'src/components/Tooltip';
@@ -16,27 +16,9 @@ export const Header = (props: {
   weekDays: string[],
   isMobile: boolean
 }) => {
-
-  let content: React.ReactNode = null;
-  if (props.isMobile) {
-    content = (
-      <Mobile
-        year={props.year}
-        weekNumber={props.weekNumber}
-        weekDays={props.weekDays}
-      />
-    );
-  } else {
-    content = (
-      <Desktop
-        year={props.year}
-        weekNumber={props.weekNumber}
-        weekDays={props.weekDays}
-      />
-    );
-  }
-
-  return content;
+  return props.isMobile
+    ? <Mobile year={props.year} weekNumber={props.weekNumber} weekDays={props.weekDays} />
+    : <Desktop year={props.year} weekNumber={props.weekNumber} weekDays={props.weekDays} />
 }
 
 const Mobile = (props: {
@@ -95,7 +77,7 @@ const SelectWeek = (props: {
   weekNumber: number,
   weekDays: string[]
 }) => {
-  const [open, setOpen] = React.useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(false);
   const weeks = getWeeks(props.year);
   
   return (

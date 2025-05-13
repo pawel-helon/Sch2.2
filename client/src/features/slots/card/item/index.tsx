@@ -1,32 +1,21 @@
-import React from 'react';
+import { memo, useState } from 'react';
 import { EllipsisVertical } from 'lucide-react';
-import { SlotRecurrenceMenuItem } from 'src/features/slots/card/list/actions/SlotRecurrenceMenuItem';
-import { HourDropdown } from 'src/features/slots/card/list/actions/HourDropdown';
-import { MinutesDropdown } from 'src/features/slots/card/list/actions/MinutesDropdown';
-import { DeleteSlotButton } from 'src/features/slots/card/list/actions/DeleteSlotButton';
+import { SlotRecurrenceMenuItem } from 'src/features/slots/card/item/actions/SlotRecurrenceMenuItem';
+import { HourDropdown } from 'src/features/slots/card/item/actions/HourDropdown';
+import { MinutesDropdown } from 'src/features/slots/card/item/actions/MinutesDropdown';
+import { DeleteSlotButton } from 'src/features/slots/card/item/actions/DeleteSlotButton';
 import { Button } from 'src/components/Button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from 'src/components/DropdownMenu';
 import { Slot } from 'src/types/slots';
 
-export const List = (props: {
-  slots: Slot[]
-}) => {
-  return (
-    <div className='relative h-full flex flex-col gap-1 xs:mt-10 mb-12 pl-3 pr-2 overflow-y-auto scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1 bg-background'>
-      {props.slots.map((slot) => (
-        <Item key={slot.id} slot={slot} />
-      ))}
-    </div>
-  )
+interface ItemProps {
+  slot: Slot;
 }
 
-const Item = (props: {
-  slot: Slot,
-}) => {
-  let recurringIndicator: React.ReactNode = null;
-  if (props.slot.recurring) {
-    recurringIndicator = <div className='absolute size-2 -top-1 -left-1 bg-accent-secondary rounded-full animate animate-in duration-200' />
-  }
+export const Item = memo((props: ItemProps) => {
+  const recurringIndicator = props.slot.recurring
+    ? <div className='absolute size-2 -top-1 -left-1 bg-accent-secondary rounded-full animate animate-in duration-200' />
+    : null
   
   return (
     <div className='first:mt-2 relative flex justify-between'>
@@ -52,13 +41,15 @@ const Item = (props: {
       </div>
     </div>
   )
+});
+
+interface MoreActionsProps {
+  slotId: string;
+  isRecurring: boolean;
 }
 
-const MoreActions = (props: {
-  slotId: string,
-  isRecurring: boolean
-}) => {
-  const [open, setOpen] = React.useState<boolean>(false);
+const MoreActions = memo((props: MoreActionsProps) => {
+  const [open, setOpen] = useState<boolean>(false);
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -77,4 +68,4 @@ const MoreActions = (props: {
       </DropdownMenuContent>
     </DropdownMenu>
   )
-}
+});

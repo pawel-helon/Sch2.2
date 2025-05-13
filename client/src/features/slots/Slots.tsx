@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useGetWeekSlotsQuery, useGetWeekSlotsRecurringDatesQuery } from 'src/redux/api';
 import { ThemeToggle } from 'src/components/ThemeToggle';
@@ -12,7 +13,7 @@ import { useHandleTheme } from 'src/hooks/useHandleTheme';
 import { useSlotsStream } from 'src/hooks/useSlotsStream';
 import { getWeekDays } from 'src/utils/dates/getWeekDays';
 
-export const Slots = () => {
+export const Slots = memo(() => {
   const employeeId = '52ccfcd2-5825-4a2f-9a84-3a9d90b030a1';
   const { week } = useParams() as { week: string };
   const { year, weekNumber } = destructureParams(week);
@@ -53,12 +54,12 @@ export const Slots = () => {
       </div>
     </div>
   )
-}
+});
 
-const StreamReceiver = (props: {
+const StreamReceiver = memo((props: {
   employeeId: string,
   weekDays: string[]
 }) => {
   useSlotsStream(props.employeeId, props.weekDays);
   return null;
-}
+});

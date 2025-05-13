@@ -1,10 +1,13 @@
+import { memo } from 'react';
 import { Slash } from 'lucide-react';
 import { getCurrentWeek } from 'src/utils/dates/getCurrentWeek';
 
-export function Breadcrumbs(props: {
-  year: number,
-  weekNumber: number
-}) {
+interface BreadcrumbsProps {
+  year: number;
+  weekNumber: number;
+}
+
+export const Breadcrumbs = memo((props: BreadcrumbsProps) => {
   const { year, weekNumber } = getCurrentWeek();
   
   return (
@@ -19,4 +22,4 @@ export function Breadcrumbs(props: {
       </li>
     </ul>
   )
-}
+});

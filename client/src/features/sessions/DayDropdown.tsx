@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from 'src/components/DropdownMenu';
 import { Paragraph } from 'src/components/typography/Paragraph';
@@ -12,7 +12,7 @@ export const DayDropdown = (props: {
   dayName: string,
   weekDays: string[]
 }) => {
-  const [open, setOpen] = React.useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(false);
 
   return (
     <div className='w-full flex justify-end mb-4'>

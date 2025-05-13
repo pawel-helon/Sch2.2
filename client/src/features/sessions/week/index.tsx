@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { getNumOfPlaceholders } from 'src/utils/data/getNumOfPlaceholders';
 import { getDayName } from 'src/utils/dates/getDayName';
 import { getWeekDays } from 'src/utils/dates/getWeekDays';
@@ -16,7 +17,7 @@ export const Week = (props: {
       <Card key={i} year={props.year} weekNumber={props.weekNumber} day={day}/>
     ))
   
-  let content: React.ReactNode = null;
+  let content: ReactNode = null;
   if (props.weekNumber === 1) {
     content = (
       <>

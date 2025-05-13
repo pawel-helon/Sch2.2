@@ -1,16 +1,17 @@
+import { memo, useCallback } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { useHandleTheme } from 'src/hooks/useHandleTheme';
 
-export const ThemeToggle = () => {
+export const ThemeToggle = memo(() => {
   const { theme, setTheme } = useHandleTheme();
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
     window.location.reload();
-  }
+  },[theme, setTheme])
 
   const icon = theme === 'light' ? <Sun size={16} /> : <Moon size={16} />;
   
@@ -19,4 +20,4 @@ export const ThemeToggle = () => {
       {icon}
     </button>
   )
-}
+});

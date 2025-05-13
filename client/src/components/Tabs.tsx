@@ -1,12 +1,12 @@
-import React from 'react';
+import { memo, useEffect, useState } from 'react';
 import { getCurrentWeek } from 'src/utils/dates/getCurrentWeek';
 
-export const Tabs = () => {
+export const Tabs = memo(() => {
   const { year, weekNumber, dayName } = getCurrentWeek();
-  const [sessionsTabClassName, setSessionsTabClassName] = React.useState<string>('');
-  const [availabilityTabClassName, setAvailabilityTabClassName] = React.useState<string>('');
+  const [sessionsTabClassName, setSessionsTabClassName] = useState<string>('');
+  const [availabilityTabClassName, setAvailabilityTabClassName] = useState<string>('');
 
-  React.useEffect(() => {
+  useEffect(() => {
     const availabilityTab = document.getElementById('slots');
     const sessionsTab = document.getElementById('sessions');
 
@@ -36,4 +36,4 @@ export const Tabs = () => {
       </li>
     </ul>
   )
-}
+});

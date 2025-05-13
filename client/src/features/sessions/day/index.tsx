@@ -1,4 +1,3 @@
-import React from 'react';
 import { Loader } from 'lucide-react';
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/redux/store'
@@ -21,20 +20,9 @@ export const Day = (props: {
   const day = getDateFromParams(props.year, props.weekNumber, props.currentDay);
   const { data: sessions, status } = useSelector((state: RootState) => selectDaySessions(state, day))
 
-  let content: React.ReactNode = null;
-  if (status !== 'fulfilled') {
-    content = <Loading isMobile={props.isMobile} />;
-  } else {
-    content = (
-      <Loaded
-        year={props.year}
-        weekNumber={props.weekNumber}
-        dayName={props.currentDay}
-        sessions={sessions}
-        isMobile={props.isMobile}
-      />
-    );
-  }
+  const content = status !== 'fulfilled'
+    ? <Loading isMobile={props.isMobile} />
+    : <Loaded sessions={sessions} {...props} />
 
   return (
     <div className='col-span-2 flex flex-col gap-4'>
@@ -46,42 +34,29 @@ export const Day = (props: {
 const Loading = (props: {
   isMobile: boolean
 }) => {
-  let content: React.ReactNode = null;
-  if (props.isMobile) {
-    content = (
+  return props.isMobile ?
+    (
       <div className='flex relative h-[120px] col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background'>
         <Loader className='size-6 text-text-tertiary animate-spin' />
       </div>
-    )
-  } else {
-    content =(
+    ) : (
       <div className='aspect-[3/4] flex relative h-full col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background'>
         <Loader className='size-6 text-text-tertiary absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 animate-spin' />
       </div>
-    );
-  }
-  return content;
+    )
 }
 
 const Loaded = (props: {
   year: number,
   weekNumber: number,
-  dayName: string,
+  currentDay: string,
   sessions: Session[],
   isMobile: boolean
 }) => {
-  let content: React.ReactNode = null;
-  if (props.sessions.length === 0) {
-    content = <NoSessions dayName={props.dayName} />;
-  } else {
-    content = (
-      <Sessions
-        sessions={props.sessions}
-        isMobile={props.isMobile}
-      />
-    );
-  }
-
+  const content = props.sessions.length === 0
+    ? <NoSessions dayName={props.currentDay} />
+    : <Sessions sessions={props.sessions} isMobile={props.isMobile} />
+  
   return (
     <div className='col-span-2 md:col-span-2 flex flex-col gap-4'>
       {content}
@@ -105,9 +80,8 @@ const Sessions = (props: {
   sessions: Session[],
   isMobile: boolean,
 }) => {
-  let content: React.ReactNode = null;
-  if (props.isMobile) {
-    content = (
+  return props.isMobile ?
+    (
       <Accordion type='single' defaultValue={props.sessions[0].id} className='flex flex-col gap-4'>
         {props.sessions.map((session) => (
           <AccordionItem key={session.id} value={session.id} className={cn('border border-border rounded-sm shadow-lg shadow-shadow bg-background')}>
@@ -125,15 +99,11 @@ const Sessions = (props: {
           </AccordionItem>
         ))}
       </Accordion>
-    )
-  } else {
-    content = (
+    ) : (
       <div className='flex flex-col gap-4'>
         {props.sessions.map((session) => (
           <Card key={session.id} session={session} isMobile={props.isMobile} />
         ))}
       </div>
     )
-  }
-  return content;
 }
