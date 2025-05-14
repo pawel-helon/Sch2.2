@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from 'src/components/DropdownMenu';
 import { Paragraph } from 'src/components/typography/Paragraph';
@@ -6,12 +6,14 @@ import { capitalizeFirstLetter } from 'src/utils/capitalizeFirstLetter';
 import { getDayName } from 'src/utils/dates/getDayName';
 import { getMonthAndDay } from 'src/utils/dates/getMonthAndDay';
 
-export const DayDropdown = (props: {
-  year: number,
-  weekNumber: number,
-  dayName: string,
-  weekDays: string[]
-}) => {
+interface DayDropdownProps {
+  year: number;
+  weekNumber: number;
+  dayName: string;
+  weekDays: string[];
+}
+
+export const DayDropdown = memo((props: DayDropdownProps) => {
   const [open, setOpen] = useState<boolean>(false);
 
   return (
@@ -28,10 +30,10 @@ export const DayDropdown = (props: {
             .filter((d) => getDayName(d) !== props.dayName)
             .map((d) => (
               <a
-              key={d}
-              href={`/sessions/${props.year}w${props.weekNumber}/${getDayName(d)}`}
-              onClick={() => setOpen(!open)}
-              className='h-8 flex justify-between text-xs text-right px-1.5 py-2 rounded-md hover:bg-background-hover hover:text-text-tertiary'
+                key={d}
+                href={`/sessions/${props.year}w${props.weekNumber}/${getDayName(d)}`}
+                onClick={() => setOpen(!open)}
+                className='h-8 flex justify-between text-xs text-right px-1.5 py-2 rounded-md hover:bg-background-hover hover:text-text-tertiary'
               >
                 <Paragraph variant='thick' size='sm' className='text-text-tertiary'>{capitalizeFirstLetter(getDayName(d))}</Paragraph>
                 <Paragraph variant='thin' size='sm' className='text-text-primary'>{getMonthAndDay(d)}</Paragraph>
@@ -41,4 +43,4 @@ export const DayDropdown = (props: {
       </DropdownMenu>
     </div>
   )
-}
+});

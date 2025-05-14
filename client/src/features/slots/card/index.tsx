@@ -104,11 +104,7 @@ const Mobile = memo((props: MobileProps) => {
           />
         </div>
       </div>
-    ) : (
-      <Paragraph variant='thin' size='sm' className='w-full text-center text-text-tertiary text-balance absolute top-0 bottom-0 left-0 right-0 flex flex-col p-3 justify-center items-center gap-2 mt-4'>
-        There are no slots available.
-      </Paragraph>
-    )
+    ) : null
 });
 
 interface DesktopProps {

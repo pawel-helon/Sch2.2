@@ -1,4 +1,3 @@
-import { memo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useGetWeekSlotsQuery, useGetWeekSlotsRecurringDatesQuery } from 'src/redux/api';
 import { ThemeToggle } from 'src/components/ThemeToggle';
@@ -13,7 +12,7 @@ import { useHandleTheme } from 'src/hooks/useHandleTheme';
 import { useSlotsStream } from 'src/hooks/useSlotsStream';
 import { getWeekDays } from 'src/utils/dates/getWeekDays';
 
-export const Slots = memo(() => {
+export const Slots = () => {
   const employeeId = '52ccfcd2-5825-4a2f-9a84-3a9d90b030a1';
   const { week } = useParams() as { week: string };
   const { year, weekNumber } = destructureParams(week);
@@ -27,7 +26,7 @@ export const Slots = memo(() => {
     <div className='bg-background min-h-[100vh]'>
       <div id='slots' className='mx-auto xl:max-w-screen-xl 2xl:max-w-screen-2xl'>
         <div className='w-full pl-3 pr-2 pb-8 xs:pl-6 xs:pr-5 xs:border-x-[1px] border-border overflow-y-auto scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1'>
-          <div className='hidden xs:flex gap-1 sticky z-20 top-0 pb-1 bg-background w-full justify-between items-center pt-4'>
+          <div className='flex gap-1 sticky z-20 top-0 pb-1 bg-background w-full justify-between items-center pt-4'>
             <Breadcrumbs year={year} weekNumber={weekNumber} />
             <ThemeToggle />
           </div>
@@ -54,12 +53,12 @@ export const Slots = memo(() => {
       </div>
     </div>
   )
-});
+};
 
-const StreamReceiver = memo((props: {
+const StreamReceiver = (props: {
   employeeId: string,
   weekDays: string[]
 }) => {
   useSlotsStream(props.employeeId, props.weekDays);
   return null;
-});
+};

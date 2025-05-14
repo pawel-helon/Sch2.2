@@ -1,4 +1,4 @@
-import { memo, ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { CheckIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { AnimatePresence, motion } from 'framer-motion'; 
 import { useDispatch, useSelector } from 'react-redux';

@@ -1,14 +1,16 @@
-import { ReactNode } from 'react';
+import { memo, ReactNode } from 'react';
+import { Card } from './card';
 import { getNumOfPlaceholders } from 'src/utils/data/getNumOfPlaceholders';
 import { getDayName } from 'src/utils/dates/getDayName';
 import { getWeekDays } from 'src/utils/dates/getWeekDays';
-import { Card } from './card';
 
-export const Week = (props: {
-  year: number,
-  weekNumber: number,
-  currentDay: string
-}) => {
+interface WeekProps {
+  year: number;
+  weekNumber: number;
+  currentDay: string;
+}
+
+export const Week = memo((props: WeekProps) => {
   const weekDays = getWeekDays(props.year, props.weekNumber);
 
   const cards = weekDays
@@ -41,15 +43,17 @@ export const Week = (props: {
       {content}
     </div>
   )
+});
+
+interface PlaceholdersProps {
+  weekNumber: number;
+  weekLength: number;
 }
 
-const Placeholders = (props: {
-  weekNumber: number
-  weekLength: number
-}) => {
+const Placeholders = memo((props: PlaceholdersProps) => {
   const numOfPlaceholders = getNumOfPlaceholders(props.weekLength);
 
   return numOfPlaceholders.map((p: number) => (
     <div key={p} className='min-h-[180px] rounded-md border border-border shadow-shadow shadow-lg bg-background' />
   ))
-}
+});

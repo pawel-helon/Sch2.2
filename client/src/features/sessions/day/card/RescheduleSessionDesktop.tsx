@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { memo, ReactNode, useCallback, useEffect, useState } from 'react';
 import { Loader } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { useUpdateSessionMutation } from 'src/redux/actions/sessions/updateSession';
@@ -14,10 +14,12 @@ import { getTime } from 'src/utils/dates/getTime';
 import { getDate } from 'src/utils/dates/getDate';
 import { Slot } from 'src/types/slots';
 
-export const RescheduleSessionDesktop = (props: {
-  employeeId: string,
-  sessionId: string,
-}) => {
+interface RescheduleSessionDesktopProps {
+  employeeId: string;
+  sessionId: string;
+}
+
+export const RescheduleSessionDesktop = memo((props: RescheduleSessionDesktopProps) => {
   const [open, setOpen] = useState<boolean>(false);
 
   return (
@@ -29,45 +31,41 @@ export const RescheduleSessionDesktop = (props: {
       </DialogTrigger>
       <DialogContent aria-describedby='' className='flex flex-col w-[480px]'>
         <DialogTitle>
-          Reschedule meeting
+          Reschedule session
         </DialogTitle>
-        <Form
-          employeeId={props.employeeId}
-          sessionId={props.sessionId}
-          open={open}
-          setOpen={setOpen}
-        />
+        <Form {...props} open={open} setOpen={setOpen} />
       </DialogContent>
     </Dialog>
   )
+});
+
+interface FormProps {
+  employeeId: string;
+  sessionId: string;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }
 
-const Form = (props: {
-  employeeId: string,
-  sessionId: string,
-  open: boolean,
-  setOpen: (open: boolean) => void
-}) => {
+const Form = memo((props: FormProps) => {
   const [ date, setDate ] = useState<Date | undefined>(new Date());
   const [ selectedSlot, setSelectedSlot ] = useState<string>('');
   const [ updateSession ] = useUpdateSessionMutation();
   const { data: slots, status } = useSelector((state: RootState) => selectSlotsForReschedulingSession(state));
-
   const [ updateSlotsForReschedulingSession ] = useUpdateSlotsForReschedulingSessionMutation();
 
   useEffect(() => {
     updateSlotsForReschedulingSession({ employeeId: props.employeeId, day: getDate(date || new Date()) })
   },[updateSlotsForReschedulingSession, props.employeeId, date]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     props.setOpen(false);
     try {
       await updateSession({ sessionId: props.sessionId, slotId: selectedSlot})
     } catch (error) {
       infoAdded({ message: 'Failed to update session.' });
-      console.error(error);
+      console.error('Failed to update session: ', error);
     }
-  }
+  },[props.setOpen, updateSession, props.sessionId, selectedSlot, infoAdded])
 
   let content: ReactNode = null;
   if (status !== 'fulfilled') {
@@ -95,17 +93,17 @@ const Form = (props: {
       </div>
     </form>
   )
-}
+});
 
-const Loading = () => {
+const Loading = memo(() => {
   return (
     <div className='w-full animate-fade-in transition-none duration-300 relative h-full col-span-1 flex justify-center items-center border rounded-md border-border shadow-lg shadow-shadow bg-background-sh'>
       <Loader className='size-6 animate-spin' />
     </div>
   )
-}
+});
 
-const NoSlots = () => {
+const NoSlots = memo(() => {
   return (
     <div className='w-full flex justify-center items-center'>
       <Paragraph variant='thin' size='sm' className='max-w-[32ch] text-center text-balance text-text-secondary'>
@@ -113,13 +111,15 @@ const NoSlots = () => {
       </Paragraph>
     </div>
   )
+});
+
+interface SelectSlotProps {
+  slots: Slot[];
+  selectedSlot: string;
+  setSelectedSlot: (selectedSlot: string) => void;
 }
 
-const SelectSlot = (props: {
-  slots: Slot[],
-  selectedSlot: string,
-  setSelectedSlot: (selectedSlot: string) => void,
-}) => {
+const SelectSlot = memo((props: SelectSlotProps) => {
   return (
     <div className='max-h-[266px] pr-1 flex flex-col gap-2 overflow-y-scroll scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1'>
       {props.slots.map((slot) => (
@@ -132,13 +132,15 @@ const SelectSlot = (props: {
       ))}
     </div>
   )
+});
+
+interface ItemProps {
+  slot: Slot;
+  selectedSlot: string;
+  setSelectedSlot: (selectedSlot: string) => void;
 }
 
-const Item = (props: {
-  slot: Slot,
-  selectedSlot: string,
-  setSelectedSlot: (selectedSlot: string) => void,
-}) => {
+const Item = memo((props: ItemProps) => {
   return (
     <Button
       key={props.slot.id} 
@@ -151,4 +153,4 @@ const Item = (props: {
       {getTime(props.slot.startTime)}
     </Button>
   )
-}
+});

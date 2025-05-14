@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from 'src/components/Accordion';
 import { Paragraph } from 'src/components/typography/Paragraph';
 import { Card } from './card';
@@ -9,13 +10,15 @@ import { isPast } from 'src/utils/dates/isPast';
 import { getNumOfPlaceholders } from 'src/utils/data/getNumOfPlaceholders';
 import { cn } from 'src/utils/cn';
 
-export const Days = (props: {
-  employeeId: string,
-  year: number,
-  weekNumber: number,
-  weekDays: string[],
-  isMobile: boolean
-}) => {
+interface DaysProps {
+  employeeId: string;
+  year: number;
+  weekNumber: number;
+  weekDays: string[];
+  isMobile: boolean;
+}
+
+export const Days = memo((props: DaysProps) => {
   const { isRecurringSlotsOnly, setRecurringSlotsOnly } = useHandleIsRecurringSlotsOnly();
 
   const content = props.isMobile
@@ -31,52 +34,58 @@ export const Days = (props: {
       {content}
     </main>
   )
+});
+
+interface MobileProps {
+  employeeId: string;
+  year: number;
+  weekNumber: number;
+  weekDays: string[];
+  isRecurringSlotsOnly: boolean;
+  isMobile: boolean;
 }
 
-const Mobile = (props: {
-  employeeId: string,
-  year: number,
-  weekNumber: number,
-  weekDays: string[],
-  isRecurringSlotsOnly: boolean,
-  isMobile: boolean
-}) => {
+const Mobile = memo((props: MobileProps) => {
   return (
     <Accordion type='single' defaultValue={props.weekDays[0]} className='flex flex-col gap-4'>
-      {props.weekDays.map((day) => (
-        <AccordionItem key={day} value={day} className={cn('border border-border rounded-sm shadow-lg shadow-shadow bg-background')}>
-         <AccordionTrigger className='px-2 hover:no-underline'>
-           <div className='flex items-center gap-2'>
-             <Badge day={day} value='date' />
-             <Paragraph variant='thick' size='sm' isMuted={isPast(new Date(new Date(day).setHours(23,59,59,999)))} className='leading-none'>
-               {getDayOfWeek(day)}
-             </Paragraph>
-           </div>
-         </AccordionTrigger>
-         <AccordionContent className='pb-0'>
-          <Card
-            employeeId={props.employeeId}
-            year={props.year}
-            weekNumber={props.weekNumber}
-            day={day}
-            isRecurringSlotsOnly={props.isRecurringSlotsOnly}
-            isMobile={props.isMobile}
-          />
-         </AccordionContent>
-       </AccordionItem>
+      {props.weekDays
+        .filter((day) => new Date(day) >= new Date(new Date().setHours(0,0,0,0)))
+        .map((day) => (
+          <AccordionItem key={day} value={day} className={cn('border border-border rounded-sm shadow-lg shadow-shadow bg-background')}>
+          <AccordionTrigger className='px-2 hover:no-underline'>
+            <div className='flex items-center gap-2'>
+              <Badge day={day} value='date' />
+              <Paragraph variant='thick' size='sm' isMuted={isPast(new Date(new Date(day).setHours(23,59,59,999)))} className='leading-none'>
+                {getDayOfWeek(day)}
+              </Paragraph>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className='pb-0'>
+            <Card
+              employeeId={props.employeeId}
+              year={props.year}
+              weekNumber={props.weekNumber}
+              day={day}
+              isRecurringSlotsOnly={props.isRecurringSlotsOnly}
+              isMobile={props.isMobile}
+            />
+          </AccordionContent>
+        </AccordionItem>
       ))}
     </Accordion>
   )
+});
+
+interface DesktopProps {
+  employeeId: string;
+  year: number;
+  weekNumber: number;
+  weekDays: string[];
+  isRecurringSlotsOnly: boolean;
+  isMobile: boolean;
 }
 
-const Desktop = (props: {
-  employeeId: string,
-  year: number,
-  weekNumber: number,
-  weekDays: string[],
-  isRecurringSlotsOnly: boolean,
-  isMobile: boolean
-}) => {
+const Desktop = memo((props: DesktopProps) => {
   const numOfPlaceholders = getNumOfPlaceholders(props.weekDays.length);
 
   const placeholdersBefore = props.weekNumber === 1
@@ -110,4 +119,4 @@ const Desktop = (props: {
       {placeholdersAfter}
     </div>
   )
-}
+});

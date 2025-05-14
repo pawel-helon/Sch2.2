@@ -28,7 +28,7 @@ export const Sessions = () => {
     <div className='bg-background min-h-[100vh]'>
       <div id='sessions' className='mx-auto xl:max-w-screen-xl 2xl:max-w-screen-2xl'>
         <div className='w-full pl-3 pr-2 pb-8 xs:pl-6 xs:pr-5 xs:border-x-[1px] border-border overflow-y-auto scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1'>
-          <div className='hidden xs:flex gap-1 sticky z-20 top-0 pb-1 bg-background w-full justify-between items-center pt-4'>
+          <div className='flex gap-1 sticky z-20 top-0 pb-1 bg-background w-full justify-between items-center pt-4'>
             <Breadcrumbs year={year} weekNumber={weekNumber} day={day} />
             <ThemeToggle />
           </div>
@@ -48,7 +48,7 @@ export const Sessions = () => {
       </div>
     </div>
   )
-}
+};
 
 const StreamReceiver = (props: {
   employeeId: string,

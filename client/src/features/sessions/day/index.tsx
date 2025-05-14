@@ -10,13 +10,16 @@ import { getDateFromParams } from 'src/utils/dates/getDateFromParams';
 import { capitalizeFirstLetter } from 'src/utils/capitalizeFirstLetter';
 import { cn } from 'src/utils/cn';
 import { Session } from 'src/types/sessions';
+import { memo } from 'react';
 
-export const Day = (props: {
-  year: number,
-  weekNumber: number,
-  currentDay: string,
-  isMobile: boolean
-}) => {
+interface DayProps {
+  year: number;
+  weekNumber: number;
+  currentDay: string;
+  isMobile: boolean;
+}
+
+export const Day = memo((props: DayProps) => {
   const day = getDateFromParams(props.year, props.weekNumber, props.currentDay);
   const { data: sessions, status } = useSelector((state: RootState) => selectDaySessions(state, day))
 
@@ -29,11 +32,13 @@ export const Day = (props: {
       {content}
     </div>
   )
+});
+
+interface LoadingProps {
+  isMobile: boolean;
 }
 
-const Loading = (props: {
-  isMobile: boolean
-}) => {
+const Loading = memo((props: LoadingProps) => {
   return props.isMobile ?
     (
       <div className='flex relative h-[120px] col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background'>
@@ -44,15 +49,17 @@ const Loading = (props: {
         <Loader className='size-6 text-text-tertiary absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 animate-spin' />
       </div>
     )
+});
+
+interface LoadedProps {
+  year: number;
+  weekNumber: number;
+  currentDay: string;
+  sessions: Session[];
+  isMobile: boolean;
 }
 
-const Loaded = (props: {
-  year: number,
-  weekNumber: number,
-  currentDay: string,
-  sessions: Session[],
-  isMobile: boolean
-}) => {
+const Loaded = memo((props: LoadedProps) => {
   const content = props.sessions.length === 0
     ? <NoSessions dayName={props.currentDay} />
     : <Sessions sessions={props.sessions} isMobile={props.isMobile} />
@@ -62,11 +69,13 @@ const Loaded = (props: {
       {content}
     </div>
   )
+});
+
+interface NoSessionsProps {
+  dayName: string;
 }
 
-const NoSessions = (props: {
-  dayName: string
-}) => {
+const NoSessions = memo((props: NoSessionsProps) => {
   return (
     <div className='relative h-[320px] flex p-4 border border-border rounded-md shadow-shadow shadow-lg bg-background'>
       <Paragraph variant='thick' size='sm' className='text-center text-balance text-text-secondary absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2'>
@@ -74,12 +83,14 @@ const NoSessions = (props: {
       </Paragraph>
     </div>
   )
+});
+
+interface SessionsProps {
+  sessions: Session[];
+  isMobile: boolean;
 }
 
-const Sessions = (props: {
-  sessions: Session[],
-  isMobile: boolean,
-}) => {
+const Sessions = memo((props: SessionsProps) => {
   return props.isMobile ?
     (
       <Accordion type='single' defaultValue={props.sessions[0].id} className='flex flex-col gap-4'>
@@ -106,4 +117,4 @@ const Sessions = (props: {
         ))}
       </div>
     )
-}
+});

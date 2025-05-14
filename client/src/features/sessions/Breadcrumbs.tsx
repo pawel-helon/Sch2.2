@@ -2,11 +2,13 @@ import { Slash } from 'lucide-react';
 import { capitalizeFirstLetter } from 'src/utils/capitalizeFirstLetter';
 import { getCurrentWeek } from 'src/utils/dates/getCurrentWeek';
 
-export function Breadcrumbs(props: {
-  year: number,
-  weekNumber: number,
-  day: string
-}) {
+interface BreadcrumbsProps {
+  year: number;
+  weekNumber: number;
+  day: string;
+}
+
+export const Breadcrumbs = (props: BreadcrumbsProps) => {
   const { year, weekNumber } = getCurrentWeek();
   
   return (
