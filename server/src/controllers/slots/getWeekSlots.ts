@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { SlotsAccumulator } from "../../lib/types";
+import { NormalizedSlots } from "../../lib/types";
 import { pool } from "../../index";
 import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: SlotsAccumulator | null = null) => {
+const createResponse = (res: Response, message: string, data: NormalizedSlots | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -36,25 +36,45 @@ export const getWeekSlots = async (req: Request, res: Response) => {
   }
 
   try {
-    const queryValue = `
+    await pool.query("BEGIN");
+
+    const deletingPastSlotsQueryValue = `
+      DELETE FROM "Slots"
+      WHERE "employeeId" = $1::uuid
+        AND "startTime" < NOW()
+      RETURNING "id";
+    `;
+
+    const deletingPastSlots = await pool.query(deletingPastSlotsQueryValue, [
+      employeeId
+    ]);
+
+    if (!deletingPastSlots) {
+      createResponse(res, "Failed to delete past slots.");
+    }
+    
+    const fetchingSlotsQueryValue = `
       SELECT *
       FROM "Slots"
       WHERE "employeeId" = $1::uuid 
         AND "startTime" >= ($2::date || ' 00:00:00.000')::timestamp
         AND "startTime" <= ($3::date || ' 23:59:59.999')::timestamp
+      ;
     `;
-    const result = await pool.query(queryValue, [
+    const fetchingSlots = await pool.query(fetchingSlotsQueryValue, [
       employeeId,
       start,
       end
     ]);
 
-    if (!result.rows.length) {
-      return createResponse(res, "Failed to fetch slots.", { byId: {}, allIds: [] });
+    await pool.query("COMMIT");
+
+    if (!fetchingSlots) {
+      return createResponse(res, "Failed to fetch slots.");
     }
 
-    const normalizedResult = result.rows.reduce(
-      (acc: SlotsAccumulator, slot) => {
+    const normalizedResult = fetchingSlots.rows.reduce(
+      (acc: NormalizedSlots, slot) => {
         acc.byId[slot.id] = slot
         acc.allIds.push(slot.id)
         return acc;
@@ -65,7 +85,12 @@ export const getWeekSlots = async (req: Request, res: Response) => {
     createResponse(res, "Slots have been fetched.", normalizedResult);
 
   } catch (error) {
-    console.error("Failed to fetch slots:", error);
+    try {
+      await pool.query("ROLLBACK");
+    } catch (rollbackError) {
+      console.error("Rollback failed: ", rollbackError);
+    }
+    console.error("Failed to fetch slots: ", error);
     res.status(500).json({ error: "Internal server error." });
   }
-}                               
+}

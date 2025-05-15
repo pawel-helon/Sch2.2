@@ -46,7 +46,7 @@ const addSlot = api.injectEndpoints({
           body
         }
       },
-      /** Inserts slot into cached getWeekSlots data. */
+      /** Insert slot into cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const res = await queryFulfilled;

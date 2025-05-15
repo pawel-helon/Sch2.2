@@ -49,22 +49,21 @@ export const undoAddRecurringSlot = async (req: Request, res: Response) => {
         FROM recurring_dates
         CROSS JOIN slot_info
       )
-      RETURNING *
-      ;
+      RETURNING *;
     `;
 
     const result = await pool.query(queryValue, [
       slotId
     ]);
 
-    if (!result.rows.length) {
+    if (!result) {
       return createResponse(res, "Failed to undo add recurring slot.");
     }
 
     createResponse(res, "Adding recurring slot has been undone.", result.rows[0]);
 
   } catch (error) {
-    console.error("Failed to undo add recurring slot:", error);
+    console.error("Failed to undo add recurring slot: ", error);
     res.status(500).json({ error: "Internal server error." });
   }
 }

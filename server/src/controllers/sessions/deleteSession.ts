@@ -36,13 +36,14 @@ export const deleteSession = async (req: Request, res: Response) => {
         "id" AS "sessionId", 
         "employeeId", 
         (SELECT session_start_time FROM session_info) AS "startTime"
+      ;
     `;
 
     const result = await pool.query(queryValue, [
       sessionId
     ]);
 
-    if (!result.rows.length) {
+    if (!result) {
       return createResponse(res, "Failed to delete session.");
     }
 

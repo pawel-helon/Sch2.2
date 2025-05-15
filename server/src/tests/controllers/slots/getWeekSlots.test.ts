@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { pool } from "../../../index";
 import { getWeekSlots } from "../../../controllers/slots/getWeekSlots";
-import { SlotsAccumulator } from "../../../lib/types";
+import { NormalizedSlots } from "../../../lib/types";
 import { getTestDates } from "../../../lib/helpers";
 
 // Mock the pool.query method
@@ -142,7 +142,7 @@ describe("getWeekSlots", () => {
 
     await getWeekSlots(mockRequest as Request, mockResponse as Response);
 
-    const expectedData: SlotsAccumulator = {
+    const expectedData: NormalizedSlots = {
       byId: {
         ["b4f8e3c7-1a9d-4e5b-8f2c-6d9a7e3b5c1f"]: mockRows[0],
         ["9f8e7d6c-5b4a-3f2e-1d0c-9b8a7f6e5d4c"]: mockRows[1],

@@ -42,15 +42,17 @@ export const getWeekSlotsRecurringDates = async (req: Request, res: Response) =>
       WHERE "employeeId" = $1::uuid 
         AND "date" >= $2::date
         AND "date" <= $3::date
+      ;
     `;
+
     const result = await pool.query(queryValue, [
       employeeId,
       start,
       end
     ]);
 
-    if (!result.rows.length) {
-      return createResponse(res, "Failed to fetch slots recurring dates.", { byId: {}, allIds: [] });
+    if (!result) {
+      return createResponse(res, "Failed to fetch slots recurring dates.");
     }
 
     const normalizedResult = result.rows.reduce(
@@ -65,7 +67,7 @@ export const getWeekSlotsRecurringDates = async (req: Request, res: Response) =>
     createResponse(res, "Slots have been fetched.", normalizedResult);
 
   } catch (error) {
-    console.error("Failed to fetch slots:", error);
+    console.error("Failed to fetch slots recurring dates: ", error);
     res.status(500).json({ error: "Internal server error." });
   }
 }                               

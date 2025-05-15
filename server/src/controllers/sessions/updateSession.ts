@@ -40,30 +40,30 @@ export const updateSession = async (req: Request, res: Response) => {
       SET "type" = 'AVAILABLE'
       FROM session_info
       WHERE "Slots"."id" = session_info.slot_id
-      RETURNING *
+      RETURNING "id"
     `;
 
     const updatePrevSlot = await pool.query(updatePrevSlotQueryValue, [
       sessionId
     ]);
 
-    if (!updatePrevSlot.rows.length) {
-      return createResponse(res, "Failed to update previous slot.");
+    if (!updatePrevSlot) {
+      return createResponse(res, "Failed to update previous slot type.");
     }
 
     const updateNewSlotQueryValue = `
       UPDATE "Slots"
       SET "type" = 'BOOKED'
       WHERE "id" = $1::uuid
-      RETURNING *
+      RETURNING "id"
     `;
 
     const updateNewSlot = await pool.query(updateNewSlotQueryValue, [
       slotId
     ]);
 
-    if (!updateNewSlot.rows.length) {
-      return createResponse(res, "Failed to update new slot.");
+    if (!updateNewSlot) {
+      return createResponse(res, "Failed to update new slot type.");
     }
 
     const updateSessionQueryValue = `
@@ -97,6 +97,7 @@ export const updateSession = async (req: Request, res: Response) => {
         "updatedAt",
         (SELECT slot_id FROM session_info) AS "prevSlotId",
         (SELECT slot_start_time FROM prev_slot_info) AS "prevStartTime"
+      ;
     `;
 
     const updateSession = await pool.query(updateSessionQueryValue, [
@@ -106,7 +107,7 @@ export const updateSession = async (req: Request, res: Response) => {
 
     await pool.query("COMMIT");
     
-    if (!updateSession.rows.length) {
+    if (!updateSession) {
       return createResponse(res, "Failed to update session.");
     }
     

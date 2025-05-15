@@ -66,8 +66,8 @@ export const setRecurringDay = async (req: Request, res: Response) => {
       day
     ])
 
-    if (!insertingSlotsRecurringDates.rows.length) {
-      createResponse(res, "Failed to insert recurring dates.")
+    if (!insertingSlotsRecurringDates) {
+      createResponse(res, "Failed to insert recurring dates.");
     } 
 
     const insertingSlotsQueryValue = `
@@ -109,7 +109,7 @@ export const setRecurringDay = async (req: Request, res: Response) => {
       )
       ON CONFLICT ("employeeId", "startTime")
       DO NOTHING
-      RETURNING *
+      RETURNING *;
     `;
 
     const insertingSlots = await pool.query(insertingSlotsQueryValue, [
@@ -119,8 +119,8 @@ export const setRecurringDay = async (req: Request, res: Response) => {
 
     await pool.query("COMMIT");
     
-    if (!insertingSlots.rows.length) {
-      return createResponse(res, "Failed to set recurring day.");
+    if (!insertingSlots) {
+      return createResponse(res, "Failed to insert slots.");
     }
 
     createResponse(res, "Recurring day has been set.", insertingSlotsRecurringDates.rows[0]);

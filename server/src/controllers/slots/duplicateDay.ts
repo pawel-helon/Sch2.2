@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { SlotsAccumulator } from "../../lib/types";
+import { NormalizedSlots } from "../../lib/types";
 import { pool } from "../../index";
 import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: SlotsAccumulator | null = null) => {
+const createResponse = (res: Response, message: string, data: NormalizedSlots | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -67,7 +67,7 @@ export const duplicateDay = async (req: Request, res: Response) => {
       )
       ON CONFLICT ("employeeId", "startTime")
       DO NOTHING
-      RETURNING *
+      RETURNING *;
     `;
 
     const result = await pool.query(queryValue, [
@@ -76,12 +76,12 @@ export const duplicateDay = async (req: Request, res: Response) => {
       selectedDays
     ]);
 
-    if (!result.rows.length) {
+    if (!result) {
       return createResponse(res, "Failed to duplicate day.");
     }
 
     const normalizedResult = result.rows.reduce(
-      (acc: SlotsAccumulator, slot) => {
+      (acc: NormalizedSlots, slot) => {
         acc.byId[slot.id] = slot
         acc.allIds.push(slot.id)
         return acc;
@@ -92,7 +92,7 @@ export const duplicateDay = async (req: Request, res: Response) => {
     createResponse(res, "Day has been duplicated.", normalizedResult);
 
   } catch (error) {
-    console.error("Failed to duplicate day:", error);
+    console.error("Failed to duplicate day: ", error);
     res.status(500).json({ error: "Internal server error." });
   }
 }

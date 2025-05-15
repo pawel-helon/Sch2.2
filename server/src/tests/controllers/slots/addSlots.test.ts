@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { pool } from "../../../index";
 import { addSlots } from "../../../controllers/slots/addSlots";
 import { getTestDates } from "../../../lib/helpers";
-import { SlotsAccumulator } from "../../../lib/types";
+import { NormalizedSlots } from "../../../lib/types";
 
 jest.mock("../../../index", () => ({
   pool: {
@@ -291,7 +291,7 @@ describe("addSlots", () => {
 
     await addSlots(mockRequest as Request, mockResponse as Response);
 
-    const expectedData: SlotsAccumulator = {
+    const expectedData: NormalizedSlots = {
       byId: {
         ["6b8e4f3d-9a12-4e7b-a1c5-8f2d3e9b7c0a"]: slots[0],
       },

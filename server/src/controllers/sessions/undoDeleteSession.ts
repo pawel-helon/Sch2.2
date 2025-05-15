@@ -78,7 +78,8 @@ export const undoDeleteSession = async (req: Request, res: Response) => {
         (SELECT slot_start_time FROM slot_info) AS "startTime",
         "message", 
         "createdAt", 
-        "updatedAt";
+        "updatedAt"
+      ;
     `;
 
     const result = await pool.query(queryValue, [
@@ -90,8 +91,8 @@ export const undoDeleteSession = async (req: Request, res: Response) => {
       session.createdAt,
     ]);
 
-    if (!result.rows.length) {
-      return createResponse(res, "Failed to add session.");
+    if (!result) {
+      return createResponse(res, "Failed to restore session.");
     }
 
     createResponse(res, "Session has been restored.", result.rows[0]);

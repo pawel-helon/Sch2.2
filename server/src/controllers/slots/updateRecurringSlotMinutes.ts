@@ -23,8 +23,8 @@ export const updateRecurringSlotMinutes = async (req: Request, res: Response) =>
     return createResponse(res, "Invalid slotId format. Expected UUID.");
   }
 
-  if (minutes < 0 || minutes > 59 || typeof minutes !== "number") {
-    return createResponse(res, "Invalid minnutes. Expected number between 0 and 59.");
+  if (minutes < 0 || minutes > 59) {
+    return createResponse(res, "Invalid minutes. Expected number between 0 and 59.");
   }
 
   try {
@@ -82,6 +82,7 @@ export const updateRecurringSlotMinutes = async (req: Request, res: Response) =>
         "createdAt",
         "updatedAt",
         (SELECT slot_info.current_minutes FROM slot_info) AS "prevMinutes"
+      ;
     `;
 
     const result = await pool.query(queryValue, [
@@ -89,8 +90,8 @@ export const updateRecurringSlotMinutes = async (req: Request, res: Response) =>
       String(minutes)
     ])
     
-    if (!result.rows.length) {
-      return createResponse(res, "Failed to update slot.");
+    if (!result) {
+      return createResponse(res, "Failed to update recurring slot minutes.");
     }
 
     const slot = {
@@ -104,10 +105,10 @@ export const updateRecurringSlotMinutes = async (req: Request, res: Response) =>
       updatedAt: result.rows[0].updatedAt
     }
 
-    createResponse(res, "Slot time has been updated.", { prevMinutes: result.rows[0].prevMinutes, slot });
+    createResponse(res, "Recurring slot minutes have been updated.", { prevMinutes: result.rows[0].prevMinutes, slot });
     
   } catch (error) {
-    console.error("Failed to update slot minutes: ", error);
+    console.error("Failed to update recurring slot minutes: ", error);
     res.status(500).json({ error: "Internal server error." });
   }
 }

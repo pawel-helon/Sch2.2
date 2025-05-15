@@ -25,7 +25,7 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
 
   try {
     await pool.query("BEGIN");
-    // Updating inital slot recurrence
+
     const updatingInitalSlotQueryValue = `
       UPDATE "Slots"
       SET "recurring" = true
@@ -37,11 +37,10 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
       slotId
     ]);
 
-    if (!updatingInitalSlot.rows.length) {
+    if (!updatingInitalSlot) {
       createResponse(res, "Failed to update initial slot.")
     } 
 
-    // Inserting recurring slots
     const insertingSlotsQueryValue = `
       WITH slot_info AS (
         SELECT
@@ -78,7 +77,7 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
       ON CONFLICT ("employeeId", "startTime")
       DO UPDATE
       SET "recurring" = true
-      RETURNING *;
+      RETURNING "id";
     `;
 
     const insertingSlots = await pool.query(insertingSlotsQueryValue, [
@@ -87,8 +86,8 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
     
     await pool.query("COMMIT");
 
-    if (!updatingInitalSlot.rows.length || !insertingSlots.rows.length) {
-      return createResponse(res, "Failed to set recurring slot.");
+    if (!insertingSlots) {
+      return createResponse(res, "Failed to insert slots.");
     }
 
     createResponse(res, "Recurring slot has been set.", updatingInitalSlot.rows[0]);
@@ -99,7 +98,7 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
     } catch (rollbackError) {
       console.error("Rollback failed: ", rollbackError)
     }
-    console.error("Failed to set recurring slot:", error);
+    console.error("Failed to set recurring slot: ", error);
     res.status(500).json({ error: "Internal server error." });
   }
 }

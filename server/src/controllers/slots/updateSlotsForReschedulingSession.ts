@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { SlotsAccumulator } from "../../lib/types";
+import { NormalizedSlots } from "../../lib/types";
 import { pool } from "../../index";
 import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: SlotsAccumulator | null = null) => {
+const createResponse = (res: Response, message: string, data: NormalizedSlots | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -35,18 +35,20 @@ export const updateSlotsForReschedulingSession = async (req: Request, res: Respo
         AND "startTime" >= ($2::date || ' ' || '00:00:00.000'::time)::timestamp
         AND "startTime" <= ($2::date || ' ' || '23:59:59.999'::time)::timestamp
         AND "type" = 'AVAILABLE'
+      ;
     `;
+
     const result = await pool.query(queryValue, [
       employeeId,
       day
     ]);
 
-    if (!result.rows.length) {
-      return createResponse(res, "Failed to fetch slots.", { byId: {}, allIds: [] });
+    if (!result) {
+      return createResponse(res, "Failed to fetch slots.");
     }
 
     const normalizedResult = result.rows.reduce(
-      (acc: SlotsAccumulator, slot) => {
+      (acc: NormalizedSlots, slot) => {
         acc.byId[slot.id] = slot
         acc.allIds.push(slot.id)
         return acc;
@@ -57,7 +59,7 @@ export const updateSlotsForReschedulingSession = async (req: Request, res: Respo
     createResponse(res, "Slots have been fetched.", normalizedResult);
 
   } catch (error) {
-    console.error("Failed to fetch slots:", error);
+    console.error("Failed to fetch slots: ", error);
     res.status(500).json({ error: "Internal server error." });
   }
 }                               

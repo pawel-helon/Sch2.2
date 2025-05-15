@@ -25,7 +25,7 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
   
   try {
     await pool.query("BEGIN");
-    // Updating inital slot recurrence
+
     const updatingInitalSlotQueryValue = `
       UPDATE "Slots"
       SET "recurring" = false
@@ -35,7 +35,11 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
 
     const updatingInitalSlot = await pool.query(updatingInitalSlotQueryValue, [
       slotId
-    ])
+    ]);
+
+    if(!updatingInitalSlot) {
+      createResponse(res, "Failed to update recurring field for the initial slot.")
+    }
 
     const deletingSlotsQueryValue = `
       WITH slot_info AS (
@@ -62,7 +66,7 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
           FROM recurring_dates
           CROSS JOIN slot_info
         )
-      RETURNING *;
+      RETURNING "id";
     `;
 
     const deletingSlots = await pool.query(deletingSlotsQueryValue, [
@@ -71,8 +75,8 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
 
     await pool.query("COMMIT");
 
-    if (!updatingInitalSlot.rows.length || !deletingSlots.rows.length) {
-      return createResponse(res, "Failed to disable recurring slots.");
+    if (!deletingSlots) {
+      return createResponse(res, "Failed to delete recurring slots.");
     }
 
     createResponse(res, "Recurring slots have been disabled.", updatingInitalSlot.rows[0]);
@@ -83,7 +87,7 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
     } catch (rollbackError) {
       console.error("Rollback failed: ", rollbackError);
     }
-    console.error("Failed to disable recurring slots:", error);
+    console.error("Failed to disable recurring slots: ", error);
     res.status(500).json({ error: "Internal server error." });
   }
 }

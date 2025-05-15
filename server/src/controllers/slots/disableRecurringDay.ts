@@ -68,7 +68,7 @@ export const disableRecurringDay = async (req: Request, res: Response) => {
       day
     ])
 
-    if (!deletingSlotsRecurringDates.rows.length) {
+    if (!deletingSlotsRecurringDates) {
       createResponse(res, "Failed to delete recurring dates.")
     } 
     
@@ -108,8 +108,8 @@ export const disableRecurringDay = async (req: Request, res: Response) => {
 
     await pool.query("COMMIT");
     
-    if (!deletingSlots.rows.length) {
-      return createResponse(res, "Failed to disable recurring day.");
+    if (!deletingSlots) {
+      return createResponse(res, "Failed to delete slots.");
     }
 
     createResponse(res, "Recurring day has been disabled.", deletingSlotsRecurringDates.rows[0]);

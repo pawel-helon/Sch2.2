@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { pool } from "../../../index";
 import { getTestDates } from "../../../lib/helpers";
-import { SlotsAccumulator } from "../../../lib/types";
+import { NormalizedSlots } from "../../../lib/types";
 import { duplicateDay } from "../../../controllers/slots/duplicateDay";
 
 jest.mock("../../../index", () => ({
@@ -160,7 +160,7 @@ describe("addSlots", () => {
     ];
     (pool.query as jest.Mock).mockResolvedValue({ rows: expectedData });
 
-    const normalizedData: SlotsAccumulator = {
+    const normalizedData: NormalizedSlots = {
       byId: {
         ["6b8e4f3d-9a12-4e7b-a1c5-8f2d3e9b7c0a"]: expectedData[0]
       },

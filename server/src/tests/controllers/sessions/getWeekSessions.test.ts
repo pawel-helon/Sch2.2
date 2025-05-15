@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { pool } from "../../../index";
 import { getTestDates } from "../../../lib/helpers";
 import { getWeekSessions } from "../../../controllers/sessions/getWeekSessions";
-import { SessionsAccumulator } from "../../../lib/types";
+import { NormalizedSessions } from "../../../lib/types";
 
 jest.mock("../../../index", () => ({
   pool: {
@@ -134,7 +134,7 @@ describe("getWeekSessions", () => {
 
     await getWeekSessions(mockRequest as Request, mockResponse as Response);
 
-    const normalizedData: SessionsAccumulator = {
+    const normalizedData: NormalizedSessions = {
       byId: {
         ["123e4567-e89b-12d3-a456-426614174000"]: expectedData[0],
       },

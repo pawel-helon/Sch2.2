@@ -1,4 +1,4 @@
-export interface SlotsAccumulator {
+export interface NormalizedSlots {
   byId: Record<string, Slot>;
   allIds: string[];
 }
@@ -25,7 +25,7 @@ export interface SlotsRecurringDate {
   date: string;
 }
 
-export interface SessionsAccumulator {
+export interface NormalizedSessions {
   byId: Record<string, Session>;
   allIds: string[];
 }

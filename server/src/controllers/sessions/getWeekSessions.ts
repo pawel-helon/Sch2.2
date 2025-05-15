@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { SessionsAccumulator } from "../../lib/types";
+import { NormalizedSessions } from "../../lib/types";
 import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: SessionsAccumulator | null = null) => {
+const createResponse = (res: Response, message: string, data: NormalizedSessions | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -70,7 +70,7 @@ export const getWeekSessions = async (req: Request, res: Response) => {
         employee_sessions_info."createdAt",
         employee_sessions_info."updatedAt"
       FROM "Customers", employee_sessions_info
-      WHERE "Customers"."id" = employee_sessions_info."customerId"::uuid
+      WHERE "Customers"."id" = employee_sessions_info."customerId"::uuid;
     `;
     
     const result = await pool.query(queryValue, [
@@ -79,12 +79,12 @@ export const getWeekSessions = async (req: Request, res: Response) => {
       end
     ]);
     
-    if (!result.rows.length) {
+    if (!result) {
       return createResponse(res, "Failed to fetch sessions.");
     }
 
     const normalizedResult = result.rows.reduce(
-      (acc: SessionsAccumulator, session) => {
+      (acc: NormalizedSessions, session) => {
         acc.byId[session.id] = session
         acc.allIds.push(session.id)
         return acc;

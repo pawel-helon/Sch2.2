@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { SlotsAccumulator, Slot } from "../../lib/types";
+import { NormalizedSlots, Slot } from "../../lib/types";
 import { pool } from "../../index";
 import { TIMESTAMP_REGEX, UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: SlotsAccumulator | null = null) => {
+const createResponse = (res: Response, message: string, data: NormalizedSlots | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -85,7 +85,7 @@ export const addSlots = async (req: Request, res: Response) => {
         slot_created_at::timestamp AS "createdAt",
         NOW() 
       FROM slots_input
-      RETURNING *
+      RETURNING *;
     `;
 
     const result = await pool.query(queryValue, [
@@ -98,12 +98,12 @@ export const addSlots = async (req: Request, res: Response) => {
       slots_created_at
     ]);
 
-    if (!result.rows.length) {
-      return createResponse(res, "Failed to add slots.");
+    if (!result) {
+      return createResponse(res, "Failed to restore slots.");
     }
 
     const normalizedResult = result.rows.reduce(
-      (acc: SlotsAccumulator, slot) => {
+      (acc: NormalizedSlots, slot) => {
         acc.byId[slot.id] = slot
         acc.allIds.push(slot.id)
         return acc;
@@ -114,7 +114,7 @@ export const addSlots = async (req: Request, res: Response) => {
     createResponse(res, "Slots have been restored.", normalizedResult);
 
   } catch (error) {
-    console.error("Failed to add slots:", error);
+    console.error("Failed to restore slots: ", error);
     res.status(500).json({ error: "Internal server error." });
   }
 }

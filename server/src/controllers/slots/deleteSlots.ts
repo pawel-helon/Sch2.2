@@ -38,13 +38,14 @@ export const deleteSlots = async (req: Request, res: Response) => {
         "id",
         "employeeId",
         "startTime"
+      ;
     `;
 
     const result = await pool.query(queryValue, [
       slotIds,
     ]);
 
-    if (!result.rows.length) {
+    if (!result) {
       return createResponse(res, "Failed to delete slots.");
     }
 
@@ -56,7 +57,7 @@ export const deleteSlots = async (req: Request, res: Response) => {
     createResponse(res, "Slots have been deleted.", { employeeId, date, slotIds: ids });
 
   } catch (error) {
-    console.error("Failed to delete slots:", error);
+    console.error("Failed to delete slots: ", error);
     res.status(500).json({ error: "Internal server error." });
   }
 }

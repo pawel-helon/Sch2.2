@@ -66,7 +66,7 @@ export const addSlot = async (req: Request, res: Response) => {
         NOW() AS "createdAt",
         NOW() AS "updatedAt"
       FROM available_time
-      RETURNING *
+      RETURNING *;
     `;
     
     const result = await pool.query(queryValue, [
@@ -75,14 +75,14 @@ export const addSlot = async (req: Request, res: Response) => {
     ]);
 
     
-    if (!result.rows.length) {
+    if (!result) {
       return createResponse(res, "Failed to add slot.");
     }
 
     createResponse(res, "New slot has been added.", result.rows[0]);
 
   } catch (error) {
-    console.error("Failed to add slot:", error);
+    console.error("Failed to add slot: ", error);
     res.status(500).json({ error: "Internal server error." });
   }
 }

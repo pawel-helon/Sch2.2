@@ -29,7 +29,6 @@ const validateInput = (input: { employeeId: string, day: string, selectedDays: s
   }
 }
 
-
 const duplicateDay = api.injectEndpoints({
   endpoints: (builder) => ({
     /**

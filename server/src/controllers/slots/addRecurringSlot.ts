@@ -95,14 +95,14 @@ export const addRecurringSlot = async (req: Request, res: Response) => {
       day,
     ]);
     
-    if (!result.rows.length) {
-      return createResponse(res, "Failed to add slots.");
+    if (!result) {
+      return createResponse(res, "Failed to add recurring slots.");
     }
 
     createResponse(res, "New recurring slots have been added.", result.rows[0]);
 
   } catch (error) {
-    console.error("Failed to add recurring slot:", error);
+    console.error("Failed to add recurring slots: ", error);
     res.status(500).json({ error: "Internal server error." });
   }
 }

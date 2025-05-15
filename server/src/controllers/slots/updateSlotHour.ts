@@ -23,7 +23,7 @@ export const updateSlotHour = async (req: Request, res: Response) => {
     return createResponse(res, "Invalid slotId format. Expected UUID.");
   }
 
-  if (hour < 0 || hour > 23 || typeof hour !== "number") {
+  if (hour < 0 || hour > 23) {
     return createResponse(res, "Invalid hour. Expected number between 0 and 23.");
   }
 
@@ -67,6 +67,7 @@ export const updateSlotHour = async (req: Request, res: Response) => {
         "createdAt",
         "updatedAt",
         (SELECT slot_info.current_hour FROM slot_info) AS "prevHour"
+      ;
     `;
 
     const result = await pool.query(queryValue, [
@@ -74,8 +75,8 @@ export const updateSlotHour = async (req: Request, res: Response) => {
       hour
     ])
     
-    if (!result.rows.length) {
-      return createResponse(res, "Failed to update slot.");
+    if (!result) {
+      return createResponse(res, "Failed to update slot hour.");
     }
     
     const slot = {
@@ -89,7 +90,7 @@ export const updateSlotHour = async (req: Request, res: Response) => {
       updatedAt: result.rows[0].updatedAt
     }
     
-    createResponse(res, "Slot time has been updated.", { prevHour: result.rows[0].prevHour, slot });
+    createResponse(res, "Slot hour has been updated.", { prevHour: result.rows[0].prevHour, slot });
     
   } catch (error) {
     console.error("Failed to update slot hour: ", error);
