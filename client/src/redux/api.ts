@@ -38,7 +38,7 @@ export const api = createApi({
       },
     }),
     /**
-     * Fetches slots for a specific employee in a given day.
+     * Fetches slots for a specific employee in a given day in reschedule session.
      * 
      * @param {Object} body - The request payload.
      * @param {string} body.employeeId - The ID of the employee.
@@ -84,6 +84,7 @@ export const api = createApi({
       transformResponse: (response: { message: string; data: NormalizedSlotsRecurringDates }) => {
         return response.data;
       },
+      /** Validate response */
       async onQueryStarted(_, { queryFulfilled }) {
         const res = await queryFulfilled;
         validateGetWeekSlotsRecurringDatesResponse(res.data);
@@ -110,6 +111,7 @@ export const api = createApi({
       transformResponse: (response: { message: string, data: NormalizedSessions}) => {
         return response.data;
       },
+      /** Validate response */
       async onQueryStarted(_, { queryFulfilled }) {
         const res = await queryFulfilled;
         validateGetWeekSessionsResponse(res.data);
@@ -137,22 +139,20 @@ const validateGetWeekSlotsRequest = (request: { employeeId: string, start: strin
   
   const { employeeId, start, end } = request;
   
-  if (!employeeId || !start || !end) {
-    throw new Error('All fields are required: employeeId, start, end.');
+  if (!employeeId || !UUID_REGEX.test(employeeId)) {
+    throw new Error('Missing or invalid employeeId. Expected UUID.');
   }
-  if (!UUID_REGEX.test(employeeId)) {
-    throw new Error('Invalid employeeId format. Expected UUID.');
+  if (!start || !DATE_REGEX.test(start)) {
+    throw new Error('Missing or invalid start. Expected YYYY-MM-DD.');
   }
-  if (!DATE_REGEX.test(start)) {
-    throw new Error('Invalid start date format. Expected YYYY-MM-DD.');
-  }
-  if (!DATE_REGEX.test(end)) {
-    throw new Error('Invalid end date format. Expected YYYY-MM-DD.');
+  if (!end || !DATE_REGEX.test(end)) {
+    throw new Error('Missing or invalidend. Expected YYYY-MM-DD.');
   }
 }
 
 const validataGetWeekSlotsResponse = (response: NormalizedSlots): void => {
   if (!response || typeof response !== 'object') {
+    throw new Error('Response is required. Expected an object.');
   }
 
   const { byId, allIds } = response;
@@ -171,28 +171,28 @@ const validataGetWeekSlotsResponse = (response: NormalizedSlots): void => {
       throw new Error (`Invalid slot for id: ${id}. Expected an object.`);
     }
     if (!slot.id || !UUID_REGEX.test(slot.id)) {
-      throw Error(`Invalid or missing id in the slot: ${id}. Expected UUID.`)
+      throw Error(`Invalid or missing id in the slot: ${id}. Expected UUID.`);
     }
     if (!slot.employeeId || !UUID_REGEX.test(slot.employeeId)) {
-      throw Error(`Invalid or missing employeeId in the slot: ${id}. Expected UUID.`)
+      throw Error(`Invalid or missing employeeId in the slot: ${id}. Expected UUID.`);
     }
     if (!slot.type || !SLOT_TYPES.includes(slot.type)) {
-      throw Error(`Invalid type in the slot: ${id}. Expected 'AVAILABLE', 'BLOCKED', or 'BOOKED'.`)
+      throw Error(`Invalid type in the slot: ${id}. Expected 'AVAILABLE', 'BLOCKED', or 'BOOKED'.`);
     }
     if (!slot.startTime || !TIMESTAMP_REGEX.test(new Date(slot.startTime).toISOString())) {
-      throw Error(`Invalid or missing startTime in the slot: ${id}. Expected Date object.`)
+      throw Error(`Invalid or missing startTime in the slot: ${id}. Expected Date object.`);
     }
     if (!slot.duration || !SLOT_DURATIONS.includes(slot.duration.minutes)) {
-      throw Error(`Invalid or missing duration in the slot: ${id}. Expected { minutes: 30 }, { minutes: 45 }, or { minutes: 60 }.`)
+      throw Error(`Invalid or missing duration in the slot: ${id}. Expected { minutes: 30 }, { minutes: 45 }, or { minutes: 60 }.`);
     }
     if (typeof slot.recurring !== 'boolean') {
-      throw Error (`Invalid or missing recurring in the slot: ${id}. Expected a boolean.`)
+      throw Error (`Invalid or missing recurring in the slot: ${id}. Expected a boolean.`);
     }
     if (!slot.createdAt || !TIMESTAMP_REGEX.test(new Date(slot.createdAt).toISOString())) {
-      throw Error(`Invalid or missing createdAt in the slot: ${id}. Expected Date object.`)
+      throw Error(`Invalid or missing createdAt in the slot: ${id}. Expected Date object.`);
     }
     if (!slot.updatedAt || !TIMESTAMP_REGEX.test(new Date(slot.updatedAt).toISOString())) {
-      throw Error(`Invalid or missing updatedAt in the slot: ${id}. Expected Date object.`)
+      throw Error(`Invalid or missing updatedAt in the slot: ${id}. Expected Date object.`);
     }
   }
 
@@ -202,7 +202,7 @@ const validataGetWeekSlotsResponse = (response: NormalizedSlots): void => {
 
   const byIdKeys = Object.keys(byId);
   if (byIdKeys.length !== allIds.length || !allIds.every(id => byIdKeys.includes(id))) {
-    throw Error('Mismatch between allIds and byId keys.')
+    throw Error('Mismatch between allIds and byId keys.');
   }
 }
 
@@ -213,11 +213,8 @@ const validateGetSlotsForReschedulingSessionRequest = (request: { employeeId: st
 
   const { employeeId } = request;
   
-  if (!employeeId) {
-    throw new Error('employeeId is required.');
-  }
-  if (!UUID_REGEX.test(employeeId)) {
-    throw new Error('Invalid employeeId format. Expected UUID.');
+  if (!employeeId || !UUID_REGEX.test(employeeId)) {
+    throw new Error('Missing or invalid employeeId. Expected UUID.');
   }
 }
 
@@ -242,28 +239,28 @@ const validateGetSlotsForReschedulingSessionResponse = (response: NormalizedSlot
       throw new Error (`Invalid slot for id: ${id}. Expected an object.`);
     }
     if (!slot.id || !UUID_REGEX.test(slot.id)) {
-      throw Error(`Invalid or missing id in the slot: ${id}. Expected UUID.`)
+      throw Error(`Invalid or missing id in the slot: ${id}. Expected UUID.`);
     }
     if (!slot.employeeId || !UUID_REGEX.test(slot.employeeId)) {
-      throw Error(`Invalid or missing employeeId in the slot: ${id}. Expected UUID.`)
+      throw Error(`Invalid or missing employeeId in the slot: ${id}. Expected UUID.`);
     }
     if (!slot.type || !SLOT_TYPES.includes(slot.type)) {
-      throw Error(`Invalid type in the slot: ${id}. Expected 'AVAILABLE', 'BLOCKED', or 'BOOKED'.`)
+      throw Error(`Invalid type in the slot: ${id}. Expected 'AVAILABLE', 'BLOCKED', or 'BOOKED'.`);
     }
     if (!slot.startTime || !TIMESTAMP_REGEX.test(new Date(slot.startTime).toISOString())) {
-      throw Error(`Invalid or missing startTime in the slot: ${id}. Expected Date object.`)
+      throw Error(`Invalid or missing startTime in the slot: ${id}. Expected Date object.`);
     }
     if (!slot.duration || !SLOT_DURATIONS.includes(slot.duration.minutes)) {
-      throw Error(`Invalid or missing duration in the slot: ${id}. Expected { minutes: 30 }, { minutes: 45 }, or { minutes: 60 }.`)
+      throw Error(`Invalid or missing duration in the slot: ${id}. Expected { minutes: 30 }, { minutes: 45 }, or { minutes: 60 }.`);
     }
     if (typeof slot.recurring !== 'boolean') {
-      throw Error (`Invalid or missing recurring in the slot: ${id}. Expected a boolean.`)
+      throw Error (`Invalid or missing recurring in the slot: ${id}. Expected a boolean.`);
     }
     if (!slot.createdAt || !TIMESTAMP_REGEX.test(new Date(slot.createdAt).toISOString())) {
-      throw Error(`Invalid or missing createdAt in the slot: ${id}. Expected Date object.`)
+      throw Error(`Invalid or missing createdAt in the slot: ${id}. Expected Date object.`);
     }
     if (!slot.updatedAt || !TIMESTAMP_REGEX.test(new Date(slot.updatedAt).toISOString())) {
-      throw Error(`Invalid or missing updatedAt in the slot: ${id}. Expected Date object.`)
+      throw Error(`Invalid or missing updatedAt in the slot: ${id}. Expected Date object.`);
     }
   }
 
@@ -273,7 +270,7 @@ const validateGetSlotsForReschedulingSessionResponse = (response: NormalizedSlot
 
   const byIdKeys = Object.keys(byId);
   if (byIdKeys.length !== allIds.length || !allIds.every(id => byIdKeys.includes(id))) {
-    throw Error('Mismatch between allIds and byId keys.')
+    throw Error('Mismatch between allIds and byId keys.');
   }
 }
 
@@ -284,17 +281,14 @@ const validateGetWeekSlotsRecurringDatesRequest = (request: { employeeId: string
   
   const { employeeId, start, end } = request;
   
-  if (!employeeId || !start || !end) {
-    throw new Error('All fields are required: employeeId, start, end.');
+  if (!employeeId || !UUID_REGEX.test(employeeId)) {
+    throw new Error('Missing or invalid employeeId. Expected UUID.');
   }
-  if (!UUID_REGEX.test(employeeId)) {
-    throw new Error('Invalid employeeId format. Expected UUID.');
+  if (!start || !DATE_REGEX.test(start)) {
+    throw new Error('Missing or invalid start. Expected YYYY-MM-DD.');
   }
-  if (!DATE_REGEX.test(start)) {
-    throw new Error('Invalid start date format. Expected YYYY-MM-DD.');
-  }
-  if (!DATE_REGEX.test(end)) {
-    throw new Error('Invalid end date format. Expected YYYY-MM-DD.');
+  if (!end || !DATE_REGEX.test(end)) {
+    throw new Error('Missing or invalid end. Expected YYYY-MM-DD.');
   }
 }
 
@@ -337,17 +331,14 @@ const validateGetWeekSessionsRequest = (request: { employeeId: string, start: st
   
   const { employeeId, start, end } = request;
   
-  if (!employeeId || !start || !end) {
-    throw new Error('All fields are required: employeeId, start, end.');
+  if (!employeeId || !UUID_REGEX.test(employeeId)) {
+    throw new Error('Missing or invalid employeeId. Expected UUID.');
   }
-  if (!UUID_REGEX.test(employeeId)) {
-    throw new Error('Invalid employeeId format. Expected UUID.');
+  if (!start || !DATE_REGEX.test(start)) {
+    throw new Error('Missing or invalid start. Expected YYYY-MM-DD.');
   }
-  if (!DATE_REGEX.test(start)) {
-    throw new Error('Invalid start date format. Expected YYYY-MM-DD.');
-  }
-  if (!DATE_REGEX.test(end)) {
-    throw new Error('Invalid end date format. Expected YYYY-MM-DD.');
+  if (!end || !DATE_REGEX.test(end)) {
+    throw new Error('Missing or invalid end. Expected YYYY-MM-DD.');
   }
 }
 
@@ -372,25 +363,25 @@ const validateGetWeekSessionsResponse = (response: NormalizedSessions): void => 
       throw new Error (`Invalid session for id: ${id}. Expected an object.`);
     }
     if (!session.id || !UUID_REGEX.test(session.id)) {
-      throw Error(`Invalid or missing id in the session: ${id}. Expected UUID.`)
+      throw Error(`Invalid or missing id in the session: ${id}. Expected UUID.`);
     }
     if (!session.slotId || !UUID_REGEX.test(session.slotId)) {
-      throw Error(`Invalid or missing slotId in the session: ${id}. Expected UUID.`)
+      throw Error(`Invalid or missing slotId in the session: ${id}. Expected UUID.`);
     }
     if (!session.employeeId || !UUID_REGEX.test(session.employeeId)) {
-      throw Error(`Invalid or missing employeeId in the session: ${id}. Expected UUID.`)
+      throw Error(`Invalid or missing employeeId in the session: ${id}. Expected UUID.`);
     }
     if (!session.customerId || !UUID_REGEX.test(session.customerId)) {
-      throw Error(`Invalid or missing customerId in the session: ${id}. Expected UUID.`)
+      throw Error(`Invalid or missing customerId in the session: ${id}. Expected UUID.`);
     }
     if (!session.startTime || !TIMESTAMP_REGEX.test(new Date(session.startTime).toISOString())) {
-      throw Error(`Invalid or missing startTime in the session: ${id}. Expected Date object.`)
+      throw Error(`Invalid or missing startTime in the session: ${id}. Expected Date object.`);
     }
     if (!session.createdAt || !TIMESTAMP_REGEX.test(new Date(session.createdAt).toISOString())) {
-      throw Error(`Invalid or missing createdAt in the slot: ${id}. Expected Date object.`)
+      throw Error(`Invalid or missing createdAt in the slot: ${id}. Expected Date object.`);
     }
     if (!session.updatedAt || !TIMESTAMP_REGEX.test(new Date(session.updatedAt).toISOString())) {
-      throw Error(`Invalid or missing updatedAt in the slot: ${id}. Expected Date object.`)
+      throw Error(`Invalid or missing updatedAt in the slot: ${id}. Expected Date object.`);
     }
   }
 }

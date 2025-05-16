@@ -2,8 +2,7 @@ import { api } from 'src/redux/api';
 import { undoAdded } from 'src/redux/slices/undoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { DATE_REGEX, UUID_REGEX } from 'src/constants/regex';
-import { NormalizedSlots } from 'src/types/slots';
-import { getSlotsFromNormalized } from 'src/utils/data/getSlotsFromNormalized';
+import { Slot } from 'src/types/slots';
 
 const validateInput = (input: { employeeId: string, day: string, selectedDays: string[] }): void => {
   if (!input || typeof input !== 'object') {
@@ -38,9 +37,9 @@ const duplicateDay = api.injectEndpoints({
      * @param {string} body.employeeId - The ID of the employee.
      * @param {string} body.day - The day to duplicate slots from in YYYY-MM-DD format.
      * @param {string[]} body.selectedDays - An array of selected days to duplicate slots to.
-     * @returns {Object} - Message and normalized slots object. 
+     * @returns {Object} - Message and slots array. 
     */
-    duplicateDay: builder.mutation<{ message: string, data: NormalizedSlots }, { employeeId: string, day: string, selectedDays: string[] }>({
+    duplicateDay: builder.mutation<{ message: string, data: Slot[] }, { employeeId: string, day: string, selectedDays: string[] }>({
       query: (body) => {
         validateInput(body);
         return {
@@ -49,14 +48,11 @@ const duplicateDay = api.injectEndpoints({
           body
         }
       },
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+      async onQueryStarted(args, { dispatch, queryFulfilled }) {
         try {
           const res = await queryFulfilled;
-          const { data } = res.data;
-          const slots = getSlotsFromNormalized(data);
-          const employeeId = slots[0].employeeId;
-          const date = new Date(slots[0].startTime).toISOString().split('T')[0];
-          const { start, end } = getWeekStartEndDatesFromDay(date);
+          const { data: slots } = res.data;
+          const { start, end } = getWeekStartEndDatesFromDay(args.day);
   
           /** Stores message and duplicated slots in undoSlice data. */
           const message = 'Day has been duplicated.';
@@ -65,7 +61,7 @@ const duplicateDay = api.injectEndpoints({
           /** Inserts duplicated slots into cached getWeekSlots data. */
           dispatch(api.util.patchQueryData(
             'getWeekSlots',
-            { employeeId: employeeId, start: start, end: end },
+            { employeeId: args.employeeId, start: start, end: end },
             slots.flatMap((slot) =>
               [
                 {

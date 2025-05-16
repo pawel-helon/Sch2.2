@@ -15,12 +15,8 @@ const createResponse = (res: Response, message: string, data: NormalizedSlots | 
 export const getSlotsForReschedulingSession = async (req: Request, res: Response) => {
   const { employeeId } = req.body as { employeeId: string };
 
-  if (!employeeId) {
-    return createResponse(res, "All fields are required: employeeId, day.");
-  }
-  
-  if (!UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Invalid employeeId format. Expected UUID.");
+  if (!employeeId || !UUID_REGEX.test(employeeId)) {
+    return createResponse(res, "Missing or invalid employeeId. Expected UUID.");
   }
   
   try {
@@ -37,9 +33,7 @@ export const getSlotsForReschedulingSession = async (req: Request, res: Response
       employeeId,
     ]);
 
-    if (!result) {
-      return createResponse(res, "Failed to fetch slots.");
-    }
+    if (!result) return createResponse(res, "Failed to fetch slots.");
 
     const normalizedResult = result.rows.reduce(
       (acc: NormalizedSlots, slot) => {

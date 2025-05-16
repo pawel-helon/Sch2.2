@@ -23,7 +23,7 @@ export const updateRecurringSlotHour = async (req: Request, res: Response) => {
     return createResponse(res, "Invalid slotId format. Expected UUID.");
   }
 
-  if (hour < 0 || hour > 23) {
+  if (hour < 0 || hour > 23 || typeof hour !== 'number') {
     return createResponse(res, "Invalid hour. Expected number between 0 and 23.");
   }
 

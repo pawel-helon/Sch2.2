@@ -34,7 +34,7 @@ const undoUpdateSlotMinutes = api.injectEndpoints({
      * @param {string} body.hour - The new minutes value in MM fomrat.
      * @returns {Object} - Message and an object containing previous minutes and slot object.
     */
-    undoUpdateSlotMinutes: builder.mutation<{ message: string, data: { prevMinutes: string, slot: Slot} }, { slotId: string, minutes: number } >({
+    undoUpdateSlotMinutes: builder.mutation<{ message: string, data: { prevMinutes: string, slot: Slot} }, { slotId: string, minutes: number }>({
       query: (body) => {
         validateInput(body);
         return {

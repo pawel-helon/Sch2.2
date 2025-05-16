@@ -1,6 +1,6 @@
 import { api } from 'src/redux/api';
 import { DATE_REGEX, UUID_REGEX } from 'src/constants/regex';
-import { NormalizedSlots, Slot } from 'src/types/slots';
+import { Slot } from 'src/types/slots';
 
 const validateInput = (input: { employeeId: string, day: string }): void => {
   if (!input || typeof input !== 'object') {
@@ -23,7 +23,7 @@ const validateInput = (input: { employeeId: string, day: string }): void => {
 
 const updateSlotsForReschedulingSession = api.injectEndpoints({
   endpoints: (builder) => ({
-    updateSlotsForReschedulingSession: builder.mutation<NormalizedSlots, { employeeId: string, day: string }>({
+    updateSlotsForReschedulingSession: builder.mutation<Slot[], { employeeId: string, day: string }>({
       query: (body) => {
         validateInput(body);
         return {
@@ -32,13 +32,13 @@ const updateSlotsForReschedulingSession = api.injectEndpoints({
           body
         }
       },
-      transformResponse: (response: { message: string; data: NormalizedSlots }) => {
+      transformResponse: (response: { message: string; data: Slot[] }) => {
         return response.data;
       },
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
         try {
           const res = await queryFulfilled;
-          const slots = res.data.allIds.map((id: string) => res.data.byId[id]) as Slot[];
+          const slots = res.data;
 
           /** Clear cached getSlotsForReschedulingSession data */
           dispatch(api.util.updateQueryData(

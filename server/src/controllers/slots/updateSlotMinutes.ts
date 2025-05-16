@@ -23,7 +23,7 @@ export const updateSlotMinutes = async (req: Request, res: Response) => {
     return createResponse(res, "Invalid slotId format. Expected UUID.");
   }
 
-  if (minutes < 0 || minutes > 59) {
+  if (minutes < 0 || minutes > 59 || typeof minutes !== 'number') {
     return createResponse(res, "Invalid minnutes. Expected number between 0 and 59.");
   }
 

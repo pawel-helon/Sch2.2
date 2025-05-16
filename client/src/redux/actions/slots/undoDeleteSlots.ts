@@ -1,8 +1,7 @@
 import { api } from 'src/redux/api';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { TIMESTAMP_REGEX, UUID_REGEX } from 'src/constants/regex';
-import { getSlotsFromNormalized } from 'src/utils/data/getSlotsFromNormalized';
-import { NormalizedSlots, Slot } from 'src/types/slots';
+import { Slot } from 'src/types/slots';
 
 export const validateInput = (input: { slots: Slot[] } ): void => {
   if (!input || typeof input !== 'object') {
@@ -62,7 +61,7 @@ const undoDeleteSlots = api.injectEndpoints({
      * @param {Slot[]} body.slots - An array of slot objects to be restored.
      * @returns {Object} - Message and normalized slots object.
     */
-    undoDeleteSlots: builder.mutation<{ message: string, data: NormalizedSlots }, { slots: Slot[] }>({
+    undoDeleteSlots: builder.mutation<{ message: string, data: Slot[] }, { slots: Slot[] }>({
       query: (body) => {
         validateInput(body);
         return {
@@ -75,14 +74,14 @@ const undoDeleteSlots = api.injectEndpoints({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const res = await queryFulfilled;
-          const data = getSlotsFromNormalized(res.data.data);
-          const date = new Date(data[0].startTime).toISOString().split('T')[0];
+          const slots = res.data.data;
+          const date = new Date(slots[0].startTime).toISOString().split('T')[0];
           const { start, end } = getWeekStartEndDatesFromDay(date);
   
           dispatch(api.util.patchQueryData(
             'getWeekSlots',
-            { employeeId: data[0].employeeId, start: start, end: end },
-            data.flatMap(slot => [
+            { employeeId: slots[0].employeeId, start: start, end: end },
+            slots.flatMap(slot => [
               {
                 op: 'add',
                 path: ['byId', slot.id],

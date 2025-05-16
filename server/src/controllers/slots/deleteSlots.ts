@@ -14,16 +14,11 @@ const createResponse = (res: Response, message: string, data: { employeeId: stri
 export const deleteSlots = async (req: Request, res: Response) => {
   const { slotIds } = req.body as { slotIds: string[] };
 
-  if (!slotIds) {
-    return createResponse(res, "SlotIds is required.");
+  if (!slotIds || !Array.isArray(slotIds) || !slotIds.length) {
+    return createResponse(res, "Missing or invalid slotIds. Expected non-empty array of strings.");
   }
-  
-  if (!Array.isArray(slotIds) || !slotIds.length) {
-    return createResponse(res, "SlotIds must be a non-empty array.");
-  }
-
-  if (!slotIds.every(slotId => slotId && UUID_REGEX.test(slotId))) {
-    return createResponse(res, "Invalid slotId format. Expected UUID.")
+  if (!slotIds.every(slotId => UUID_REGEX.test(slotId))) {
+    return createResponse(res, "Invalid id in the slotIds. Expected UUID.");
   }
 
   try {

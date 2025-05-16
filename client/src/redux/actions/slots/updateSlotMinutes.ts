@@ -35,7 +35,7 @@ const updateSlotMinutes = api.injectEndpoints({
      * @param {string} body.hour - The new minutes value in MM fomrat.
      * @returns {Object} - Message and an object containing previous minutes and slot object.
     */
-    updateSlotMinutes: builder.mutation<{ message: string, data: { prevMinutes: string, slot: Slot} }, { slotId: string, minutes: number } >({
+    updateSlotMinutes: builder.mutation<{ message: string, data: { prevMinutes: string, slot: Slot} }, { slotId: string, minutes: number }>({
       query: (body) => {
         validateInput(body);
         return {

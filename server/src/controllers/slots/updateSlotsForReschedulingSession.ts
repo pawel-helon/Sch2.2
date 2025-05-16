@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { NormalizedSlots } from "../../lib/types";
+import { Slot } from "../../lib/types";
 import { pool } from "../../index";
 import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: NormalizedSlots | null = null) => {
+const createResponse = (res: Response, message: string, data: Slot[] | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -47,16 +47,7 @@ export const updateSlotsForReschedulingSession = async (req: Request, res: Respo
       return createResponse(res, "Failed to fetch slots.");
     }
 
-    const normalizedResult = result.rows.reduce(
-      (acc: NormalizedSlots, slot) => {
-        acc.byId[slot.id] = slot
-        acc.allIds.push(slot.id)
-        return acc;
-      },
-      { byId: {}, allIds: [] }
-    );
-
-    createResponse(res, "Slots have been fetched.", normalizedResult);
+    createResponse(res, "Slots have been fetched.", result.rows);
 
   } catch (error) {
     console.error("Failed to fetch slots: ", error);

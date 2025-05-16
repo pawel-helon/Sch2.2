@@ -15,20 +15,14 @@ const createResponse = (res: Response, message: string, data: Slot | null = null
 export const addSlot = async (req: Request, res: Response) => {
   const { employeeId, day } = req.body as { employeeId: string, day: string};
   
-  if (!employeeId || !day) {
-    return createResponse(res, "All fields are required: employeeId, day.");
+  if (!employeeId || !UUID_REGEX.test(employeeId)) {
+    return createResponse(res, "Missing or invalid employeeId. Expected UUID.");
   }
-
-  if (!UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Invalid employeeId format. Expected UUID.");
+  if (!day || !DATE_REGEX.test(day)) {
+    return createResponse(res, "Missing or invalid day. Expected YYYY-MM-DD.");
   }
-
-  if (!DATE_REGEX.test(day)) {
-    return createResponse(res, "Invalid day format. Expected YYYY-MM-DD.");
-  }
-
   if (new Date().getTime() > new Date(new Date(day).setHours(23,59,59,999)).getTime()) {
-    return createResponse(res, "Invalid date. Expected non-past date.");
+    return createResponse(res, "Invalid day. Expected non-past date.");
   }
 
   try {
@@ -75,9 +69,7 @@ export const addSlot = async (req: Request, res: Response) => {
     ]);
 
     
-    if (!result) {
-      return createResponse(res, "Failed to add slot.");
-    }
+    if (!result) return createResponse(res, "Failed to add slot.");
 
     createResponse(res, "New slot has been added.", result.rows[0]);
 

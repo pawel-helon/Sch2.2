@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { NormalizedSlots, Slot } from "../../lib/types";
+import { Slot } from "../../lib/types";
 import { pool } from "../../index";
 import { TIMESTAMP_REGEX, UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: NormalizedSlots | null = null) => {
+const createResponse = (res: Response, message: string, data: Slot[] | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -102,16 +102,7 @@ export const addSlots = async (req: Request, res: Response) => {
       return createResponse(res, "Failed to restore slots.");
     }
 
-    const normalizedResult = result.rows.reduce(
-      (acc: NormalizedSlots, slot) => {
-        acc.byId[slot.id] = slot
-        acc.allIds.push(slot.id)
-        return acc;
-      },
-      { byId: {}, allIds: [] }
-    );
-
-    createResponse(res, "Slots have been restored.", normalizedResult);
+    createResponse(res, "Slots have been restored.", result.rows);
 
   } catch (error) {
     console.error("Failed to restore slots: ", error);

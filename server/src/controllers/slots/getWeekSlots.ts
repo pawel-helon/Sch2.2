@@ -15,24 +15,20 @@ const createResponse = (res: Response, message: string, data: NormalizedSlots | 
 export const getWeekSlots = async (req: Request, res: Response) => {
   const { employeeId, start, end } = req.body as { employeeId: string, start: string, end: string };
 
-  if (!employeeId || !start || !end) {
-    return createResponse(res, "All fields are required: employeeId, start, and end dates.");
+  if (!employeeId || !UUID_REGEX.test(employeeId)) {
+    return createResponse(res, "Missing or invalid employeeId. Expected UUID.");
   }
-  
-  if (!UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Invalid employeeId format in slots. Expected UUID.");
+  if (!start || !DATE_REGEX.test(start)) {
+    return createResponse(res, "Missing or invalid start. Expected YYYY-MM-DD.");
   }
-  
-  if (!DATE_REGEX.test(start) || !DATE_REGEX.test(end)) {
-    return createResponse(res, "Invalid date format in start and end dates. Expected YYYY-MM-DD.");
+  if (!end || !DATE_REGEX.test(end)) {
+    return createResponse(res, "Missing or invalid end. Expected YYYY-MM-DD.");
   }
-
   if (new Date() > new Date(end)) {
-    return createResponse(res, "Invalid end date. Expected non-past date.");
+    return createResponse(res, "Invalid end. Expected non-past date.");
   }
-
   if (new Date(end).getTime() - new Date(start).getTime() !== 518400000) {
-    return createResponse(res, "Invalid start and end dates. Expected dates 6 days apart.")
+    return createResponse(res, "Invalid start and/or end. Expected dates 6 days apart.")
   }
 
   try {
@@ -49,9 +45,7 @@ export const getWeekSlots = async (req: Request, res: Response) => {
       employeeId
     ]);
 
-    if (!deletingPastSlots) {
-      createResponse(res, "Failed to delete past slots.");
-    }
+    if (!deletingPastSlots) createResponse(res, "Failed to delete past slots.");
     
     const fetchingSlotsQueryValue = `
       SELECT *
@@ -69,9 +63,7 @@ export const getWeekSlots = async (req: Request, res: Response) => {
 
     await pool.query("COMMIT");
 
-    if (!fetchingSlots) {
-      return createResponse(res, "Failed to fetch slots.");
-    }
+    if (!fetchingSlots) return createResponse(res, "Failed to fetch slots.");
 
     const normalizedResult = fetchingSlots.rows.reduce(
       (acc: NormalizedSlots, slot) => {
