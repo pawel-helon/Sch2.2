@@ -1,43 +1,24 @@
 import { api } from 'src/redux/api';
 import { undoAdded } from 'src/redux/slices/undoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
-import { UUID_REGEX } from 'src/constants/regex';
+import { validateRequest } from 'src/utils/validation/validateRequest';
+import { validateResponse } from 'src/utils/validation/validateResponse';
 import { Slot } from 'src/types/slots';
-import { HOURS } from 'src/constants/data';
-
-const validateInput = (input: { slotId: string, hour: number }): void => {
-  if (!input || typeof input !== 'object') {
-    throw new Error('Input is required. Expected an object.');
-  }
-  
-  const { slotId, hour } = input;
-  
-  if (!slotId || !HOURS.includes(hour)) {
-    throw new Error('All fields are required: slotId, hour.');
-  }
-
-  if (!UUID_REGEX.test(slotId)) {
-    throw new Error('Invalid slotId format. Expected UUID.');
-  }
-
-  if (hour < 0 || hour > 23 || typeof hour !== "number") {
-    throw new Error("Invalid hour. Expected number between 0 and 23.");
-  }
-}
 
 const updateRecurringSlotHour = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
-     * Updates the hour of a specyfic recurring slot for a given employee.
+     * Update the hour of a specyfic recurring slot for a given employee.
      * 
      * @param {Object} body - The request payload.
      * @param {string} body.slotId - The ID of the slot to be updated.
      * @param {string} body.hour - The new hour value in HH-MM fomrat.
      * @returns {Object} - Message and an object containing previous hour and slot object.
     */
-    updateRecurringSlotHour: builder.mutation<{ message: string, data: { prevHour: string, slot: Slot } }, { slotId: string, hour: number }>({
+    updateRecurringSlotHour: builder.mutation<{ message: string, data: { prevHour: number, slot: Slot } }, { slotId: string, hour: number }>({
       query: (body) => {
-        validateInput(body);
+        /** Validate request data. */
+        validateRequest('updateRecurringSlotHour', body);
         return {
           url: 'slots/update-recurring-slot-hour',
           method: 'PUT',
@@ -47,13 +28,15 @@ const updateRecurringSlotHour = api.injectEndpoints({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const res = await queryFulfilled;
-          const slot = res.data.data.slot;
-          const prevHour = Number(res.data.data.prevHour);
+          const { message, data } = res.data;
+          const { prevHour, slot } = data;
           const date = new Date(slot.startTime).toISOString().split('T')[0];
           const { start, end } = getWeekStartEndDatesFromDay(date);
-          
-          /** Stores slot's previous state in cached undoSlice data. */
-          const message = 'Recurring slot hour has been updated.'
+
+          /** Validate response data. */
+          validateResponse('updateRecurringSlotHour', { prevHour, slot });
+
+          /** Store slot's previous state in cached undoSlice data. */
           const slotPrevStartTimeMinutes = new Date(slot.startTime).getMinutes();
           const slotPrevState = {
             id: slot.id,
@@ -67,16 +50,12 @@ const updateRecurringSlotHour = api.injectEndpoints({
           }
           dispatch(undoAdded({ message, data: [slotPrevState] }));
           
-          /** Updates initial slot in cached getWeekSlots data. */
+          /** Update initial slot in cached getWeekSlots data. */
           dispatch(api.util.patchQueryData(
             'getWeekSlots',
             { employeeId: slot.employeeId, start: start, end: end },
             [
-              {
-                op: 'replace',
-                path: ['byId', slot.id],
-                value: slot
-              },
+              { op: 'replace', path: ['byId', slot.id], value: slot }
             ]
           ));
         } catch (error) {

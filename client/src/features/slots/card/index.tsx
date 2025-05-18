@@ -15,7 +15,7 @@ import { isPast } from 'src/utils/dates/isPast';
 import { getDayName } from 'src/utils/dates/getDayName';
 import { capitalizeFirstLetter } from 'src/utils/capitalizeFirstLetter';
 import { filterSlotsByRecurrence } from 'src/utils/data/filterSlotsByRecurrence';
-import { Slot } from 'src/types/slots'
+import { Slot } from 'src/types/slots';
 
 interface CardProps {
   employeeId: string;
@@ -46,7 +46,7 @@ const Loading = memo((props: LoadingProps) => {
         <Loader className='size-6 text-text-tertiary animate-spin' />
       </div>
     ) : (
-      <div className='aspect-[3/4] flex relative h-full col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background'>
+      <div className='aspect-[3/4] flex relative col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background'>
         <Loader className='size-6 text-text-tertiary absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 animate-spin' />
       </div>
     )
@@ -127,7 +127,7 @@ const Desktop = memo((props: DesktopProps) => {
   
   return !isPast(props.day) ?
     (
-      <div className='aspect-[3/4] flex relative h-full col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background'>
+      <div className='aspect-[3/4] flex relative col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background'>
         {header}
         <div className='absolute top-0 bottom-0 left-0 right-0 flex flex-col p-3 justify-center items-center gap-2 mt-4'>
           <Paragraph variant='thin' size='sm' className='w-full text-center text-text-tertiary text-balance'>
@@ -142,9 +142,9 @@ const Desktop = memo((props: DesktopProps) => {
         </div>
       </div>
     ) : (
-      <div className='aspect-[3/4] flex relative h-full col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background'>
+      <div className='aspect-[3/4] flex relative col-span-1 flex-col border rounded-md border-border shadow-lg shadow-shadow bg-background'>
         {header}
-        <Paragraph variant='thin' size='sm' className='w-full text-center text-text-tertiary text-balance absolute top-0 bottom-0 left-0 right-0 flex flex-col p-3 justify-center items-center gap-2 mt-4'>
+        <Paragraph variant='thin' size='sm' className='text-center text-text-tertiary text-balance absolute top-0 bottom-0 left-0 right-0 flex flex-col p-3 justify-center items-center gap-2 mt-4'>
           There are no slots available.
         </Paragraph>
       </div>
@@ -220,7 +220,7 @@ interface SlotsProps {
 
 const Slots = memo((props: SlotsProps) => {
   const slotList = useMemo(() => 
-    <div className='relative h-full flex flex-col gap-1 xs:mt-10 mb-12 pl-3 pr-2 overflow-y-auto scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1 bg-background'>
+    <div className='max-h-[calc(100%-56px)] flex flex-col gap-1 xs:mt-10 pl-3 pr-2 pb-10 overflow-y-auto scrollbar scrollbar-thumb-border scrollbar-thumb-rounded-full scrollbar-track-card-background scrollbar-w-1 scrollbar-h-1 bg-background'>
       {props.slots.map((slot) => (
         <Item key={slot.id} slot={slot} />
       ))}
@@ -230,12 +230,12 @@ const Slots = memo((props: SlotsProps) => {
   
   return props.isMobile ?
     (
-      <div className='aspect-square border border-border flex xs:hidden relative h-full col-span-1 flex-col bg-background'>
+      <div className='relative aspect-square border border-border flex col-span-1 flex-col bg-background'>
         {slotList}
         <Actions {...props} />
       </div>
     ) : (
-      <div className='aspect-[3/4] flex relative h-full col-span-1 flex-col border border-border shadow-lg shadow-shadow rounded-md bg-background'>
+      <div className='relative aspect-[3/4] flex flex-col col-span-1 border border-border shadow-lg shadow-shadow rounded-md bg-background'>
         <div className='absolute top-3 left-3 right-3 flex justify-between items-center bg-transparent'>
           <Paragraph variant='thick' size='sm' isMuted={isPast(props.day)}>
             {capitalizeFirstLetter(getDayName(props.day))}

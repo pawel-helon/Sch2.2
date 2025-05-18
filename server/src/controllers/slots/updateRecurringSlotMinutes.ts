@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { Slot } from "../../lib/types";
 import { pool } from "../../index";
 import { MINUTES, UUID_REGEX } from "../../lib/constants";
+import { Slot } from "../../lib/types";
 
-const createResponse = (res: Response, message: string, data: { prevMinutes: string, slot: Slot } | null = null) => {
+const createResponse = (res: Response, message: string, data: { prevMinutes: number, slot: Slot } | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -81,7 +81,7 @@ export const updateRecurringSlotMinutes = async (req: Request, res: Response) =>
         "recurring",
         "createdAt",
         "updatedAt",
-        (SELECT slot_info.current_minutes FROM slot_info) AS "prevMinutes"
+        (SELECT slot_info.current_minutes FROM slot_info)::integer AS "prevMinutes"
       ;
     `;
 
@@ -90,9 +90,7 @@ export const updateRecurringSlotMinutes = async (req: Request, res: Response) =>
       String(minutes)
     ])
     
-    if (!result) {
-      return createResponse(res, "Failed to update recurring slot minutes.");
-    }
+    if (!result) return createResponse(res, "Failed to update recurring slot minutes.");
 
     const slot = {
       id: result.rows[0].id,

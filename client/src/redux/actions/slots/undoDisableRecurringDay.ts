@@ -1,36 +1,13 @@
 import { api } from 'src/redux/api';
-import { DATE_REGEX, UUID_REGEX } from 'src/constants/regex';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
+import { validateRequest } from 'src/utils/validation/validateRequest';
+import { validateResponse } from 'src/utils/validation/validateResponse';
 import { SlotsRecurringDate } from 'src/types/slots-recurring-dates';
-
-const validateInput = (input: { employeeId: string, day: string }): void => {
-  if (!input || typeof input !== 'object') {
-    throw new Error('Input is required. Expected an object.');
-  }
-  
-  const { employeeId, day } = input;
-  
-  if (!employeeId || !day) {
-    throw new Error('All fields are required: employeeId, day.');
-  }
-
-  if (!UUID_REGEX.test(employeeId)) {
-    throw new Error('Invalid employeeId format. Expected UUID.');
-  }
-
-  if (!DATE_REGEX.test(day)) {
-    throw new Error('Invalid day format. Expected YYYY-MM-DD.');
-  }
-
-  if (new Date().getTime() > new Date(new Date(day).setHours(23,59,59,999)).getTime()) {
-    throw new Error('Invalid date. Expected non-past date.');
-  }
-}
 
 const undoDisableRecurringDay = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
-     * Unodes removing duplicated day slots for recurring days.
+     * Undo removing duplicated day slots for recurring days.
      * 
      * @param {Object} body - The request payload.
      * @param {string} body.employeeId - The ID of the employee.
@@ -39,7 +16,8 @@ const undoDisableRecurringDay = api.injectEndpoints({
     */
     undoDisableRecurringDay: builder.mutation<{ message: string, data: SlotsRecurringDate }, { employeeId: string, day: string }>({
       query: (body) => {
-        validateInput(body);
+        /** Validate request data. */
+        validateRequest('undoDisableRecurringDay', body);
         return {
           url: 'slots/set-recurring-day',
           method: 'POST',
@@ -49,24 +27,19 @@ const undoDisableRecurringDay = api.injectEndpoints({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const res = await queryFulfilled;
-          const data = res.data.data;
+          const slotsRecurringDate = res.data.data;
+
+          /** Validate response data. */
+          validateResponse('undoDisableRecurringDay', slotsRecurringDate);
         
-          /** Adds first slotsRecurringDate in cached getWeekSlotsRecurringDates data. */
-          const { start, end } = getWeekStartEndDatesFromDay(data.date);
+          /** Add first slotsRecurringDate in cached getWeekSlotsRecurringDates data. */
+          const { start, end } = getWeekStartEndDatesFromDay(slotsRecurringDate.date);
           dispatch(api.util.patchQueryData(
             'getWeekSlotsRecurringDates',
-            { employeeId: data.employeeId, start: start, end: end },
+            { employeeId: slotsRecurringDate.employeeId, start: start, end: end },
               [
-                {
-                  op: 'add',
-                  path: ['byId', data.id],
-                  value: data
-                },
-                {
-                  op: 'add',
-                  path: ['allIds', '-'],
-                  value: data.id
-                }
+                { op: 'add', path: ['byId', slotsRecurringDate.id], value: slotsRecurringDate },
+                { op: 'add', path: ['allIds', '-'], value: slotsRecurringDate.id }
               ]
           ));
         } catch (error) {

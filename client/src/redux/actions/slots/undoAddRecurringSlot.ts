@@ -1,24 +1,13 @@
 import { api } from 'src/redux/api';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
-import { UUID_REGEX } from 'src/constants/regex';
+import { validateRequest } from 'src/utils/validation/validateRequest';
+import { validateResponse } from 'src/utils/validation/validateResponse';
 import { Slot } from 'src/types/slots';
-
-const validateInput = (input: { slotId: string }): void => {
-  if (!input || typeof input !== 'object') {
-    throw new Error('Input is required. Expected an object.');
-  }
-
-  const { slotId } = input;
-
-  if (!UUID_REGEX.test(slotId)) {
-    throw new Error('Invalid slotId format. Expected UUID.');
-  }
-}
 
 const undoAddRecurringSlot = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
-     * Undoes adding recurring slot for a specific employee on a given day.
+     * Undo adding recurring slot for a specific employee on a given day.
      * 
      * @param {Object} body - The request payload.
      * @param {string} body.employeeId - The ID of the employee.
@@ -27,14 +16,14 @@ const undoAddRecurringSlot = api.injectEndpoints({
     */
     undoAddRecurringSlot: builder.mutation<{ message: string, data: Slot }, { slotId: string }>({
       query: (body) => {
-        validateInput(body);
+        /** Validate request data. */
+        validateRequest('undoAddRecurringSlot', body);
         return {
           url: 'slots/undo-add-recurring-slot',
           method: 'POST',
           body
         }
       },
-      /** Inserts first recurring slot into cached getWeekSlots data. */
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const res = await queryFulfilled;
@@ -42,18 +31,16 @@ const undoAddRecurringSlot = api.injectEndpoints({
           const date = new Date(slot.startTime).toISOString().split('T')[0];
           const { start, end } = getWeekStartEndDatesFromDay(date);
           
+          /** Validate response data. */
+          validateResponse('undoAddRecurringSlot', slot);
+          
+          /** Insert first recurring slot into cached getWeekSlots data. */
           dispatch(api.util.patchQueryData(
             'getWeekSlots',
             { employeeId: slot.employeeId, start: start, end: end},
             [
-              {
-                op: 'remove',
-                path: ['byId', slot.id],
-              },
-              {
-                op: 'remove',
-                path: ['allIds', '-'],
-              }
+              { op: 'remove', path: ['byId', slot.id] },
+              { op: 'remove', path: ['allIds', '-'] }
             ]
           ));
         } catch (error) {

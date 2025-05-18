@@ -24,7 +24,7 @@ interface ActionsProps {
 
 export const Actions = memo((props: ActionsProps) => {
   return (
-    <div className='absolute bottom-0 left-0 right-0 flex justify-between gap-2 p-3 bg-background-background'>
+    <div className='absolute bottom-0 left-0 right-0 flex justify-between gap-2 p-3 bg-background'>
       <div className='flex'>
         <DuplicateDayModal
           employeeId={props.employeeId}

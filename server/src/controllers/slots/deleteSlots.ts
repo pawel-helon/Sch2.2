@@ -49,7 +49,7 @@ export const deleteSlots = async (req: Request, res: Response) => {
     const date = new Date(startTime).toISOString().split('T')[0];
     const ids = result.rows.flatMap(slot => slot.id );
 
-    createResponse(res, "Slots have been deleted.", { employeeId, date, slotIds: ids });
+    createResponse(res, "Slot(s) have been deleted.", { employeeId, date, slotIds: ids });
 
   } catch (error) {
     console.error("Failed to delete slots: ", error);

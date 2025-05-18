@@ -1,29 +1,14 @@
 import { api } from 'src/redux/api';
 import { undoAdded } from 'src/redux/slices/undoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
-import { UUID_REGEX } from 'src/constants/regex';
+import { validateRequest } from 'src/utils/validation/validateRequest';
 import { Slot } from 'src/types/slots';
-
-const validateInput = (input: { slotId: string }): void => {
-  if (!input || typeof input !== 'object') {
-    throw new Error('Input is required. Expected an object.');
-  }
-  
-  const { slotId } = input;
-
-  if (!slotId) {
-    throw new Error('slotId is required.');
-  }
-
-  if (!UUID_REGEX.test(slotId)) {
-    throw new Error('Invalid slotId format. Expected UUID.');
-  }
-}
+import { validateResponse } from 'src/utils/validation/validateResponse';
 
 const disableSlotRecurrence = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
-     * Disables the recurrence of a slot for a given employee.
+     * Disable the recurrence of a slot for a given employee.
      * 
      * @param {Object} body - The request payload.
      * @param {string} body.slotId - The ID of the slot to disable recurrence for.
@@ -31,7 +16,8 @@ const disableSlotRecurrence = api.injectEndpoints({
     */
     disableSlotRecurrence: builder.mutation<{ message: string, data: Slot }, { slotId: string }>({
       query: (body) => {
-        validateInput(body);
+        /** Validate request data. */
+        validateRequest('disableSlotRecurrence', body);
         return {
           url: 'slots/disable-slot-recurrence',
           method: 'POST',
@@ -41,13 +27,15 @@ const disableSlotRecurrence = api.injectEndpoints({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const res = await queryFulfilled;
-          const { data: slot } = res.data;
+          const { message, data: slot } = res.data;
           const employeeId = slot.employeeId;
           const date = new Date(slot.startTime).toISOString().split('T')[0];
           const { start, end } = getWeekStartEndDatesFromDay(date);
-  
-          /** Stores message and initial slot previous state in undoSlice data. */
-          const message = 'Slot recurrence has been disabled.';
+
+          /** Validate response data. */
+          validateResponse('disableSlotRecurrence', slot);
+          
+          /** Store message and initial slot previous state in undoSlice data. */
           const prevSlotState = {
             id: slot.id,
             employeeId: slot.employeeId,
@@ -60,16 +48,12 @@ const disableSlotRecurrence = api.injectEndpoints({
           }
           dispatch(undoAdded({ message, data: [prevSlotState] }));
           
-          /** Updates initial slot in cached getWeekSlots data. */
+          /** Update initial slot in cached getWeekSlots data. */
           dispatch(api.util.patchQueryData(
             'getWeekSlots',
             { employeeId: employeeId, start: start, end: end },
               [
-                {
-                  op: 'replace',
-                  path: ['byId', slot.id],
-                  value: slot
-                },
+                { op: 'replace', path: ['byId', slot.id], value: slot },
               ]
           ));
         } catch (error) {

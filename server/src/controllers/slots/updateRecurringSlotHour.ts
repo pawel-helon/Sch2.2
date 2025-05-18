@@ -3,7 +3,7 @@ import { Slot } from "../../lib/types";
 import { pool } from "../../index";
 import { HOURS, UUID_REGEX } from "../../lib/constants";
 
-const createResponse = (res: Response, message: string, data: { prevHour: string, slot: Slot } | null = null) => {
+const createResponse = (res: Response, message: string, data: { prevHour: number, slot: Slot } | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -81,7 +81,7 @@ export const updateRecurringSlotHour = async (req: Request, res: Response) => {
         "recurring",
         "createdAt",
         "updatedAt",
-        (SELECT slot_info.current_hour FROM slot_info) AS "prevHour"
+        (SELECT slot_info.current_hour FROM slot_info)::integer AS "prevHour"
       ;
     `;
 
