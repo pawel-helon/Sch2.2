@@ -1,9 +1,10 @@
 import { api } from 'src/redux/api';
 import { undoAdded } from 'src/redux/slices/undoSlice';
+import { infoAdded } from 'src/redux/slices/infoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { validateRequest } from 'src/utils/validation/validateRequest';
-import { Slot } from 'src/types/slots';
 import { validateResponse } from 'src/utils/validation/validateResponse';
+import { Slot } from 'src/types';
 
 const duplicateDay = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -16,7 +17,7 @@ const duplicateDay = api.injectEndpoints({
      * @param {string[]} body.selectedDays - An array of selected days to duplicate slots to.
      * @returns {Object} - Message and slots array. 
     */
-    duplicateDay: builder.mutation<{ message: string, data: Slot[] }, { employeeId: string, day: string, selectedDays: string[] }>({
+    duplicateDay: builder.mutation<{ message: string, data: Slot[] | null }, { employeeId: string, day: string, selectedDays: string[] }>({
       query: (body) => {
         /** Validate request data. */
         validateRequest('duplicateDay', body);
@@ -29,8 +30,17 @@ const duplicateDay = api.injectEndpoints({
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
         try {
           const res = await queryFulfilled;
-          const { message, data: slots } = res.data;
+          const { message, data } = res.data;
           const { start, end } = getWeekStartEndDatesFromDay(args.day);
+
+          /** Return on failed action. */
+          if (message !== 'Day has been duplicated.') {
+            dispatch(infoAdded({ message: 'Failed to duplicate day.' }));
+            console.error(message);
+            return;
+          };
+
+          const slots = data as Slot[];
 
           /** Validate response data. */
           validateResponse('duplicateDay', slots);

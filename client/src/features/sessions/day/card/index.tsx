@@ -5,7 +5,7 @@ import { RescheduleSessionDesktop } from './RescheduleSessionDesktop';
 import { useGetSlotsForReschedulingSessionQuery } from 'src/redux/api';
 import { CancelSessionModal } from './CancelSessionModal';
 import { RescheduleSessionMobile } from './RescheduleSessionMobile';
-import { Session } from 'src/types/sessions';
+import { Session } from 'src/types';
 
 interface CardProps {
   session: Session;

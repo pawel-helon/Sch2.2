@@ -1,8 +1,9 @@
 import { api } from 'src/redux/api';
+import { infoAdded } from 'src/redux/slices/infoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { validateRequest } from 'src/utils/validation/validateRequest';
 import { validateResponse } from 'src/utils/validation/validateResponse';
-import { Slot } from 'src/types/slots';
+import { Slot } from 'src/types';
 
 const undoAddRecurringSlot = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -14,7 +15,7 @@ const undoAddRecurringSlot = api.injectEndpoints({
      * @param {string} body.day - The day to add the slot in YYYY-MM-DD format.
      * @returns {Object} - Message and added first recurring slot object.
     */
-    undoAddRecurringSlot: builder.mutation<{ message: string, data: Slot }, { slotId: string }>({
+    undoAddRecurringSlot: builder.mutation<{ message: string, data: Slot | null }, { slotId: string }>({
       query: (body) => {
         /** Validate request data. */
         validateRequest('undoAddRecurringSlot', body);
@@ -27,7 +28,16 @@ const undoAddRecurringSlot = api.injectEndpoints({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const res = await queryFulfilled;
-          const slot = res.data.data;
+          const { message, data } = res.data;
+          
+          /** Return on failed action. */
+          if (message !== 'Adding recurring slot has been undone.') {
+            dispatch(infoAdded({ message: 'Failed to undo add recurring slot.' }));
+            console.error(message);
+            return;
+          };
+
+          const slot = data as Slot;
           const date = new Date(slot.startTime).toISOString().split('T')[0];
           const { start, end } = getWeekStartEndDatesFromDay(date);
           

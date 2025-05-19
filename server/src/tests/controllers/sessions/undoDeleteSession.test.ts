@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { pool } from "../../../index";
-import { addSession } from "../../../controllers/sessions/undoDeleteSession";
-import { getTestDates } from "../../../lib/helpers";
+import { undoDeleteSession } from "../../../controllers/sessions/undoDeleteSession";
+import { getTestDates } from "../../../utils/getTestDates";
 
 jest.mock("../../../index", () => ({
   pool: {
@@ -9,7 +9,7 @@ jest.mock("../../../index", () => ({
   },
 }));
 
-describe("addSession", () => {
+describe("undoDeleteSession", () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let json: jest.Mock;
@@ -34,7 +34,7 @@ describe("addSession", () => {
     mockRequest.body = {};
     setupResponseFormat();
 
-    await addSession(mockRequest as Request, mockResponse as Response);
+    await undoDeleteSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
       message: "Invalid input data: session must be a non-empty object.",
@@ -55,7 +55,7 @@ describe("addSession", () => {
     }};
     setupResponseFormat();
 
-    await addSession(mockRequest as Request, mockResponse as Response);
+    await undoDeleteSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
       message: "Invalid id format. Expected UUID.",
@@ -76,7 +76,7 @@ describe("addSession", () => {
     }};
     setupResponseFormat();
 
-    await addSession(mockRequest as Request, mockResponse as Response);
+    await undoDeleteSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
       message: "Invalid slotId format. Expected UUID.",
@@ -97,7 +97,7 @@ describe("addSession", () => {
     }};
     setupResponseFormat();
 
-    await addSession(mockRequest as Request, mockResponse as Response);
+    await undoDeleteSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
       message: "Invalid employeeId format. Expected UUID.",
@@ -118,7 +118,7 @@ describe("addSession", () => {
     }};
     setupResponseFormat();
 
-    await addSession(mockRequest as Request, mockResponse as Response);
+    await undoDeleteSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
       message: "Invalid customerId format. Expected UUID.",
@@ -139,7 +139,7 @@ describe("addSession", () => {
     }};
     setupResponseFormat();
 
-    await addSession(mockRequest as Request, mockResponse as Response);
+    await undoDeleteSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
       message: "Invalid startTime format. Expected Date object.",
@@ -160,7 +160,7 @@ describe("addSession", () => {
     }};
     setupResponseFormat();
 
-    await addSession(mockRequest as Request, mockResponse as Response);
+    await undoDeleteSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
       message: "Invalid startTime. Expected non-past value.",
@@ -181,7 +181,7 @@ describe("addSession", () => {
     }};
     setupResponseFormat();
 
-    await addSession(mockRequest as Request, mockResponse as Response);
+    await undoDeleteSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
       message: "Invalid createdAt format. Expected Date object.",
@@ -202,7 +202,7 @@ describe("addSession", () => {
     }};
     setupResponseFormat();
 
-    await addSession(mockRequest as Request, mockResponse as Response);
+    await undoDeleteSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
       message: "Invalid updatedAt format. Expected Date object.",
@@ -224,7 +224,7 @@ describe("addSession", () => {
     (pool.query as jest.Mock).mockResolvedValue({ rows: [] });
     setupResponseFormat();
 
-    await addSession(mockRequest as Request, mockResponse as Response);
+    await undoDeleteSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
       message: "Failed to add session.",
@@ -256,7 +256,7 @@ describe("addSession", () => {
     (pool.query as jest.Mock).mockResolvedValue({ rows: [expectedData] });
     setupResponseFormat();
 
-    await addSession(mockRequest as Request, mockResponse as Response);
+    await undoDeleteSession(mockRequest as Request, mockResponse as Response);
 
     expect(mockResponse.send).toHaveBeenCalledWith({
       message: "Session has been restored.",
@@ -277,7 +277,7 @@ describe("addSession", () => {
     }};
     (pool.query as jest.Mock).mockRejectedValue(new Error("DB error"));
 
-    await addSession(mockRequest as Request, mockResponse as Response);
+    await undoDeleteSession(mockRequest as Request, mockResponse as Response);
 
     expect(status).toHaveBeenCalledWith(500);
     expect(json).toHaveBeenCalledWith({ error: "Internal server error." });

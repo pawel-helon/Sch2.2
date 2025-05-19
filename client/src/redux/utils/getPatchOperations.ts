@@ -1,6 +1,5 @@
 import { Patch } from 'immer';
-import { Slot } from 'src/types/slots';
-import { Session } from 'src/types/sessions';
+import { Slot, Session } from 'src/types';
 
 export const getPatchOperations = (
   eventAction: 'create' | 'update' | 'delete',

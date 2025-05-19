@@ -2,7 +2,7 @@ import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from 'src/redux/store';
 import { getDayStart } from 'src/utils/dates/getDayStart';
 import { getDayEnd } from 'src/utils/dates/getDayEnd';
-import { Session } from 'src/types/sessions';
+import { Session } from 'src/types';
 
 export const selectDaySessions = createSelector(
   [

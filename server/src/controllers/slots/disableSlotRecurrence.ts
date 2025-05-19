@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { Slot } from "../../lib/types";
+import { Slot } from "../../types";
 import { pool } from "../../index";
-import { UUID_REGEX } from "../../lib/constants";
+import { UUID_REGEX } from "../../constants";
 
 const createResponse = (res: Response, message: string, data: Slot | null = null) => {
   res.format({"application/json": () => {
@@ -76,10 +76,10 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
     await pool.query("COMMIT");
 
     if (!deletingSlots) {
-      return createResponse(res, "Failed to delete recurring slots.");
+      return createResponse(res, "Failed to delete recurring slot.");
     }
 
-    createResponse(res, "Recurring slots have been disabled.", updatingInitalSlot.rows[0]);
+    createResponse(res, "Recurring slot have been disabled.", updatingInitalSlot.rows[0]);
 
   } catch (error) {
     try {
@@ -87,7 +87,7 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
     } catch (rollbackError) {
       console.error("Rollback failed: ", rollbackError);
     }
-    console.error("Failed to disable recurring slots: ", error);
+    console.error("Failed to disable recurring slot: ", error);
     res.status(500).json({ error: "Internal server error." });
   }
 }

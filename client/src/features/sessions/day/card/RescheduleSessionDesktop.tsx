@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogTitle, DialogTrigger } from 'src/component
 import { Paragraph } from 'src/components/typography/Paragraph';
 import { getTime } from 'src/utils/dates/getTime';
 import { getDate } from 'src/utils/dates/getDate';
-import { Slot } from 'src/types/slots';
+import { Slot } from 'src/types';
 
 interface RescheduleSessionDesktopProps {
   employeeId: string;

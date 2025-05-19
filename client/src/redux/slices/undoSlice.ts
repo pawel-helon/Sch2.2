@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Slot } from 'src/types/slots';
-import { Session } from 'src/types/sessions';
+import { Slot, Session } from 'src/types';
 
 interface UndoState {
   payload: {

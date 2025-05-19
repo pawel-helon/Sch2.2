@@ -15,7 +15,7 @@ import { isPast } from 'src/utils/dates/isPast';
 import { getDayName } from 'src/utils/dates/getDayName';
 import { capitalizeFirstLetter } from 'src/utils/capitalizeFirstLetter';
 import { filterSlotsByRecurrence } from 'src/utils/data/filterSlotsByRecurrence';
-import { Slot } from 'src/types/slots';
+import { Slot } from 'src/types';
 
 interface CardProps {
   employeeId: string;

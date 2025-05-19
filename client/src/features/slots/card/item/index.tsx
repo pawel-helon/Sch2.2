@@ -6,7 +6,7 @@ import { MinutesDropdown } from 'src/features/slots/card/item/actions/MinutesDro
 import { DeleteSlotButton } from 'src/features/slots/card/item/actions/DeleteSlotButton';
 import { Button } from 'src/components/Button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from 'src/components/DropdownMenu';
-import { Slot } from 'src/types/slots';
+import { Slot } from 'src/types';
 
 interface ItemProps {
   slot: Slot;

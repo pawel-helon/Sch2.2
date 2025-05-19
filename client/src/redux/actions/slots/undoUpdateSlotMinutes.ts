@@ -1,8 +1,9 @@
 import { api } from 'src/redux/api';
+import { infoAdded } from 'src/redux/slices/infoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { validateRequest } from 'src/utils/validation/validateRequest';
 import { validateResponse } from 'src/utils/validation/validateResponse';
-import { Slot } from 'src/types/slots';
+import { Slot } from 'src/types';
 
 const undoUpdateSlotMinutes = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -14,7 +15,7 @@ const undoUpdateSlotMinutes = api.injectEndpoints({
      * @param {string} body.hour - The new minutes value in MM fomrat.
      * @returns {Object} - Message and an object containing previous minutes and slot object.
     */
-    undoUpdateSlotMinutes: builder.mutation<{ message: string, data: { prevMinutes: number, slot: Slot} }, { slotId: string, minutes: number }>({
+    undoUpdateSlotMinutes: builder.mutation<{ message: string, data: { prevMinutes: number, slot: Slot } | null }, { slotId: string, minutes: number }>({
       query: (body) => {
         /** Validate request data. */
         validateRequest('undoUpdateSlotMinutes', body);
@@ -28,7 +29,16 @@ const undoUpdateSlotMinutes = api.injectEndpoints({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const res = await queryFulfilled;
-          const { prevMinutes, slot } = res.data.data;
+          const { message, data } = res.data;
+
+          /** Return on failed action. */
+          if (message !== 'Slot minutes have been updated.') {
+            dispatch(infoAdded({ message: 'Failed to undo update slot minutes.' }));
+            console.error(message);
+            return;
+          };
+          
+          const { prevMinutes, slot } = data as { prevMinutes: number, slot: Slot };
           const date = new Date(slot.startTime).toISOString().split('T')[0];
           const { start, end } = getWeekStartEndDatesFromDay(date);
 

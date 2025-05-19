@@ -1,32 +1,14 @@
 import { api } from 'src/redux/api';
+import { infoAdded } from 'src/redux/slices/infoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
-import { UUID_REGEX } from 'src/constants/regex';
-import { Session } from 'src/types/sessions';
-
-const validateInput = (input: { sessionId: string, slotId: string }): void => {
-  if (!input || typeof input !== 'object') {
-    throw new Error('Input is required. Expected an object.');
-  }
-
-  const { sessionId, slotId } = input;
-
-  if (!sessionId || !slotId) {
-    throw new Error('All fields are required: sessionId, slotId.');
-  }
-
-  if (!UUID_REGEX.test(sessionId)) {
-    throw new Error('Invalid session ID format. Expected UUID.');
-  }
-
-  if (!UUID_REGEX.test(slotId)) {
-    throw new Error('Invalid slot ID format. Expected UUID.');
-  }
-}
+import { validateRequest } from 'src/utils/validation/validateRequest';
+import { Session } from 'src/types';
+import { validateResponse } from 'src/utils/validation/validateResponse';
 
 const undoUpdateSession = api.injectEndpoints({
   endpoints: (builder) => ({
     /**
-     * Undoes updating the session for a specific employee.
+     * Undo updating the session for a specific employee.
      * 
      * @param {Object} body - The request payload.
      * @param {string} body.sessionId - The ID of the session to be updated.
@@ -35,7 +17,8 @@ const undoUpdateSession = api.injectEndpoints({
     */
     undoUpdateSession: builder.mutation<{ message: string, data: { prevSlotId: string, prevStartTime: Date, session: Session } }, { sessionId: string, slotId: string }>({
       query: (body) => {
-        validateInput(body);
+        /** Validate request data. */
+        validateRequest('undoUpdateSession', body);
         return {
           url: 'sessions/update-session',
           method: 'PUT',
@@ -45,24 +28,32 @@ const undoUpdateSession = api.injectEndpoints({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const res = await queryFulfilled;
-          const { prevStartTime, session } = res.data.data;
+          const { message, data } = res.data;
+
+          /** Return on failed action. */
+          if (message !== 'Session has been updated.') {
+            dispatch(infoAdded({ message: 'Failed to undo update session.' }));
+            console.error(message);
+            return;
+          };
+
+          const { prevStartTime, session } = data as { prevStartTime: Date, session: Session };
           const employeeId = session.employeeId;
           const prevDate = new Date(prevStartTime).toISOString().split('T')[0];
           const { start: prevStart } = getWeekStartEndDatesFromDay(prevDate);
           const nextDate = new Date(session.startTime).toISOString().split('T')[0];
           const { start: nextStart, end } = getWeekStartEndDatesFromDay(nextDate);
+
+          /** Validate response data. */
+          validateResponse('undoUpdateSession', { prevStartTime, session });
           
-          /** Updates session in cached getWeekSessions data, if session stays in the same week*/
+          /** Update session in cached getWeekSessions data, if session stays in the same week*/
           if (prevStart === nextStart) {
             dispatch(api.util.patchQueryData(
               'getWeekSessions',
               { employeeId: employeeId, start: nextStart, end: end },
               [
-                {
-                  op: 'replace',
-                  path: ['byId', session.id],
-                  value: session
-                },
+                { op: 'replace', path: ['byId', session.id], value: session }
               ]
             ));
           } else {
@@ -70,14 +61,8 @@ const undoUpdateSession = api.injectEndpoints({
               'getWeekSessions',
               { employeeId: employeeId, start: nextStart, end: end },
               [
-                {
-                  op: 'remove',
-                  path: ['byId', session.id],
-                },
-                {
-                  op: 'remove',
-                  path: ['allIds', '-']
-                }
+                { op: 'remove', path: ['byId', session.id] },
+                { op: 'remove', path: ['allIds', '-'] }
               ]
             ));
           }

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
-import { SlotsRecurringDate } from "../../lib/types";
+import { DATE_REGEX, UUID_REGEX } from "../../constants";
+import { SlotsRecurringDate } from "../../types";
 
 const createResponse = (res: Response, message: string, data: SlotsRecurringDate | null = null) => {
   res.format({"application/json": () => {

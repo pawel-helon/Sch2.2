@@ -1,6 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from 'src/redux/store';
-import { SlotsRecurringDate } from 'src/types/slots-recurring-dates';
+import { SlotsRecurringDate } from 'src/types';
 
 export const selectSlotsRecurringDay = createSelector(
   [

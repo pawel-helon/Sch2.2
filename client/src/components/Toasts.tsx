@@ -21,8 +21,7 @@ import { useUndoDisableRecurringDayMutation } from 'src/redux/actions/slots/undo
 import { Button } from 'src/components/Button';
 import { Paragraph } from 'src/components/typography/Paragraph';
 import { useHandleBreakpoint } from 'src/hooks/useHandleBreakpoint';
-import { Slot } from 'src/types/slots';
-import { Session } from 'src/types/sessions';
+import { Slot, Session } from 'src/types';
 
 export const Toasts = () => {
   const undos = useSelector((state: RootState) => state.undo);
@@ -69,6 +68,12 @@ const Info = (props: InfoProps) => {
     }, 5000);
   },[dispatch, props])
 
+  const description = (
+    <Paragraph size='sm'>
+      {props.info.message}
+    </Paragraph>
+  );
+
   return (
     <motion.div
       className='w-full fixed top-4 xs:-top-36 mx-auto flex justify-center px-3 xl:max-w-screen-xl 2xl:max-w-screen-2xl'
@@ -77,9 +82,9 @@ const Info = (props: InfoProps) => {
       exit={{ y: 200, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 260, damping: 20 }}
     >
-      <div className='min-w-60 h-12 flex items-center gap-2 px-2 text-text-primary text-sm border border-border rounded-md shadow-shadow shadow-sm bg-background'>
-        <CrossCircledIcon className='rounded-full text-red-500' />
-        {props.info.message}
+      <div className='min-w-60 h-12 flex items-center gap-2 px-2 border border-border rounded-md shadow-shadow shadow-sm bg-background'>
+        <CrossCircledIcon className='bg-red-500 rounded-full text-background' />
+        {description}
       </div>
     </motion.div>
   )
@@ -114,7 +119,7 @@ const Undo = (props: UndoProps) => {
   },[dispatch, props])
   
   const description = (
-    <Paragraph variant='thin' size='sm'>
+    <Paragraph size='sm'>
       {props.undo.message}
     </Paragraph>
   );
@@ -178,7 +183,7 @@ const Undo = (props: UndoProps) => {
       exit={{ y: exitY, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 260, damping: 20 }}
     >
-      <div className='min-w-60 h-12 flex items-center gap-2 px-2 text-sm border border-border rounded-md shadow-shadow shadow-sm bg-background'>
+      <div className='min-w-60 h-12 flex items-center gap-2 px-2 border border-border rounded-md shadow-shadow shadow-sm bg-background'>
         <CheckIcon className='bg-green-500 rounded-full text-background' />
         {description}
         <Button onClick={ handleClick } variant='outline' size='sm' className='ml-8'>

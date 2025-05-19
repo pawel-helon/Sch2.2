@@ -4,7 +4,7 @@ import { useUpdateSlotHourMutation } from 'src/redux/actions/slots/updateSlotHou
 import { useUpdateRecurringSlotHourMutation } from 'src/redux/actions/slots/updateRecurringSlotHour';
 import { Button } from 'src/components/Button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from 'src/components/DropdownMenu';
-import { HOURS } from 'src/constants/data';
+import { HOURS } from 'src/constants';
 import { cn } from 'src/utils/cn';
 import { getSlotHourAndMinutes } from 'src/utils/dates/getSlotHourAndMinutes';
 

@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { pool } from "../../../index";
 import { addSlots } from "../../../controllers/slots/addSlots";
-import { getTestDates } from "../../../lib/helpers";
-import { NormalizedSlots } from "../../../lib/types";
+import { getTestDates } from "../../../utils/getTestDates";
+import { NormalizedSlots } from "../../../types";
 
 jest.mock("../../../index", () => ({
   pool: {

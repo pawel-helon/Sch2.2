@@ -1,9 +1,10 @@
 import { api } from 'src/redux/api';
 import { undoAdded } from 'src/redux/slices/undoSlice';
+import { infoAdded } from 'src/redux/slices/infoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
-import { Slot } from 'src/types/slots';
 import { validateRequest } from 'src/utils/validation/validateRequest';
 import { validateResponse } from 'src/utils/validation/validateResponse';
+import { Slot } from 'src/types';
 
 const addRecurringSlot = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -15,7 +16,7 @@ const addRecurringSlot = api.injectEndpoints({
      * @param {string} body.day - The day to add the slot in YYYY-MM-DD format.
      * @returns {Object} - Message and added first recurring slot object.
     */
-    addRecurringSlot: builder.mutation<{ message: string, data: Slot }, { employeeId: string, day: string }>({
+    addRecurringSlot: builder.mutation<{ message: string, data: Slot | null }, { employeeId: string, day: string }>({
       query: (body) => {
         /** Validate request data */
         validateRequest('addRecurringSlot', body);
@@ -28,7 +29,16 @@ const addRecurringSlot = api.injectEndpoints({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const res = await queryFulfilled;
-          const { message, data: slot } = res.data;
+          const { message, data } = res.data;
+
+          /** Return on failed action. */
+          if (message !== 'New recurring slot have been added.') {
+            dispatch(infoAdded({ message: 'Failed to add recurring slot.' }));
+            console.error(message);
+            return;
+          };
+
+          const slot = data as Slot;
 
           /** Validate response data. */
           validateResponse('addRecurringSlot', slot);

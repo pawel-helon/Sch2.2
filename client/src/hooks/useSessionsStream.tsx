@@ -5,7 +5,7 @@ import { api } from 'src/redux/api';
 import { AppDispatch } from 'src/redux/store';
 import { getPatchOperations } from 'src/redux/utils/getPatchOperations';
 import { getDate } from 'src/utils/dates/getDate';
-import { Session } from 'src/types/sessions';
+import { Session } from 'src/types';
 
 export const useSessionsStream = (
   employeeId: string,

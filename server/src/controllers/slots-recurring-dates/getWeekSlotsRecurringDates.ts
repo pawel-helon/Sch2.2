@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { SlotsRecurringDatesAccumulator } from "../../lib/types";
+import { NormalizedSlotsRecurringDates } from "../../types";
 import { pool } from "../../index";
-import { DATE_REGEX, UUID_REGEX } from "../../lib/constants";
+import { DATE_REGEX, UUID_REGEX } from "../../constants";
 
-const createResponse = (res: Response, message: string, data: SlotsRecurringDatesAccumulator | null = null) => {
+const createResponse = (res: Response, message: string, data: NormalizedSlotsRecurringDates | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,
@@ -50,7 +50,7 @@ export const getWeekSlotsRecurringDates = async (req: Request, res: Response) =>
     if (!result) return createResponse(res, "Failed to fetch slots recurring dates.");
 
     const normalizedResult = result.rows.reduce(
-      (acc: SlotsRecurringDatesAccumulator, slot) => {
+      (acc: NormalizedSlotsRecurringDates, slot) => {
         acc.byId[slot.id] = slot
         acc.allIds.push(slot.id)
         return acc;

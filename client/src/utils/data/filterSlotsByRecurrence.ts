@@ -1,4 +1,4 @@
-import { Slot } from 'src/types/slots';
+import { Slot } from 'src/types';
 
 export const filterSlotsByRecurrence = (data: Slot[], isRecurringSlotsOnly: boolean) => {
   let slots: Slot[] = data;

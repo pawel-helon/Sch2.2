@@ -1,9 +1,10 @@
 import { api } from 'src/redux/api';
+import { infoAdded } from 'src/redux/slices/infoSlice';
 import { undoAdded } from 'src/redux/slices/undoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { validateRequest } from 'src/utils/validation/validateRequest';
 import { validateResponse } from 'src/utils/validation/validateResponse';
-import { Slot } from 'src/types/slots';
+import { Slot } from 'src/types';
 
 const updateRecurringSlotMinutes = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -15,7 +16,7 @@ const updateRecurringSlotMinutes = api.injectEndpoints({
      * @param {string} body.hour - The new minutes value in MM fomrat.
      * @returns {Object} - Message and an object containing previous minutes and slot object.
     */
-    updateRecurringSlotMinutes: builder.mutation<{ message: string, data: { prevMinutes: number, slot: Slot} }, { slotId: string, minutes: number }>({
+    updateRecurringSlotMinutes: builder.mutation<{ message: string, data: { prevMinutes: number, slot: Slot} | null }, { slotId: string, minutes: number }>({
       query: (body) => {
         /** Validate request data. */
         validateRequest('updateRecurringSlotMinutes', body);
@@ -29,7 +30,15 @@ const updateRecurringSlotMinutes = api.injectEndpoints({
         try {
           const res = await queryFulfilled;
           const { message, data } = res.data;
-          const { prevMinutes, slot } = data;
+
+          /** Return on failed action. */
+          if (message !== 'Recurring slot minutes have been updated.') {
+            dispatch(infoAdded({ message: 'Failed to update recurring slot minutes.' }));
+            console.error(message);
+            return;
+          };
+          
+          const { prevMinutes, slot } = data as { prevMinutes: number, slot: Slot};
           const date = new Date(slot.startTime).toISOString().split('T')[0];
           const { start, end } = getWeekStartEndDatesFromDay(date);
 

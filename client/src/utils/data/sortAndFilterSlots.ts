@@ -1,4 +1,4 @@
-import { Slot } from 'src/types/slots';
+import { Slot } from 'src/types';
 
 export const sortAndFilterSlots = (slots: Slot[], firstSlot: number, lastSlot: number) => {
   const sortedSlots = slots.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());

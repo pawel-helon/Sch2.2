@@ -1,11 +1,12 @@
 import { api } from 'src/redux/api';
 import { validateRequest } from 'src/utils/validation/validateRequest';
 import { validateResponse } from 'src/utils/validation/validateResponse';
-import { Slot } from 'src/types/slots';
+import { Slot } from 'src/types';
+import { infoAdded } from 'src/redux/slices/infoSlice';
 
 const updateSlotsForReschedulingSession = api.injectEndpoints({
   endpoints: (builder) => ({
-    updateSlotsForReschedulingSession: builder.mutation<{ message: string , data: Slot[] }, { employeeId: string, day: string }>({
+    updateSlotsForReschedulingSession: builder.mutation<{ message: string , data: Slot[] | null }, { employeeId: string, day: string }>({
       query: (body) => {
         /** Validate request data. */
         validateRequest('updateSlotsForReschedulingSession', body);
@@ -18,7 +19,16 @@ const updateSlotsForReschedulingSession = api.injectEndpoints({
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
         try {
           const res = await queryFulfilled;
-          const slots = res.data.data;
+          const { message, data } = res.data;
+
+          /** Return on failed action. */
+          if (message !== 'Slots have been fetched.') {
+            dispatch(infoAdded({ message: 'Failed to fetch slots.' }));
+            console.error(message);
+            return;
+          };
+          
+          const slots = data as Slot[];
 
           /** Validate response data */
           validateResponse('updateSlotsForReschedulingSession', slots)

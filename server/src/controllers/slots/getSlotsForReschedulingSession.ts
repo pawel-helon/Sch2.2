@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { NormalizedSlots } from "../../lib/types";
+import { NormalizedSlots } from "../../types";
 import { pool } from "../../index";
-import { UUID_REGEX } from "../../lib/constants";
+import { UUID_REGEX } from "../../constants";
 
 const createResponse = (res: Response, message: string, data: NormalizedSlots | null = null) => {
   res.format({"application/json": () => {

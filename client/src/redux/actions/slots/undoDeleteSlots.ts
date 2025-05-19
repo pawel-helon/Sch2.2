@@ -1,8 +1,9 @@
 import { api } from 'src/redux/api';
+import { infoAdded } from 'src/redux/slices/infoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
 import { validateRequest } from 'src/utils/validation/validateRequest';
 import { validateResponse } from 'src/utils/validation/validateResponse';
-import { Slot } from 'src/types/slots';
+import { Slot } from 'src/types';
 
 const undoDeleteSlots = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -13,7 +14,7 @@ const undoDeleteSlots = api.injectEndpoints({
      * @param {Slot[]} body.slots - An array of slot objects to be restored.
      * @returns {Object} - Message and normalized slots object.
     */
-    undoDeleteSlots: builder.mutation<{ message: string, data: Slot[] }, { slots: Slot[] }>({
+    undoDeleteSlots: builder.mutation<{ message: string, data: Slot[] | null }, { slots: Slot[] }>({
       query: (body) => {
         /** Validate request data. */
         validateRequest('undoDeleteSlots', body);
@@ -26,7 +27,16 @@ const undoDeleteSlots = api.injectEndpoints({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const res = await queryFulfilled;
-          const slots = res.data.data;
+          const { message, data } = res.data;
+          
+          /** Return on failed action. */
+          if (message !== 'Slots have been restored.') {
+            dispatch(infoAdded({ message: 'Failed to undo delete slots.' }));
+            console.error(message);
+            return;
+          };
+          
+          const slots = data as Slot[];
           const date = new Date(slots[0].startTime).toISOString().split('T')[0];
           const { start, end } = getWeekStartEndDatesFromDay(date);
 

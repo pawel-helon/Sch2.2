@@ -1,6 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit';
-import { Slot } from 'src/types/slots';
 import { RootState } from 'src/redux/store';
+import { Slot } from 'src/types';
 
 export const selectSlotsForReschedulingSession = createSelector(
   [

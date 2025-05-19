@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { pool } from "../../../index";
 import { getWeekSlots } from "../../../controllers/slots/getWeekSlots";
-import { NormalizedSlots } from "../../../lib/types";
-import { getTestDates } from "../../../lib/helpers";
+import { NormalizedSlots } from "../../../types";
+import { getTestDates } from "../../../utils/getTestDates";
 
 // Mock the pool.query method
 jest.mock("../../../index", () => ({

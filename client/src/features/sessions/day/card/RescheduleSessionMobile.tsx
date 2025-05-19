@@ -13,7 +13,7 @@ import { Paragraph } from 'src/components/typography/Paragraph';
 import { sortAndFilterSlots } from 'src/utils/data/sortAndFilterSlots';
 import { getDate } from 'src/utils/dates/getDate';
 import { getTime } from 'src/utils/dates/getTime';
-import { Slot } from 'src/types/slots';
+import { Slot } from 'src/types';
 
 export const RescheduleSessionMobile = (props: {
   employeeId: string,

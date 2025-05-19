@@ -1,8 +1,3 @@
-export interface NormalizedSlots {
-  byId: Record<string, Slot>;
-  allIds: string[];
-}
-
 export interface Slot {
   id: string;
   employeeId: string;
@@ -12,23 +7,23 @@ export interface Slot {
   recurring: boolean;
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
-export interface SlotsRecurringDatesAccumulator {
-  byId: Record<string, SlotsRecurringDate>;
+export interface NormalizedSlots {
+  byId: Record<string, Slot>;
   allIds: string[];
-}
+};
 
 export interface SlotsRecurringDate {
   id: string;
   employeeId: string;
   date: string;
-}
+};
 
-export interface NormalizedSessions {
-  byId: Record<string, Session>;
+export interface NormalizedSlotsRecurringDates {
+  byId: Record<string, SlotsRecurringDate>;
   allIds: string[];
-}
+};
 
 export interface Session {
   id: string;
@@ -42,4 +37,9 @@ export interface Session {
   message: string | null;
   createdAt: Date;
   updatedAt: Date;
-}
+};
+
+export interface NormalizedSessions {
+  byId: Record<string, Session>;
+  allIds: string[];
+};

@@ -1,4 +1,4 @@
-import { DAYS_OF_WEEK } from "src/constants/dates"
+import { DAYS_OF_WEEK } from 'src/constants';
 import { getWeekDays } from "./getWeekDays"
 
 export const getDateFromParams = (year: number, weekNumber: number, dayName: string) => {

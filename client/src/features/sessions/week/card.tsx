@@ -5,7 +5,7 @@ import { Badge } from 'src/components/Badge';
 import { Paragraph } from 'src/components/typography/Paragraph';
 import { selectDaySessions } from 'src/redux/selectors/sessions/selectDaySessions';
 import { RootState } from 'src/redux/store';
-import { Session } from 'src/types/sessions';
+import { Session } from 'src/types';
 import { capitalizeFirstLetter } from 'src/utils/capitalizeFirstLetter';
 import { getSessionsLink } from 'src/utils/data/getSessionsLink';
 import { getDayName } from 'src/utils/dates/getDayName';

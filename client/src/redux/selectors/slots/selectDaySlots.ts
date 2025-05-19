@@ -1,8 +1,8 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { getDayStart } from 'src/utils/dates/getDayStart';
 import { getDayEnd } from 'src/utils/dates/getDayEnd';
-import { Slot } from 'src/types/slots';
 import { RootState } from 'src/redux/store';
+import { Slot } from 'src/types';
 
 export const selectDaySlots = createSelector(
   [

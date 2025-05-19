@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger
 } from 'src/components/DropdownMenu';
 import { Button } from 'src/components/Button';
-import { Slot } from 'src/types/slots';
+import { Slot } from 'src/types';
 
 interface ActionsProps {
   employeeId: string;

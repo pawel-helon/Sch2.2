@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { UUID_REGEX } from "../../lib/constants";
+import { UUID_REGEX } from "../../constants";
 
-const createResponse = (res: Response, message: string, data: string | null = null) => {
+const createResponse = (res: Response, message: string, data: { sessionId: string, employeeId: string, startTime: Date } | null = null) => {
   res.format({"application/json": () => {
     res.send({
       message,

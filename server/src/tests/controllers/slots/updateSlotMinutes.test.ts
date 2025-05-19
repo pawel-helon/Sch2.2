@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { pool } from "../../../index";
 import { updateSlotMinutes } from "../../../controllers/slots/updateSlotMinutes";
-import { getTestDates } from "../../../lib/helpers";
+import { getTestDates } from "../../../utils/getTestDates";
 
 jest.mock("../../../index", () => ({
   pool: {

@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogTitle, DialogTrigger } from 'src/component
 import { Sheet, SheetTrigger, SheetContent, SheetTitle } from 'src/components/Sheet';
 import { Button } from 'src/components/Button';
 import { Paragraph } from 'src/components/typography/Paragraph';
-import { Session } from 'src/types/sessions';
+import { Session } from 'src/types';
 
 interface CancelSessionModalProps {
   session: Session;

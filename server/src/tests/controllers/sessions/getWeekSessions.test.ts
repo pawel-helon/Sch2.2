@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { pool } from "../../../index";
-import { getTestDates } from "../../../lib/helpers";
+import { getTestDates } from "../../../utils/getTestDates";
 import { getWeekSessions } from "../../../controllers/sessions/getWeekSessions";
-import { NormalizedSessions } from "../../../lib/types";
+import { NormalizedSessions } from "../../../types";
 
 jest.mock("../../../index", () => ({
   pool: {

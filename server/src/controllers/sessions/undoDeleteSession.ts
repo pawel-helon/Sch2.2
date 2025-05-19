@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { Session } from "../../lib/types";
+import { Session } from "../../types";
 import { pool } from "../../index";
-import { TIMESTAMP_REGEX, UUID_REGEX } from "../../lib/constants";
+import { TIMESTAMP_REGEX, UUID_REGEX } from "../../constants";
 
 const createResponse = (res: Response, message: string, data: Session | null = null) => {
   res.format({"application/json": () => {

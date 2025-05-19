@@ -1,4 +1,4 @@
-import { DAYS_OF_WEEK } from 'src/constants/dates';
+import { DAYS_OF_WEEK } from 'src/constants';
 
 export const getCurrentWeek = () => {
   const today = new Date();

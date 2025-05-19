@@ -1,9 +1,10 @@
 import { api } from 'src/redux/api';
 import { undoAdded } from 'src/redux/slices/undoSlice';
+import { infoAdded } from 'src/redux/slices/infoSlice';
 import { getWeekStartEndDatesFromDay } from 'src/utils/dates/getWeekStartEndDatesFromDay';
-import { Slot } from 'src/types/slots';
 import { validateRequest } from 'src/utils/validation/validateRequest';
 import { validateResponse } from 'src/utils/validation/validateResponse';
+import { Slot } from 'src/types';
 
 const deleteSlots = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -14,7 +15,7 @@ const deleteSlots = api.injectEndpoints({
      * @param {Slot[]} body.slots - An array of slot objects to be deleted.
      * @returns {Object} - Message and data object containing employeeId, date, and an array of deleted slot IDs.
     */
-    deleteSlots: builder.mutation<{ message: string, data: { employeeId: string, date: string, slotIds: string[] } }, { slots: Slot[] }>({
+    deleteSlots: builder.mutation<{ message: string, data: { employeeId: string, date: string, slotIds: string[] } | null }, { slots: Slot[] }>({
       query: (body) => {
         /** Validate request data */
         validateRequest('deleteSlots', body);
@@ -29,7 +30,15 @@ const deleteSlots = api.injectEndpoints({
         try {
           const res = await queryFulfilled;
           const { message, data } = res.data;
-          const { employeeId, date, slotIds } = data;
+          
+          /** Return on failed action. */
+          if (message !== 'Slot(s) have been deleted.') {
+            dispatch(infoAdded({ message: 'Failed to delete slots.' }));
+            console.error(message);
+            return;
+          };
+
+          const { employeeId, date, slotIds } = data as { employeeId: string, date: string, slotIds: string[] };
 
           /** Validate response data. */
           validateResponse('deleteSlots', { employeeId, date, slotIds });

@@ -5,7 +5,7 @@ import { api } from 'src/redux/api';
 import { AppDispatch } from 'src/redux/store';
 import { getPatchOperations } from 'src/redux/utils/getPatchOperations';
 import { getDate } from 'src/utils/dates/getDate';
-import { Slot } from 'src/types/slots';
+import { Slot } from 'src/types';
 
 export const useSlotsStream = (
   employeeId: string,

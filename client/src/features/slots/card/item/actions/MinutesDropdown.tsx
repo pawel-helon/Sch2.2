@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from 'src/comp
 import { useUpdateRecurringSlotMinutesMutation } from 'src/redux/actions/slots/updateRecurringSlotMinutes';
 import { useUpdateSlotMinutesMutation } from 'src/redux/actions/slots/updateSlotMinutes';
 import { getSlotHourAndMinutes } from 'src/utils/dates/getSlotHourAndMinutes';
-import { MINUTES } from 'src/constants/data';
+import { MINUTES } from 'src/constants';
 import { cn } from 'src/utils/cn';
 
 interface MinutesDropdownProps {

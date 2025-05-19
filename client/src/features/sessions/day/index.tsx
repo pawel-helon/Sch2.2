@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Loader } from 'lucide-react';
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/redux/store'
@@ -9,8 +10,7 @@ import { Paragraph } from 'src/components/typography/Paragraph';
 import { getDateFromParams } from 'src/utils/dates/getDateFromParams';
 import { capitalizeFirstLetter } from 'src/utils/capitalizeFirstLetter';
 import { cn } from 'src/utils/cn';
-import { Session } from 'src/types/sessions';
-import { memo } from 'react';
+import { Session } from 'src/types';
 
 interface DayProps {
   year: number;

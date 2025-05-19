@@ -1,4 +1,4 @@
-import { DAYS_OF_WEEK } from 'src/constants/dates';
+import { DAYS_OF_WEEK } from 'src/constants';
 
 export const getSessionsLink = (year: number, weekNumber: number, day: string) => {
   const dayName = DAYS_OF_WEEK[new Date(day).getDay()].toLowerCase()

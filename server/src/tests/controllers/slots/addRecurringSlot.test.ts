@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getTestDates } from "../../../lib/helpers";
+import { getTestDates } from "../../../utils/getTestDates";
 import { pool } from "../../..";
 import { addRecurringSlot } from "../../../controllers/slots/addRecurringSlot";
 
