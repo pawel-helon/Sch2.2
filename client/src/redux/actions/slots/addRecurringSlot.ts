@@ -19,7 +19,7 @@ const addRecurringSlot = api.injectEndpoints({
     addRecurringSlot: builder.mutation<{ message: string, data: Slot | null }, { employeeId: string, day: string }>({
       query: (body) => {
         /** Validate request data */
-        validateRequest('addRecurringSlot', body);
+        validateRequest({ endpoint: 'addRecurringSlot', data: body });
         return {
           url: 'slots/add-recurring-slot',
           method: 'POST',
@@ -41,7 +41,7 @@ const addRecurringSlot = api.injectEndpoints({
           const slot = data as Slot;
 
           /** Validate response data. */
-          validateResponse('addRecurringSlot', slot);
+          validateResponse({ endpoint: 'addRecurringSlot', data: slot });
           
           /** Store message and slot's previous state in cached undoSlice data. */
           const date = new Date(slot.startTime).toISOString().split('T')[0];

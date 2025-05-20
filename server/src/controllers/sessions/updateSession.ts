@@ -1,33 +1,16 @@
 import { Request, Response } from "express";
-import { Session } from "../../types";
 import { pool } from "../../index";
-import { UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: { prevSlotId: string, prevStartTime: Date, session: Session} | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
+import { Session } from "../../types";
 
 export const updateSession = async (req: Request, res: Response) => {
   const { sessionId, slotId } = req.body as { sessionId: string, slotId: string };
 
-  if (!sessionId || !slotId) {
-    return createResponse(res, "All fields are required: sessionId, slotId.");
-  }
-  
-  if (!UUID_REGEX.test(sessionId)) {
-    return createResponse(res, "Invalid sessionId format. Expected UUID.");
-  }
-
-  if (!UUID_REGEX.test(slotId)) {
-    return createResponse(res, "Invalid slotId format. Expected UUID.");
-  }
-
   try {
+    validateRequest({ res, endpoint: "updateSession", data: { sessionId, slotId }});
+    
     await pool.query("BEGIN");
 
     const updatePrevSlotQueryValue = `
@@ -47,9 +30,7 @@ export const updateSession = async (req: Request, res: Response) => {
       sessionId
     ]);
 
-    if (!updatePrevSlot) {
-      return createResponse(res, "Failed to update previous slot type.");
-    }
+    if (!updatePrevSlot) return createResponse(res, "Failed to update previous slot type.");
 
     const updateNewSlotQueryValue = `
       UPDATE "Slots"
@@ -62,9 +43,7 @@ export const updateSession = async (req: Request, res: Response) => {
       slotId
     ]);
 
-    if (!updateNewSlot) {
-      return createResponse(res, "Failed to update new slot type.");
-    }
+    if (!updateNewSlot) return createResponse(res, "Failed to update new slot type.");
 
     const updateSessionQueryValue = `
       WITH session_info AS (
@@ -107,9 +86,7 @@ export const updateSession = async (req: Request, res: Response) => {
 
     await pool.query("COMMIT");
     
-    if (!updateSession) {
-      return createResponse(res, "Failed to update session.");
-    }
+    if (!updateSession) return createResponse(res, "Failed to update session.");
     
     const session = {
       id: updateSession.rows[0].id,
@@ -122,12 +99,23 @@ export const updateSession = async (req: Request, res: Response) => {
       updatedAt: updateSession.rows[0].updatedAt,
     }
 
-    createResponse(res, "Session has been updated.", {
+    validateResult({res, endpoint: "updateSession", data: {
       prevSlotId: updateSession.rows[0].prevSlotId,
       prevStartTime: updateSession.rows[0].prevStartTime,
       session: session
-    });
+    }});
     
+    /** Send response */
+    const message: string = "Session has been updated.";
+    const data: { prevSlotId: string, prevStartTime: Date, session: Session } = {
+      prevSlotId: updateSession.rows[0].prevSlotId,
+      prevStartTime: updateSession.rows[0].prevStartTime,
+      session: session
+    }
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
+
   } catch (error) {
     try {
       await pool.query("ROLLBACK");

@@ -18,11 +18,12 @@ const deleteSession = api.injectEndpoints({
     deleteSession: builder.mutation<{ message: string, data: { sessionId: string, employeeId: string, startTime: Date } | null }, { session: Session }>({
       query: (body) => {
         /** Validate request data. */
-        validateRequest('deleteSession', body);
+        validateRequest({ endpoint: 'deleteSession', data: body });
+        const sessionId = body.session.id;
         return {
           url: 'sessions/delete-session',
           method: 'DELETE',
-          body: { sessionId: body.session.id }
+          body: sessionId
         }
       },
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
@@ -42,7 +43,7 @@ const deleteSession = api.injectEndpoints({
           const { start, end } = getWeekStartEndDatesFromDay(date);
 
           /** Validate response data. */
-          validateResponse('deleteSession', { sessionId, employeeId, startTime });
+          validateResponse({ endpoint: 'deleteSession', data: { sessionId, employeeId, startTime } });
   
           /** Store message and session in cached undoSlice data.*/
           dispatch(undoAdded({ message, data: [args.session] }));

@@ -1,29 +1,16 @@
 import { Request, Response } from "express";
-import { Slot } from "../../types";
 import { pool } from "../../index";
-import { UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: Slot | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
+import { Slot } from "../../types";
 
 export const disableSlotRecurrence = async (req: Request, res: Response) => {
-  const { slotId } = req.body as { employeeId: string, slotId: string };
-  
-  if (!slotId) {
-    return createResponse(res, "slotId is required.");
-  }
-
-  if (!UUID_REGEX.test(slotId)) {
-    return createResponse(res, "Invalid slotId format. Expected UUID.");
-  }
+  const { slotId } = req.body as { slotId: string };
   
   try {
+    validateRequest({ res, endpoint: "disableSlotRecurrence", data: slotId });
+    
     await pool.query("BEGIN");
 
     const updatingInitalSlotQueryValue = `
@@ -37,9 +24,7 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
       slotId
     ]);
 
-    if(!updatingInitalSlot) {
-      createResponse(res, "Failed to update recurring field for the initial slot.")
-    }
+    if (!updatingInitalSlot) return createResponse(res, "Failed to update initial slot.");
 
     const deletingSlotsQueryValue = `
       WITH slot_info AS (
@@ -73,13 +58,18 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
       slotId
     ]);
 
+    if (!deletingSlots) return createResponse(res, "Failed to delete slots");
+
     await pool.query("COMMIT");
 
-    if (!deletingSlots) {
-      return createResponse(res, "Failed to delete recurring slot.");
-    }
+    validateResult({ res, endpoint: "disableSlotRecurrence", data: updatingInitalSlot.rows[0] });
 
-    createResponse(res, "Recurring slot have been disabled.", updatingInitalSlot.rows[0]);
+    /** Send response */
+    const message: string = "Recurring slot have been disabled.";
+    const data: Slot = updatingInitalSlot.rows[0];
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
 
   } catch (error) {
     try {

@@ -1,29 +1,16 @@
 import { Request, Response } from "express";
-import { Slot } from "../../types";
 import { pool } from "../../index";
-import { UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: Slot | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
+import { Slot } from "../../types";
+import { createResponse } from "../../utils/createResponse";
 
 export const setSlotRecurrence = async (req: Request, res: Response) => {
   const { slotId } = req.body as { slotId: string };
   
-  if (!slotId) {
-    return createResponse(res, "slotId is required.");
-  }
-  
-  if (!UUID_REGEX.test(slotId)) {
-    return createResponse(res, "Invalid slotId format. Expected UUID.");
-  }
-
   try {
+    validateRequest({ res, endpoint: "setSlotRecurrence", data: slotId });
+    
     await pool.query("BEGIN");
 
     const updatingInitalSlotQueryValue = `
@@ -37,9 +24,7 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
       slotId
     ]);
 
-    if (!updatingInitalSlot) {
-      createResponse(res, "Failed to update initial slot.")
-    } 
+    if (!updatingInitalSlot) return createResponse(res, "Failed to update initial slot.");
 
     const insertingSlotsQueryValue = `
       WITH slot_info AS (
@@ -84,13 +69,18 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
       slotId
     ]);
     
+    if (!insertingSlots) return createResponse(res, "Failed to insert slots.");
+
     await pool.query("COMMIT");
 
-    if (!insertingSlots) {
-      return createResponse(res, "Failed to insert slots.");
-    }
+    validateResult({ res, endpoint: "setSlotRecurrence", data: updatingInitalSlot.rows[0] });
 
-    createResponse(res, "Recurring slot has been set.", updatingInitalSlot.rows[0]);
+    /** Send response */
+    const message: string = "Recurring slot has been set.";
+    const data: Slot = updatingInitalSlot.rows[0];
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
 
   } catch (error) {
     try {

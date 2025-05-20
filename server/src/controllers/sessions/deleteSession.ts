@@ -1,28 +1,15 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: { sessionId: string, employeeId: string, startTime: Date } | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
 
 export const deleteSession = async (req: Request, res: Response) => {
   const { sessionId } = req.body as { sessionId: string };
 
-  if (!sessionId) {
-    return createResponse(res, "Id is required.");
-  }
-  
-  if (!UUID_REGEX.test(sessionId)) {
-    return createResponse(res, "Invalid id format. Expected UUID.");
-  }
-
   try {
+    validateRequest({ res, endpoint: "deleteSession", data: sessionId });
+    
     const queryValue = `
       WITH session_info AS (
         SELECT s."slotId" AS session_slot_id, sl."startTime" AS session_start_time
@@ -43,11 +30,16 @@ export const deleteSession = async (req: Request, res: Response) => {
       sessionId
     ]);
 
-    if (!result) {
-      return createResponse(res, "Failed to delete session.");
-    }
+    if (!result) return createResponse(res, "Failed to delete session.");
 
-    createResponse(res, "Session has been deleted.", result.rows[0]);
+    validateResult({ res, endpoint: "deleteSession", data: result.rows[0] });
+
+    /** Send response */
+    const message: string = "Session has been deleted.";
+    const data: { sessionId: string, employeeId: string, startTime: Date } = result.rows[0];
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
 
   } catch (error) {
     console.error("Failed to delete session: ", error);

@@ -1,33 +1,16 @@
 import { Request, Response } from "express";
-import { Slot } from "../../types";
 import { pool } from "../../index";
-import { DATE_REGEX, UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: Slot[] | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
+import { Slot } from "../../types";
 
 export const updateSlotsForReschedulingSession = async (req: Request, res: Response) => {
   const { employeeId, day } = req.body as { employeeId: string, day: string };
 
-  if (!employeeId) {
-    return createResponse(res, "All fields are required: employeeId, day.");
-  }
-  
-  if (!UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Invalid employeeId format. Expected UUID.");
-  }
-
-  if (!DATE_REGEX.test(day)) {
-    return createResponse(res, "Invalid day format. Expected YYYY-MM-DD.");
-  }
-
   try {
+    validateRequest({ res, endpoint: "updateSlotsForReschedulingSession", data: { employeeId, day } });
+    
     const queryValue = `
       SELECT *
       FROM "Slots"
@@ -43,11 +26,16 @@ export const updateSlotsForReschedulingSession = async (req: Request, res: Respo
       day
     ]);
 
-    if (!result) {
-      return createResponse(res, "Failed to fetch slots.");
-    }
+    if (!result) return createResponse(res, "Failed to fetch slots.");
 
-    createResponse(res, "Slots have been fetched.", result.rows);
+    validateResult({ res, endpoint: "updateSlotsForReschedulingSession", data: result.rows });
+
+    /** Send response */
+    const message: string = "Slots have been fetched.";
+    const data: Slot[] = result.rows;
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
 
   } catch (error) {
     console.error("Failed to fetch slots: ", error);

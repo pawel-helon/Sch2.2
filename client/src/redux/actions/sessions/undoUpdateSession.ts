@@ -18,7 +18,7 @@ const undoUpdateSession = api.injectEndpoints({
     undoUpdateSession: builder.mutation<{ message: string, data: { prevSlotId: string, prevStartTime: Date, session: Session } }, { sessionId: string, slotId: string }>({
       query: (body) => {
         /** Validate request data. */
-        validateRequest('undoUpdateSession', body);
+        validateRequest({ endpoint: 'undoUpdateSession', data: body });
         return {
           url: 'sessions/update-session',
           method: 'PUT',
@@ -45,7 +45,7 @@ const undoUpdateSession = api.injectEndpoints({
           const { start: nextStart, end } = getWeekStartEndDatesFromDay(nextDate);
 
           /** Validate response data. */
-          validateResponse('undoUpdateSession', { prevStartTime, session });
+          validateResponse({ endpoint: 'undoUpdateSession', data: { prevStartTime, session } });
           
           /** Update session in cached getWeekSessions data, if session stays in the same week*/
           if (prevStart === nextStart) {

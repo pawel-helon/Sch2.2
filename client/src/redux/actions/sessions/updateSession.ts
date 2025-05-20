@@ -19,7 +19,7 @@ const updateSession = api.injectEndpoints({
     updateSession: builder.mutation<{ message: string, data: { prevSlotId: string, prevStartTime: Date, session: Session } }, { sessionId: string, slotId: string }>({
       query: (body) => {
         /** Validate request data. */
-        validateRequest('updateSession', body);
+        validateRequest({ endpoint: 'updateSession', data: body });
         return {
           url: 'sessions/update-session',
           method: 'PUT',
@@ -45,7 +45,7 @@ const updateSession = api.injectEndpoints({
           const { start: nextStart, end } = getWeekStartEndDatesFromDay(nextDate);
 
           /** Validate response data. */
-          validateResponse('updateSession', { prevSlotId, prevStartTime, session });
+          validateResponse({ endpoint: 'updateSession', data: { prevSlotId, prevStartTime, session } });
   
           /** Store message adn sessions's previous state in cached undoSlice data. */
           const sessionPrevState = {

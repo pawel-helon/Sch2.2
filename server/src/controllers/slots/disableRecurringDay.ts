@@ -1,37 +1,16 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { DATE_REGEX, UUID_REGEX } from "../../constants";
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
 import { SlotsRecurringDate } from "../../types";
-
-const createResponse = (res: Response, message: string, data: SlotsRecurringDate | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
 
 export const disableRecurringDay = async (req: Request, res: Response) => {
   const { employeeId, day } = req.body as { employeeId: string, day: string };
-  
-  if (!employeeId || !day) {
-    return createResponse(res, "All fields are required: employeeId, day.");
-  }
-  
-  if (!UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Invalid employeeId format. Expected UUID.");
-  }
-  
-  if (!DATE_REGEX.test(day)) {
-    return createResponse(res, "Invalid day format. Expected YYYY-MM-DD.");
-  }
-  
-  if (new Date().getTime() > new Date(new Date(day).setHours(23,59,59,999)).getTime()) {
-    return createResponse(res, "Invalid date. Expected non-past date.");
-  }
 
   try {
+    validateRequest({ res, endpoint: "disableRecurringDay", data: { employeeId, day } });
+    
     await pool.query("BEGIN");
 
     const deletingSlotsRecurringDatesQueryValue = `
@@ -68,10 +47,8 @@ export const disableRecurringDay = async (req: Request, res: Response) => {
       day
     ])
 
-    if (!deletingSlotsRecurringDates) {
-      createResponse(res, "Failed to delete recurring dates.")
-    } 
-    
+    if (!deletingSlotsRecurringDates) return createResponse(res, "Failed to delete slots recurring dates.");
+
     const deletingSlotsQueryValue = `
       WITH slots_info AS (
         SELECT "startTime"::time AS slot_start_time
@@ -106,13 +83,18 @@ export const disableRecurringDay = async (req: Request, res: Response) => {
       day
     ]);
 
-    await pool.query("COMMIT");
-    
-    if (!deletingSlots) {
-      return createResponse(res, "Failed to delete slots.");
-    }
+    if (!deletingSlots) return createResponse(res, "Failed to delete slots.");
 
-    createResponse(res, "Recurring day has been disabled.", deletingSlotsRecurringDates.rows[0]);
+    await pool.query("COMMIT");
+
+    validateResult({ res, endpoint: "disableRecurringDay", data: deletingSlotsRecurringDates.rows[0] });
+
+    /** Send response */
+    const message: string = "Recurring day has been disabled.";
+    const data: SlotsRecurringDate = deletingSlotsRecurringDates.rows[0];
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
 
   } catch (error) {
     try {

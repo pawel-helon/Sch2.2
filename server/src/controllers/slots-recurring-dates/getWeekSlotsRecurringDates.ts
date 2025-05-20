@@ -1,37 +1,16 @@
 import { Request, Response } from "express";
-import { NormalizedSlotsRecurringDates } from "../../types";
 import { pool } from "../../index";
-import { DATE_REGEX, UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: NormalizedSlotsRecurringDates | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
+import { NormalizedSlotsRecurringDates } from "../../types";
 
 export const getWeekSlotsRecurringDates = async (req: Request, res: Response) => {
   const { employeeId, start, end } = req.body as { employeeId: string, start: string, end: string };
 
-  if (!employeeId || !UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Missing or invalid employeeId. Expected UUID.");
-  }
-  if (!start || !DATE_REGEX.test(start)) {
-    return createResponse(res, "Missing or invalid start. Expected YYYY-MM-DD.");
-  }
-  if (!end || !DATE_REGEX.test(end)) {
-    return createResponse(res, "Missing or invalid end. Expected YYYY-MM-DD.");
-  }
-  if (new Date() > new Date(end)) {
-    return createResponse(res, "Invalid end. Expected non-past date.");
-  }
-  if (new Date(end).getTime() - new Date(start).getTime() !== 518400000) {
-    return createResponse(res, "Invalid start and/or end. Expected dates 6 days apart.")
-  }
-
   try {
+    validateRequest({ res, endpoint: "getWeekSlotsRecurringDates", data: { employeeId, start, end } });
+    
     const queryValue = `
       SELECT "id", "employeeId", "date"::text
       FROM "SlotsRecurringDates"
@@ -58,7 +37,14 @@ export const getWeekSlotsRecurringDates = async (req: Request, res: Response) =>
       { byId: {}, allIds: [] }
     );
 
-    createResponse(res, "Slots have been fetched.", normalizedResult);
+    validateResult({ res, endpoint: "getWeekSlotsRecurringDates", data: normalizedResult });
+
+    /** Send response */
+    const message: string = "Slots have been fetched.";
+    const data: NormalizedSlotsRecurringDates = normalizedResult;
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
 
   } catch (error) {
     console.error("Failed to fetch slots recurring dates: ", error);

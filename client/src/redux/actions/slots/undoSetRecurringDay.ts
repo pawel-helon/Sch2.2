@@ -18,7 +18,7 @@ const undoSetRecurringDay = api.injectEndpoints({
     undoSetRecurringDay: builder.mutation<{ message: string, data: SlotsRecurringDate | null }, { employeeId: string, day: string }>({
       query: (body) => {
         /** Validate request data. */
-        validateRequest('undoSetRecurringDay', body);
+        validateRequest({ endpoint: 'undoSetRecurringDay', data: body });
         return {
           url: 'slots/disable-recurring-day',
           method: 'POST',
@@ -40,7 +40,7 @@ const undoSetRecurringDay = api.injectEndpoints({
           const slotsRecurringDate = data as SlotsRecurringDate;
           
           /** Validate response data. */
-          validateResponse('undoSetRecurringDay', slotsRecurringDate);
+          validateResponse({ endpoint: 'undoSetRecurringDay', data: slotsRecurringDate });
   
           /** Remove deleted session from cached getWeekSessions data. */
           const { start, end } = getWeekStartEndDatesFromDay(slotsRecurringDate.date);

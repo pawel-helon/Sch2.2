@@ -17,7 +17,7 @@ const undoDeleteSession = api.injectEndpoints({
     undoDeleteSession: builder.mutation<{ message: string, data: Session | null }, { session: Session }>({
       query: (body) => {
         /** Validate request data. */
-        validateRequest('undoDeleteSession', body);
+        validateRequest({ endpoint: 'undoDeleteSession', data: body });
         return {
           url: 'sessions/undo-delete-session',
           method: 'POST',
@@ -42,7 +42,7 @@ const undoDeleteSession = api.injectEndpoints({
           const { start, end } = getWeekStartEndDatesFromDay(date);
 
           /** Validate response data. */
-          validateResponse('undoDeleteSession', session)
+          validateResponse({ endpoint: 'undoDeleteSession', data: session })
     
           /** Insert restored session into cached getWeekSessions data. */
           dispatch(api.util.patchQueryData(

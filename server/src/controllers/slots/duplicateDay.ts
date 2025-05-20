@@ -1,41 +1,16 @@
 import { Request, Response } from "express";
-import { Slot } from "../../types";
 import { pool } from "../../index";
-import { DATE_REGEX, UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: Slot[] | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
+import { Slot } from "../../types";
 
 export const duplicateDay = async (req: Request, res: Response) => {
   const { employeeId, day, selectedDays } = req.body as { employeeId: string, day: string, selectedDays: string[] };
 
-  if (!employeeId || !day || !selectedDays) {
-    return createResponse(res, "All fields are required: employeeId, day, selectedDays.");
-  }
-  
-  if (!UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Invalid employeeId format. Expected UUID.");
-  }
-  
-  if (!DATE_REGEX.test(day)) {
-    return createResponse(res, "Invalid day format. Expected YYYY-MM-DD.");
-  }  
-
-  if (!Array.isArray(selectedDays) || !selectedDays.length) {
-    return createResponse(res, "selectedDays must be a non-empty array.")
-  }
-
-  if (!selectedDays.every(day => day && DATE_REGEX.test(day))) {
-    return createResponse(res, "Invalid day format in selectedDays array. Expected YYYY-MM-DD.");
-  }
-
   try {
+    validateRequest({ res, endpoint: "duplicateDay", data: { employeeId, day, selectedDays } });
+    
     const queryValue = `
       WITH slots_info AS (
         SELECT
@@ -76,11 +51,16 @@ export const duplicateDay = async (req: Request, res: Response) => {
       selectedDays
     ]);
 
-    if (!result) {
-      return createResponse(res, "Failed to duplicate day.");
-    }
+    if (!result) return createResponse(res, "Failed to duplicate day.")
 
-    createResponse(res, "Day has been duplicated.", result.rows);
+    validateResult({ res, endpoint: "duplicateDay", data: result.rows });
+
+    /** Send response */
+    const message: string = "Day has been duplicated.";
+    const data: Slot[] = result.rows[0];
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
 
   } catch (error) {
     console.error("Failed to duplicate day: ", error);

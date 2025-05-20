@@ -20,7 +20,7 @@ const duplicateDay = api.injectEndpoints({
     duplicateDay: builder.mutation<{ message: string, data: Slot[] | null }, { employeeId: string, day: string, selectedDays: string[] }>({
       query: (body) => {
         /** Validate request data. */
-        validateRequest('duplicateDay', body);
+        validateRequest({ endpoint: 'duplicateDay', data: body });
         return {
           url: 'slots/duplicate-day',
           method: 'POST',
@@ -43,7 +43,7 @@ const duplicateDay = api.injectEndpoints({
           const slots = data as Slot[];
 
           /** Validate response data. */
-          validateResponse('duplicateDay', slots);
+          validateResponse({ endpoint: 'duplicateDay', data: slots });
   
           /** Store message and duplicated slots in undoSlice data. */
           dispatch(undoAdded({ message, data: slots }));

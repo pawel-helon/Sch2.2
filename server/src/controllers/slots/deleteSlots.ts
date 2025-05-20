@@ -1,27 +1,15 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: { employeeId: string, date: string, slotIds: string[] } | null = null ) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
 
 export const deleteSlots = async (req: Request, res: Response) => {
   const { slotIds } = req.body as { slotIds: string[] };
 
-  if (!slotIds || !Array.isArray(slotIds) || !slotIds.length) {
-    return createResponse(res, "Missing or invalid slotIds. Expected non-empty array of strings.");
-  }
-  if (!slotIds.every(slotId => UUID_REGEX.test(slotId))) {
-    return createResponse(res, "Invalid id in the slotIds. Expected UUID.");
-  }
-
   try {
+    validateRequest({ res, endpoint: "deleteSlots", data: slotIds });
+    
     const queryValue = `
       WITH slot_ids AS (
         SELECT unnest($1::uuid[]) AS slot_id
@@ -40,16 +28,21 @@ export const deleteSlots = async (req: Request, res: Response) => {
       slotIds,
     ]);
 
-    if (!result) {
-      return createResponse(res, "Failed to delete slots.");
-    }
+    if (!result) return createResponse(res, "Failed to delete slots.");
 
-    const employeeId = result.rows[0].employeeId;
-    const startTime = result.rows[0].startTime;
-    const date = new Date(startTime).toISOString().split('T')[0];
-    const ids = result.rows.flatMap(slot => slot.id );
+    const employeeId: string = result.rows[0].employeeId;
+    const startTime: Date = result.rows[0].startTime;
+    const date: string = new Date(startTime).toISOString().split('T')[0];
+    const ids: string[] = result.rows.flatMap(slot => slot.id );
 
-    createResponse(res, "Slot(s) have been deleted.", { employeeId, date, slotIds: ids });
+    validateResult({ res, endpoint: "deleteSlots", data: { employeeId, date, slotIds: ids } });
+
+    /** Send response */
+    const message: string = "Slot(s) have been deleted.";
+    const data: { employeeId: string, date: string, slotIds: string[] } = { employeeId, date, slotIds: ids }
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
 
   } catch (error) {
     console.error("Failed to delete slots: ", error);

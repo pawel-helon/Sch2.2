@@ -1,68 +1,23 @@
 import { Request, Response } from "express";
-import { Slot } from "../../types";
 import { pool } from "../../index";
-import { TIMESTAMP_REGEX, UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: Slot[] | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
+import { Slot } from "../../types";
 
 export const addSlots = async (req: Request, res: Response) => {
   const { slots } = req.body as { slots: Slot[] };
-
-  if (!Array.isArray(slots) || !slots.length) {
-    return createResponse(res, "Slots must be a non-empty array.");
-  }
-
-  if (!slots.every(slot => slot && typeof slot === 'object')) {
-    return createResponse(res, "Each slot must be a valid object.");
-  }
-
-  if (!slots.every(slot => slot.id && UUID_REGEX.test(slot.id))) {
-    return createResponse(res, "Invalid id format in slots. Expected UUID.");
-  }
-
-  if (!slots.every(slot => slot.employeeId && UUID_REGEX.test(slot.employeeId))) {
-    return createResponse(res, "Invalid employeeId format in slots. Expected UUID.");
-  }
-
-  if (!slots.every(slot => slot.type && (slot.type === "AVAILABLE" || slot.type === "BLOCKED" || slot.type === "BOOKED"))) {
-    return createResponse(res, "Invalid type in slots. Expected AVAILABLE, BLOCKED or BOOKED.");
-  }
-
-  if (!slots.every(slot => slot.startTime && TIMESTAMP_REGEX.test(new Date(slot.startTime).toISOString()))) {
-    return createResponse(res, "Invalid startTime format in slots.");
-  }
-
-  if (!slots.every(slot => slot.duration && typeof slot.duration === "object")) {
-    return createResponse(res, "Invalid duration format in slots. Expected string in the object.");
-  }
-
-  if (!slots.every(slot => typeof slot.recurring === "boolean")) {
-    return createResponse(res, "Invalid recurring format in slots. Expected boolean.");
-  }
-
-  if (!slots.every(slot => slot.createdAt && TIMESTAMP_REGEX.test(new Date(slot.createdAt).toISOString()))) {
-    return createResponse(res, "Invalid createdAt format in slots.");
-  }
-
-  if (!slots.every(slot => slot.updatedAt && TIMESTAMP_REGEX.test(new Date(slot.updatedAt).toISOString()))) {
-    return createResponse(res, "Invalid updatedAt format in slots.");
-  }
-
-  const slots_id = slots.map(slot => slot.id);
-  const slots_type = slots.map(slot => slot.type);
-  const slots_start_time = slots.map(slot => slot.startTime);
-  const slots_duration = slots.map(slot => `00:${slot.duration.minutes}:00`);
-  const slots_recurring = slots.map(slot => slot.recurring) ;
-  const slots_created_at = slots.map(slot => slot.createdAt);
-
+  
   try {
+    validateRequest({ res, endpoint: "addSlots", data: slots });
+    
+    const slots_id = slots.map(slot => slot.id);
+    const slots_type = slots.map(slot => slot.type);
+    const slots_start_time = slots.map(slot => slot.startTime);
+    const slots_duration = slots.map(slot => `00:${slot.duration.minutes}:00`);
+    const slots_recurring = slots.map(slot => slot.recurring) ;
+    const slots_created_at = slots.map(slot => slot.createdAt);
+
     const queryValue = `
       WITH slots_input AS (
         SELECT unnest($2::uuid[]) AS slot_id,
@@ -98,11 +53,16 @@ export const addSlots = async (req: Request, res: Response) => {
       slots_created_at
     ]);
 
-    if (!result) {
-      return createResponse(res, "Failed to restore slots.");
-    }
+    if (!result) return createResponse(res, "Failed to restore slots");
 
-    createResponse(res, "Slots have been restored.", result.rows);
+    validateResult({ res, endpoint: "addSlots", data: result.rows });
+
+    /** Send response */
+    const message: string = "Slots have been restored.";
+    const data: Slot[] = result.rows;
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
 
   } catch (error) {
     console.error("Failed to restore slots: ", error);

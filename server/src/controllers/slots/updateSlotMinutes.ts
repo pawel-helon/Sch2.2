@@ -1,33 +1,16 @@
 import { Request, Response } from "express";
-import { Slot } from "../../types";
 import { pool } from "../../index";
-import { MINUTES, UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: { prevMinutes: number, slot: Slot } | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
+import { Slot } from "../../types";
 
 export const updateSlotMinutes = async (req: Request, res: Response) => {
   const { slotId, minutes } = req.body as { slotId: string, minutes: number };
-  
-  if (!slotId || !MINUTES.includes(minutes)) {
-    return createResponse(res, "All fields are required: employeeId, slotId and minutes.");
-  }
-  
-  if (!UUID_REGEX.test(slotId)) {
-    return createResponse(res, "Invalid slotId format. Expected UUID.");
-  }
-
-  if (minutes < 0 || minutes > 59 || typeof minutes !== 'number') {
-    return createResponse(res, "Invalid minnutes. Expected number between 0 and 59.");
-  }
 
   try {
+    validateRequest({ res, endpoint: "updateSlotMinutes", data: { slotId, minutes } });
+    
     const queryValue = `
       WITH slot_info AS (
         SELECT 
@@ -75,9 +58,7 @@ export const updateSlotMinutes = async (req: Request, res: Response) => {
       minutes
     ])
 
-    if (!result) {
-      return createResponse(res, "Failed to update slot minutes.");
-    }
+    if (!result) return createResponse(res, "Failed to update slot minutes.");
 
     const slot = {
       id: result.rows[0].id,
@@ -90,7 +71,14 @@ export const updateSlotMinutes = async (req: Request, res: Response) => {
       updatedAt: result.rows[0].updatedAt
     }
 
-    createResponse(res, "Slot minutes have been updated.", { prevMinutes: result.rows[0].prevMinutes, slot });
+    validateResult({ res, endpoint: "updateSlotMinutes", data: { prevMinutes: result.rows[0].prevMinutes, slot } });
+
+    /** Send response */
+    const message: string = "Slot minutes have been updated.";
+    const data: { prevMinutes: number, slot: Slot } = { prevMinutes: result.rows[0].prevMinutes, slot };
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
 
   } catch (error) {
     console.error("Failed to update slot minutes: ", error);

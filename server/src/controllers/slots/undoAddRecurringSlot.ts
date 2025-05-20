@@ -1,29 +1,16 @@
 import { Request, Response } from "express";
-import { Slot } from "../../types";
 import { pool } from "../../index";
-import { UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: Slot | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
+import { Slot } from "../../types";
 
 export const undoAddRecurringSlot = async (req: Request, res: Response) => {
   const { slotId } = req.body as { employeeId: string, slotId: string };
   
-  if (!slotId) {
-    return createResponse(res, "slotId is required.");
-  }
-
-  if (!UUID_REGEX.test(slotId)) {
-    return createResponse(res, "Invalid slotId format. Expected UUID.");
-  }
-  
   try {
+    validateRequest({res, endpoint: "undoAddRecurringSlot", data: slotId});
+    
     const queryValue = `
       WITH slot_info AS (
         SELECT
@@ -56,11 +43,16 @@ export const undoAddRecurringSlot = async (req: Request, res: Response) => {
       slotId
     ]);
 
-    if (!result) {
-      return createResponse(res, "Failed to undo add recurring slot.");
-    }
+    if (!result) return createResponse(res, "Failed to undo add recurring slot.");
 
-    createResponse(res, "Adding recurring slot has been undone.", result.rows[0]);
+    validateResult({ res, endpoint: "undoAddRecurringSlot", data: result.rows[0] });
+
+    /** Send response */
+    const message: string = "Adding recurring slot has been undone.";
+    const data: Slot = result.rows[0];
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
 
   } catch (error) {
     console.error("Failed to undo add recurring slot: ", error);

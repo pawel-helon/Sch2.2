@@ -19,7 +19,7 @@ const updateSlotMinutes = api.injectEndpoints({
     updateSlotMinutes: builder.mutation<{ message: string, data: { prevMinutes: number, slot: Slot } | null }, { slotId: string, minutes: number }>({
       query: (body) => {
         /** Validate request data. */
-        validateRequest('updateSlotMinutes', body);
+        validateRequest({ endpoint: 'updateSlotMinutes', data: body });
         return {
           url: 'slots/update-slot-minutes',
           method: 'PUT',
@@ -43,7 +43,7 @@ const updateSlotMinutes = api.injectEndpoints({
           const { start, end } = getWeekStartEndDatesFromDay(date);
 
           /** Validate response data. */
-          validateResponse('updateSlotMinutes', { prevMinutes, slot });
+          validateResponse({ endpoint: 'updateSlotMinutes', data: { prevMinutes, slot } });
   
           /** Store slot's previous state in cached undoSlice data. */
           const slotPrevStartTimeHours = new Date(slot.startTime).getHours();  

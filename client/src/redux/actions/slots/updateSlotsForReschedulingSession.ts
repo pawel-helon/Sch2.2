@@ -1,15 +1,15 @@
 import { api } from 'src/redux/api';
+import { infoAdded } from 'src/redux/slices/infoSlice';
 import { validateRequest } from 'src/utils/validation/validateRequest';
 import { validateResponse } from 'src/utils/validation/validateResponse';
 import { Slot } from 'src/types';
-import { infoAdded } from 'src/redux/slices/infoSlice';
 
 const updateSlotsForReschedulingSession = api.injectEndpoints({
   endpoints: (builder) => ({
     updateSlotsForReschedulingSession: builder.mutation<{ message: string , data: Slot[] | null }, { employeeId: string, day: string }>({
       query: (body) => {
         /** Validate request data. */
-        validateRequest('updateSlotsForReschedulingSession', body);
+        validateRequest({ endpoint: 'updateSlotsForReschedulingSession', data: body });
         return {
           url: 'slots/update-slots-for-rescheduling-session',
           method: 'POST',
@@ -31,7 +31,7 @@ const updateSlotsForReschedulingSession = api.injectEndpoints({
           const slots = data as Slot[];
 
           /** Validate response data */
-          validateResponse('updateSlotsForReschedulingSession', slots)
+          validateResponse({ endpoint: 'updateSlotsForReschedulingSession', data: slots })
 
           /** Clear cached getSlotsForReschedulingSession data */
           dispatch(api.util.updateQueryData(

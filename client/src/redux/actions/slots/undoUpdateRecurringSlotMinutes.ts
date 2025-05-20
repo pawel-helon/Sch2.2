@@ -18,7 +18,7 @@ const undoUpdateRecurringSlotMinutes = api.injectEndpoints({
     undoUpdateRecurringSlotMinutes: builder.mutation<{ message: string, data: { prevMinutes: number, slot: Slot} | null }, { slotId: string, minutes: number }>({
       query: (body) => {
         /** Validate request data. */
-        validateRequest('undoUpdateRecurringSlotMinutes', body);
+        validateRequest({ endpoint: 'undoUpdateRecurringSlotMinutes', data: body });
         return {
           url: 'slots/update-recurring-slot-minutes',
           method: 'PUT',
@@ -42,7 +42,7 @@ const undoUpdateRecurringSlotMinutes = api.injectEndpoints({
           const { start, end } = getWeekStartEndDatesFromDay(date);
 
           /** Validate response data. */
-          validateResponse('undoUpdateRecurringSlotMinutes', { prevMinutes, slot });
+          validateResponse({ endpoint: 'undoUpdateRecurringSlotMinutes', data: { prevMinutes, slot } });
           
           /** Update initial slot in cached getWeekSlots data. */
           dispatch(api.util.patchQueryData(

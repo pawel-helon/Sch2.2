@@ -1,33 +1,16 @@
 import { Request, Response } from "express";
-import { Slot } from "../../types";
 import { pool } from "../../index";
-import { HOURS, UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: { prevHour: number, slot: Slot } | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
+import { Slot } from "../../types";
 
 export const updateRecurringSlotHour = async (req: Request, res: Response) => {
   const { slotId, hour } = req.body as { slotId: string, hour: number };
-  
-  if (!slotId || !HOURS.includes(hour)) {
-    return createResponse(res, "All fields are required: employeeId, slotId and hour.");
-  }
-  
-  if (!UUID_REGEX.test(slotId)) {
-    return createResponse(res, "Invalid slotId format. Expected UUID.");
-  }
-
-  if (hour < 0 || hour > 23 || typeof hour !== 'number') {
-    return createResponse(res, "Invalid hour. Expected number between 0 and 23.");
-  }
 
   try {
+    validateRequest({ res, endpoint: "updateRecurringSlotHour", data: { slotId, hour } });
+    
     const queryValue = `
       WITH slot_info AS (
         SELECT 
@@ -90,9 +73,7 @@ export const updateRecurringSlotHour = async (req: Request, res: Response) => {
       String(hour)
     ])
     
-    if (!result) {
-      return createResponse(res, "Failed to update recurring slot hour.");
-    }
+    if (!result) return createResponse(res, "Failed to update recurring slot hour.");
 
     const slot = {
       id: result.rows[0].id,
@@ -103,9 +84,16 @@ export const updateRecurringSlotHour = async (req: Request, res: Response) => {
       recurring: result.rows[0].recurring,
       createdAt: result.rows[0].createdAt,
       updatedAt: result.rows[0].updatedAt
-    }
+    } as Slot;
 
-    createResponse(res, "Recurring slot hour has been updated.", { prevHour: result.rows[0].prevHour, slot });
+    validateResult({ res, endpoint: "updateRecurringSlotHour", data: { prevHour: result.rows[0].prevHour, slot } });
+
+    /** Send response */
+    const message: string = "Recurring slot hour has been updated.";
+    const data: { prevHour: number, slot: Slot } = { prevHour: result.rows[0].prevHour, slot };
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
     
   } catch (error) {
     console.error("Failed to update recurring slot hour: ", error);

@@ -3,7 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import { useDispatch } from 'react-redux';
 import { api } from 'src/redux/api';
 import { AppDispatch } from 'src/redux/store';
-import { getPatchOperations } from 'src/redux/utils/getPatchOperations';
+import { getPatchOperations } from 'src/utils/getPatchOperations';
 import { getDate } from 'src/utils/dates/getDate';
 import { Slot } from 'src/types';
 

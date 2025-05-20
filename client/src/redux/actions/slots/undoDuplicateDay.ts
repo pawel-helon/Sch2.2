@@ -17,7 +17,7 @@ const undoDuplicateDay = api.injectEndpoints({
     undoDuplicateDay: builder.mutation<{ message: string, data: { employeeId: string, date: string, slotIds: string[] } | null }, { slots: Slot[] }>({
       query: (body) => {
         /** Validate request data. */
-        validateRequest('undoDuplicateDay', body);
+        validateRequest({ endpoint: 'undoDuplicateDay', data: body });
         const slotIds = body.slots.map(slot => slot.id);
         return {
           url: 'slots/delete-slots',
@@ -41,7 +41,7 @@ const undoDuplicateDay = api.injectEndpoints({
           const { start, end } = getWeekStartEndDatesFromDay(date);
 
           /** Validate response data. */
-          validateResponse('undoDuplicateDay', { employeeId, date, slotIds });
+          validateResponse({ endpoint: 'undoDuplicateDay', data: { employeeId, date, slotIds }});
           
           /** Remove deleted slots from cached getWeekSlots data. */
           dispatch(api.util.patchQueryData(

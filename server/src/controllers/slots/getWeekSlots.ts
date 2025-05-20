@@ -1,37 +1,16 @@
 import { Request, Response } from "express";
-import { NormalizedSlots } from "../../types";
 import { pool } from "../../index";
-import { DATE_REGEX, UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: NormalizedSlots | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
+import { NormalizedSlots } from "../../types";
 
 export const getWeekSlots = async (req: Request, res: Response) => {
   const { employeeId, start, end } = req.body as { employeeId: string, start: string, end: string };
 
-  if (!employeeId || !UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Missing or invalid employeeId. Expected UUID.");
-  }
-  if (!start || !DATE_REGEX.test(start)) {
-    return createResponse(res, "Missing or invalid start. Expected YYYY-MM-DD.");
-  }
-  if (!end || !DATE_REGEX.test(end)) {
-    return createResponse(res, "Missing or invalid end. Expected YYYY-MM-DD.");
-  }
-  if (new Date() > new Date(end)) {
-    return createResponse(res, "Invalid end. Expected non-past date.");
-  }
-  if (new Date(end).getTime() - new Date(start).getTime() !== 518400000) {
-    return createResponse(res, "Invalid start and/or end. Expected dates 6 days apart.")
-  }
-
   try {
+    validateRequest({ res, endpoint: "getWeekSlots", data: { employeeId, start, end } });
+    
     await pool.query("BEGIN");
 
     const deletingPastSlotsQueryValue = `
@@ -45,7 +24,7 @@ export const getWeekSlots = async (req: Request, res: Response) => {
       employeeId
     ]);
 
-    if (!deletingPastSlots) createResponse(res, "Failed to delete past slots.");
+    if (!deletingPastSlots) return createResponse(res, "Failed to delete past slots.");
     
     const fetchingSlotsQueryValue = `
       SELECT *
@@ -61,9 +40,9 @@ export const getWeekSlots = async (req: Request, res: Response) => {
       end
     ]);
 
-    await pool.query("COMMIT");
-
     if (!fetchingSlots) return createResponse(res, "Failed to fetch slots.");
+
+    await pool.query("COMMIT");
 
     const normalizedResult = fetchingSlots.rows.reduce(
       (acc: NormalizedSlots, slot) => {
@@ -74,7 +53,14 @@ export const getWeekSlots = async (req: Request, res: Response) => {
       { byId: {}, allIds: [] }
     );
 
-    createResponse(res, "Slots have been fetched.", normalizedResult);
+    validateResult({ res, endpoint: "getWeekSlots", data: normalizedResult });
+
+    /** Send response */
+    const message: string = "Slots have been fetched.";
+    const data: NormalizedSlots = normalizedResult;
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
 
   } catch (error) {
     try {

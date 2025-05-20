@@ -1,57 +1,16 @@
 import { Request, Response } from "express";
-import { Session } from "../../types";
 import { pool } from "../../index";
-import { TIMESTAMP_REGEX, UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: Session | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
+import { Session } from "../../types";
 
 export const undoDeleteSession = async (req: Request, res: Response) => {
   const { session } = req.body as { session: Session };
-
-  if (!session || typeof session !== "object" || !Object.keys(session).length) {
-    return createResponse(res, "Invalid input data: session must be a non-empty object.");
-  }
-
-  if (!session.id || !session.slotId || !session.employeeId || !session.customerId || !session.startTime || !session.createdAt || !session.updatedAt) {
-    return createResponse(res, 'Required fields: id, slotId, employeeId, customerId, startTime, createdAt, updatedAt.');
-  }
-
-  if (!UUID_REGEX.test(session.id)) {
-    return createResponse(res, "Invalid id format. Expected UUID.");
-  }
-
-  if (!UUID_REGEX.test(session.slotId)) {
-    return createResponse(res, "Invalid slotId format. Expected UUID.");
-  }
-
-  if (!UUID_REGEX.test(session.employeeId)) {
-    return createResponse(res, "Invalid employeeId format. Expected UUID.");
-  }
-
-  if (!UUID_REGEX.test(session.customerId)) {
-    return createResponse(res, "Invalid customerId format. Expected UUID.");
-  }
-
-  if (!TIMESTAMP_REGEX.test(new Date(session.startTime).toISOString())) {
-    return createResponse(res, "Invalid startTime format. Expected Date object.");
-  }
-
-  if (!TIMESTAMP_REGEX.test(new Date(session.createdAt).toISOString())) {
-    return createResponse(res, "Invalid createdAt format. Expected Date object.");
-  }
-
-  if (!TIMESTAMP_REGEX.test(new Date(session.updatedAt).toISOString())) {
-    return createResponse(res, "Invalid updatedAt format. Expected Date object.");
-  }
   
   try {
+    validateRequest({ res, endpoint: "undoDeleteSession", data: session });
+    
     const queryValue = `
       WITH slot_info AS (
         SELECT "startTime" AS slot_start_time
@@ -91,11 +50,16 @@ export const undoDeleteSession = async (req: Request, res: Response) => {
       session.createdAt,
     ]);
 
-    if (!result) {
-      return createResponse(res, "Failed to restore session.");
-    }
+    if (!result) return createResponse(res, "Failed to restore session.");
 
-    createResponse(res, "Session has been restored.", result.rows[0]);
+    validateResult({ res, endpoint: "undoDeleteSession", data: result.rows[0] });
+
+    /** Send response */
+    const message: string = "Session has been restored.";
+    const data: Session = result.rows[0];
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
 
   } catch (error) {
     console.error("Failed to restore session: ", error);

@@ -17,7 +17,7 @@ const undoDeleteSlots = api.injectEndpoints({
     undoDeleteSlots: builder.mutation<{ message: string, data: Slot[] | null }, { slots: Slot[] }>({
       query: (body) => {
         /** Validate request data. */
-        validateRequest('undoDeleteSlots', body);
+        validateRequest({ endpoint: 'undoDeleteSlots', data: body });
         return {
           url: 'slots/add-slots',
           method: 'POST',
@@ -41,7 +41,7 @@ const undoDeleteSlots = api.injectEndpoints({
           const { start, end } = getWeekStartEndDatesFromDay(date);
 
           /** Validate response data. */
-          validateResponse('undoDeleteSlots', slots);
+          validateResponse({ endpoint: 'undoDeleteSlots', data: slots });
           
           /** Insert restored slots into cached getWeekSlots data. */
           dispatch(api.util.patchQueryData(

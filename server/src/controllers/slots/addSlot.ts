@@ -1,31 +1,16 @@
 import { Request, Response } from "express";
-import { Slot } from "../../types";
 import { pool } from "../../index";
-import { DATE_REGEX, UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: Slot | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
+import { Slot } from "../../types";
 
 export const addSlot = async (req: Request, res: Response) => {
   const { employeeId, day } = req.body as { employeeId: string, day: string};
   
-  if (!employeeId || !UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Missing or invalid employeeId. Expected UUID.");
-  }
-  if (!day || !DATE_REGEX.test(day)) {
-    return createResponse(res, "Missing or invalid day. Expected YYYY-MM-DD.");
-  }
-  if (new Date().getTime() > new Date(new Date(day).setHours(23,59,59,999)).getTime()) {
-    return createResponse(res, "Invalid day. Expected non-past date.");
-  }
-
   try {
+    validateRequest({ res, endpoint: "addSlot", data: { employeeId, day } });
+
     const queryValue = `
       WITH available_time AS (
         WITH all_times AS (
@@ -68,10 +53,16 @@ export const addSlot = async (req: Request, res: Response) => {
       day
     ]);
 
+    if (!result) return createResponse(res, "Failed to add slot");
     
-    if (!result) return createResponse(res, "Failed to add slot.");
+    validateResult({ res, endpoint: "addSlot", data: result.rows[0] });
 
-    createResponse(res, "New slot has been added.", result.rows[0]);
+    /** Send response */
+    const message: string = "New slot has been added.";
+    const data: Slot = result.rows[0];
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
 
   } catch (error) {
     console.error("Failed to add slot: ", error);

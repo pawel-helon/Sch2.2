@@ -19,7 +19,7 @@ const disableRecurringDay = api.injectEndpoints({
     disableRecurringDay: builder.mutation<{ message: string, data: SlotsRecurringDate | null }, { employeeId: string, day: string }>({
       query: (body) => {
         /** Validate request data */
-        validateRequest('disableRecurringDay', body);
+        validateRequest({ endpoint: 'disableRecurringDay', data: body });
         return {
           url: 'slots/disable-recurring-day',
           method: 'POST',
@@ -41,7 +41,7 @@ const disableRecurringDay = api.injectEndpoints({
           const slotsRecurringDate = data as SlotsRecurringDate;
           
           /** Validate response data */
-          validateResponse('disableRecurringDay', slotsRecurringDate);
+          validateResponse({ endpoint: 'disableRecurringDay', data: slotsRecurringDate });
   
           /** Store message and slot in cached undoSlice data (slot constant is being created only to fit undoSlice setup).*/
           const slot = {

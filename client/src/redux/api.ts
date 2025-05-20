@@ -6,7 +6,6 @@ import { NormalizedSlots, NormalizedSessions, NormalizedSlotsRecurringDates } fr
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: import.meta.env.VITE_API_URL }),
-  tagTypes: ['Slots', 'SlotsRecurringDates', 'Sessions', 'Customers', 'Employees'],
   endpoints: (builder) => ({
     /**
      * Fetch weekly slots for a specific employee within a date range.
@@ -20,7 +19,7 @@ export const api = createApi({
     getWeekSlots: builder.query<NormalizedSlots | null, { employeeId: string, start: string, end: string }>({
       query: (body) => {
         /** Validate request data */
-        validateRequest('getWeekSlots', body);
+        validateRequest({ endpoint: 'getWeekSlots', data: body });
         return {
           url: 'slots/get-week-slots',
           method: 'POST',
@@ -34,7 +33,7 @@ export const api = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         const res = await queryFulfilled;
         const normalizedSltos = res.data as NormalizedSlots;
-        validateResponse('getWeekSlots', normalizedSltos);
+        validateResponse({ endpoint: 'getWeekSlots', data: normalizedSltos });
       },
     }),
     /**
@@ -48,7 +47,7 @@ export const api = createApi({
     getSlotsForReschedulingSession: builder.query<NormalizedSlots | null, { employeeId: string }>({
       query: (body) => {
         /** Validate request data */
-        validateRequest('getSlotsForReschedulingSession', body);
+        validateRequest({ endpoint: 'getSlotsForReschedulingSession', data: body });
         return {
           url: 'slots/get-slots-for-rescheduling-session',
           method: 'POST',
@@ -62,7 +61,7 @@ export const api = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         const res = await queryFulfilled;
         const normalizedSlots = res.data as NormalizedSlots;
-        validateResponse('getSlotsForReschedulingSession', normalizedSlots);
+        validateResponse({ endpoint: 'getSlotsForReschedulingSession', data: normalizedSlots });
       },
     }),
     /**
@@ -77,7 +76,7 @@ export const api = createApi({
     getWeekSlotsRecurringDates: builder.query<NormalizedSlotsRecurringDates | null, { employeeId: string, start: string, end: string }>({
       query: (body) => {
         /** Validate request data */
-        validateRequest('getWeekSlotsRecurringDates', body);
+        validateRequest({ endpoint: 'getWeekSlotsRecurringDates', data: body });
         return {
           url: '/slots-recurring-dates/get-week-slots-recurring-dates',
           method: 'POST',
@@ -91,7 +90,7 @@ export const api = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         const res = await queryFulfilled;
         const normalizedSlotsRecurringDates = res.data as NormalizedSlotsRecurringDates;
-        validateResponse('getWeekSlotsRecurringDates', normalizedSlotsRecurringDates);
+        validateResponse({ endpoint: 'getWeekSlotsRecurringDates', data: normalizedSlotsRecurringDates });
       },
     }),
     /**
@@ -106,7 +105,7 @@ export const api = createApi({
     getWeekSessions: builder.query<NormalizedSessions | null, { employeeId: string, start: string, end: string}>({
       query: (body) => {
         /** Validate request data. */
-        validateRequest('getWeekSessions', body)
+        validateRequest({ endpoint: 'getWeekSessions', data: body })
         return {
           url: '/sessions/get-week-sessions',
           method: 'POST',
@@ -120,7 +119,7 @@ export const api = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         const res = await queryFulfilled;
         const normalizedSessions = res.data as NormalizedSessions;
-        validateResponse('getWeekSessions', normalizedSessions);
+        validateResponse({ endpoint: 'getWeekSessions', data: normalizedSessions });
       },
     }),
     /**

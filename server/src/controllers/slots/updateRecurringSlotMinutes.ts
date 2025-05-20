@@ -1,33 +1,16 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { MINUTES, UUID_REGEX } from "../../constants";
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
 import { Slot } from "../../types";
-
-const createResponse = (res: Response, message: string, data: { prevMinutes: number, slot: Slot } | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
 
 export const updateRecurringSlotMinutes = async (req: Request, res: Response) => {
   const { slotId, minutes } = req.body as { slotId: string, minutes: number };
-  
-  if (!slotId || !MINUTES.includes(minutes)) {
-    return createResponse(res, "All fields are required: employeeId, slotId and minutes.");
-  }
-  
-  if (!UUID_REGEX.test(slotId)) {
-    return createResponse(res, "Invalid slotId format. Expected UUID.");
-  }
-
-  if (minutes < 0 || minutes > 59 || typeof minutes !== 'number') {
-    return createResponse(res, "Invalid minutes. Expected number between 0 and 59.");
-  }
 
   try {
+    validateRequest({res, endpoint: "updateRecurringSlotMinutes", data: { slotId, minutes }});
+    
     const queryValue = `
       WITH slot_info AS (
         SELECT 
@@ -101,9 +84,16 @@ export const updateRecurringSlotMinutes = async (req: Request, res: Response) =>
       recurring: result.rows[0].recurring,
       createdAt: result.rows[0].createdAt,
       updatedAt: result.rows[0].updatedAt
-    }
+    } as Slot;
 
-    createResponse(res, "Recurring slot minutes have been updated.", { prevMinutes: result.rows[0].prevMinutes, slot });
+    validateResult({ res, endpoint: "updateRecurringSlotMinutes", data: { prevMinutes: result.rows[0].prevMinutes, slot } });
+
+    /** Send response */
+    const message: string = "Recurring slot minutes have been updated.";
+    const data: { prevMinutes: number, slot: Slot } = { prevMinutes: result.rows[0].prevMinutes, slot };
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
     
   } catch (error) {
     console.error("Failed to update recurring slot minutes: ", error);

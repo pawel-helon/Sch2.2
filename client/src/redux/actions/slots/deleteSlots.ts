@@ -18,7 +18,7 @@ const deleteSlots = api.injectEndpoints({
     deleteSlots: builder.mutation<{ message: string, data: { employeeId: string, date: string, slotIds: string[] } | null }, { slots: Slot[] }>({
       query: (body) => {
         /** Validate request data */
-        validateRequest('deleteSlots', body);
+        validateRequest({ endpoint: 'deleteSlots', data: body });
         const slotIds = body.slots.map(slot => slot.id);
         return {
           url: 'slots/delete-slots',
@@ -41,7 +41,7 @@ const deleteSlots = api.injectEndpoints({
           const { employeeId, date, slotIds } = data as { employeeId: string, date: string, slotIds: string[] };
 
           /** Validate response data. */
-          validateResponse('deleteSlots', { employeeId, date, slotIds });
+          validateResponse({ endpoint: 'deleteSlots', data: { employeeId, date, slotIds }});
           
           /** Store message and deleted slots in cached undoSlice data. */
           dispatch(undoAdded({ message, data: args.slots }))

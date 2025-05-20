@@ -18,7 +18,7 @@ const addSlot = api.injectEndpoints({
     addSlot: builder.mutation<{ message: string, data: Slot | null }, { employeeId: string, day: string }>({
       query: (body) => {
         /** Validate request data */
-        validateRequest('addSlot', body);
+        validateRequest({ endpoint: 'addSlot', data: body });
         return {
           url: 'slots/add-slot',
           method: 'POST',
@@ -40,7 +40,7 @@ const addSlot = api.injectEndpoints({
           const slot = data as Slot;
 
           /** Validate response data. */
-          validateResponse('addSlot', slot);
+          validateResponse({ endpoint: 'addSlot', data: slot });
           
           /** Insert slot into cached getWeekSlots data. */
           const date = new Date(slot.startTime).toISOString().split('T')[0];

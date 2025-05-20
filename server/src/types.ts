@@ -1,7 +1,9 @@
+import { Response } from "express";
+
 export interface Slot {
   id: string;
   employeeId: string;
-  type: 'AVAILABLE' | 'BLOCKED' | 'BOOKED';
+  type: "AVAILABLE" | "BLOCKED" | "BOOKED";
   startTime: Date;
   duration: { minutes: 30 } | { minutes: 45 } | { minutes: 60 };
   recurring: boolean;
@@ -42,4 +44,33 @@ export interface Session {
 export interface NormalizedSessions {
   byId: Record<string, Session>;
   allIds: string[];
+};
+
+export interface ValidationProps {
+  res: Response,
+  endpoint: "getWeekSlots"
+    | "getSlotsForReschedulingSession"
+    | "getWeekSlotsRecurringDates"
+    | "getWeekSessions"
+    | "addSlot"
+    | "addRecurringSlot"
+    | "deleteSlots"
+    | "disableRecurringDay"
+    | "disableSlotRecurrence"
+    | "duplicateDay"
+    | "setRecurringDay"
+    | "setSlotRecurrence"
+    | "undoAddRecurringSlot"
+    | "addSlots"
+    | "undoUpdateSlotHour"
+    | "undoUpdateSlotMinutes"
+    | "updateRecurringSlotHour"
+    | "updateSlotHour"
+    | "updateRecurringSlotMinutes"
+    | "updateSlotMinutes"
+    | "updateSlotsForReschedulingSession"
+    | "deleteSession"
+    | "undoDeleteSession"
+    | "updateSession",
+  data: any
 };

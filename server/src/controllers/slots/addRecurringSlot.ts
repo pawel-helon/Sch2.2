@@ -1,31 +1,16 @@
 import { Request, Response } from "express";
-import { Slot } from "../../types";
 import { pool } from "../../index";
-import { DATE_REGEX, UUID_REGEX } from "../../constants";
-
-const createResponse = (res: Response, message: string, data: Slot | null = null) => {
-  res.format({"application/json": () => {
-    res.send({
-      message,
-      data
-    });
-  }});
-}
+import { createResponse } from "../../utils/createResponse";
+import { validateRequest } from "../../utils/validation/validateRequest";
+import { validateResult } from "../../utils/validation/validateResult";
+import { Slot } from "../../types";
 
 export const addRecurringSlot = async (req: Request, res: Response) => {
   const { employeeId, day } = req.body as { employeeId: string, day: string };
   
-  if (!employeeId || !UUID_REGEX.test(employeeId)) {
-    return createResponse(res, "Missing or invalid employeeId. Expected UUID.");
-  }
-  if (!day || !DATE_REGEX.test(day)) {
-    return createResponse(res, "Missing or invalid day. Expected YYYY-MM-DD.");
-  }
-  if (new Date().getTime() > new Date(new Date(day).setHours(23,59,59,999)).getTime()) {
-    return createResponse(res, "Invalid day. Expected non-past date.");
-  }
-
   try {
+    validateRequest({ res, endpoint: "addRecurringSlot", data: { employeeId, day } });
+
     const queryValue = `
       WITH recurring_dates AS (
         WITH recurring_dates_year AS (
@@ -88,10 +73,17 @@ export const addRecurringSlot = async (req: Request, res: Response) => {
       employeeId,
       day,
     ]);
-    
-    if (!result) return createResponse(res, "Failed to add recurring slot.");
 
-    createResponse(res, "New recurring slot have been added.", result.rows[0]);
+    if (!result) return createResponse(res, "Failed to add recurring slot.");
+    
+    validateResult({ res, endpoint: "addRecurringSlot", data: result.rows[0] });
+
+    /** Send response */
+    const message: string = "New recurring slot have been added.";
+    const data: Slot = result.rows[0];
+    res.format({"application/json": () => {
+      res.send({ message, data });
+    }});
 
   } catch (error) {
     console.error("Failed to add recurring slot: ", error);

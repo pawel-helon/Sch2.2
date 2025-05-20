@@ -43,3 +43,39 @@ export interface NormalizedSessions {
   byId: Record<string, Session>;
   allIds: string[];
 };
+
+export interface ValidationProps {
+  endpoint: 'getWeekSlots'
+    | 'getSlotsForReschedulingSession'
+    | 'getWeekSlotsRecurringDates'
+    | 'getWeekSessions'
+    | 'addSlot'
+    | 'addRecurringSlot'
+    | 'deleteSlots'
+    | 'disableRecurringDay'
+    | 'disableSlotRecurrence'
+    | 'duplicateDay'
+    | 'setRecurringDay'
+    | 'setSlotRecurrence'
+    | 'undoAddRecurringSlot'
+    | 'undoDeleteSlots'
+    | 'undoDisableRecurringDay'
+    | 'undoDisableSlotRecurrence'
+    | 'undoDuplicateDay'
+    | 'undoSetRecurringDay'
+    | 'undoSetSlotRecurrence'
+    | 'undoUpdateRecurringSlotHour'
+    | 'undoUpdateRecurringSlotMinutes'
+    | 'undoUpdateSlotHour'
+    | 'undoUpdateSlotMinutes'
+    | 'updateRecurringSlotHour'
+    | 'updateSlotHour'
+    | 'updateRecurringSlotMinutes'
+    | 'updateSlotMinutes'
+    | 'updateSlotsForReschedulingSession'
+    | 'deleteSession'
+    | 'undoDeleteSession'
+    | 'undoUpdateSession'
+    | 'updateSession',
+  data: any
+};
