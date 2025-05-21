@@ -32,6 +32,7 @@ export const api = createApi({
       /** Validate response data. */
       async onQueryStarted(_, { queryFulfilled }) {
         const res = await queryFulfilled;
+        console.log(res);
         const normalizedSltos = res.data as NormalizedSlots;
         validateResponse({ endpoint: 'getWeekSlots', data: normalizedSltos });
       },
@@ -57,7 +58,7 @@ export const api = createApi({
       transformResponse: (response: { message: string; data: NormalizedSlots | null }) => {
         return response.data;
       },
-      /** Validate response */
+      /** Validate response data. */
       async onQueryStarted(_, { queryFulfilled }) {
         const res = await queryFulfilled;
         const normalizedSlots = res.data as NormalizedSlots;
@@ -86,7 +87,7 @@ export const api = createApi({
       transformResponse: (response: { message: string; data: NormalizedSlotsRecurringDates | null }) => {
         return response.data;
       },
-      /** Validate response */
+      /** Validate response data. */
       async onQueryStarted(_, { queryFulfilled }) {
         const res = await queryFulfilled;
         const normalizedSlotsRecurringDates = res.data as NormalizedSlotsRecurringDates;
@@ -115,7 +116,7 @@ export const api = createApi({
       transformResponse: (response: { message: string, data: NormalizedSessions | null }) => {
         return response.data;
       },
-      /** Validate response */
+      /** Validate response data. */
       async onQueryStarted(_, { queryFulfilled }) {
         const res = await queryFulfilled;
         const normalizedSessions = res.data as NormalizedSessions;

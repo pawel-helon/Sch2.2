@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 import { NormalizedSessions } from "../../types";
@@ -9,7 +9,11 @@ export const getWeekSessions = async (req: Request, res: Response) => {
   const { employeeId, start, end } = req.body as { employeeId: string, start: string, end: string };
   
   try {
-    validateRequest({ res, endpoint: "getWeekSessions", data: { employeeId, start, end } });
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "getWeekSessions", data: { employeeId, start, end }
+    });
+    if (validatingRequest !== "validated") return;
     
     const queryValue = `
       WITH employee_slots_info AS (
@@ -58,7 +62,7 @@ export const getWeekSessions = async (req: Request, res: Response) => {
       end
     ]);
     
-    if (!result) return createResponse(res, "Failed to fetch sessions.");
+    if (!result) return sendResponse(res, "Failed to fetch sessions.");
 
     const normalizedResult = result.rows.reduce(
       (acc: NormalizedSessions, session) => {
@@ -69,9 +73,13 @@ export const getWeekSessions = async (req: Request, res: Response) => {
       { byId: {}, allIds: [] }
     );
 
-    validateResult({ res, endpoint: "getWeekSessions", data: normalizedResult });
+    /** Validate normalized result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "getWeekSessions", data: normalizedResult
+    });
+    if (validatingResult !== "validated") return;
 
-    /** Send response */
+    /** Send normalizedResult */
     const message: string = "Sessions have been fetched.";
     const data: NormalizedSessions = normalizedResult;
     res.format({"application/json": () => {

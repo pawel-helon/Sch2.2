@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 import { Session } from "../../types";
@@ -9,8 +9,12 @@ export const updateSession = async (req: Request, res: Response) => {
   const { sessionId, slotId } = req.body as { sessionId: string, slotId: string };
 
   try {
-    validateRequest({ res, endpoint: "updateSession", data: { sessionId, slotId }});
-    
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "updateSession", data: { sessionId, slotId }
+    });
+    if (validatingRequest !== "validated") return;
+
     await pool.query("BEGIN");
 
     const updatePrevSlotQueryValue = `
@@ -30,7 +34,7 @@ export const updateSession = async (req: Request, res: Response) => {
       sessionId
     ]);
 
-    if (!updatePrevSlot) return createResponse(res, "Failed to update previous slot type.");
+    if (!updatePrevSlot) return sendResponse(res, "Failed to update previous slot type.");
 
     const updateNewSlotQueryValue = `
       UPDATE "Slots"
@@ -43,7 +47,7 @@ export const updateSession = async (req: Request, res: Response) => {
       slotId
     ]);
 
-    if (!updateNewSlot) return createResponse(res, "Failed to update new slot type.");
+    if (!updateNewSlot) return sendResponse(res, "Failed to update new slot type.");
 
     const updateSessionQueryValue = `
       WITH session_info AS (
@@ -86,7 +90,7 @@ export const updateSession = async (req: Request, res: Response) => {
 
     await pool.query("COMMIT");
     
-    if (!updateSession) return createResponse(res, "Failed to update session.");
+    if (!updateSession) return sendResponse(res, "Failed to update session.");
     
     const session = {
       id: updateSession.rows[0].id,
@@ -99,12 +103,15 @@ export const updateSession = async (req: Request, res: Response) => {
       updatedAt: updateSession.rows[0].updatedAt,
     }
 
-    validateResult({res, endpoint: "updateSession", data: {
-      prevSlotId: updateSession.rows[0].prevSlotId,
-      prevStartTime: updateSession.rows[0].prevStartTime,
-      session: session
+    /** Validate result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "undoDeleteSession", data: {
+        prevSlotId: updateSession.rows[0].prevSlotId,
+        prevStartTime: updateSession.rows[0].prevStartTime,
+        session: session
     }});
-    
+    if (validatingResult !== "validated") return;
+
     /** Send response */
     const message: string = "Session has been updated.";
     const data: { prevSlotId: string, prevStartTime: Date, session: Session } = {

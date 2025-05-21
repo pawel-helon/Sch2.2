@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 import { Slot } from "../../types";
@@ -9,8 +9,12 @@ export const updateSlotsForReschedulingSession = async (req: Request, res: Respo
   const { employeeId, day } = req.body as { employeeId: string, day: string };
 
   try {
-    validateRequest({ res, endpoint: "updateSlotsForReschedulingSession", data: { employeeId, day } });
-    
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "updateSlotsForReschedulingSession", data: { employeeId, day }
+    });
+    if (validatingRequest !== "validated") return;
+
     const queryValue = `
       SELECT *
       FROM "Slots"
@@ -26,9 +30,13 @@ export const updateSlotsForReschedulingSession = async (req: Request, res: Respo
       day
     ]);
 
-    if (!result) return createResponse(res, "Failed to fetch slots.");
+    if (!result) return sendResponse(res, "Failed to fetch slots.");
 
-    validateResult({ res, endpoint: "updateSlotsForReschedulingSession", data: result.rows });
+    /** Validate result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "updateSlotsForReschedulingSession", data: result.rows
+    });
+    if (validatingResult !== "validated") return;
 
     /** Send response */
     const message: string = "Slots have been fetched.";

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 
@@ -8,7 +8,11 @@ export const deleteSlots = async (req: Request, res: Response) => {
   const { slotIds } = req.body as { slotIds: string[] };
 
   try {
-    validateRequest({ res, endpoint: "deleteSlots", data: slotIds });
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "deleteSlots", data: slotIds
+    });
+    if (validatingRequest !== "validated") return;
     
     const queryValue = `
       WITH slot_ids AS (
@@ -28,14 +32,18 @@ export const deleteSlots = async (req: Request, res: Response) => {
       slotIds,
     ]);
 
-    if (!result) return createResponse(res, "Failed to delete slots.");
+    if (!result) return sendResponse(res, "Failed to delete slots.");
 
     const employeeId: string = result.rows[0].employeeId;
     const startTime: Date = result.rows[0].startTime;
     const date: string = new Date(startTime).toISOString().split('T')[0];
     const ids: string[] = result.rows.flatMap(slot => slot.id );
 
-    validateResult({ res, endpoint: "deleteSlots", data: { employeeId, date, slotIds: ids } });
+    /** Validate result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "deleteSlots", data: { employeeId, date, slotIds: ids }
+    });
+    if (validatingResult !== "validated") return;
 
     /** Send response */
     const message: string = "Slot(s) have been deleted.";

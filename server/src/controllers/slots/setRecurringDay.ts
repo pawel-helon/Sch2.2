@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 import { SlotsRecurringDate } from "../../types";
@@ -9,8 +9,12 @@ export const setRecurringDay = async (req: Request, res: Response) => {
   const { employeeId, day } = req.body as { employeeId: string, day: string };
 
   try {
-    validateRequest({ res, endpoint: "setRecurringDay", data: { employeeId, day } });
-    
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "setRecurringDay", data: { employeeId, day }
+    });
+    if (validatingRequest !== "validated") return;
+
     await pool.query("BEGIN");
 
     const insertingSlotsRecurringDatesQueryValue = `
@@ -45,7 +49,7 @@ export const setRecurringDay = async (req: Request, res: Response) => {
       day
     ])
 
-    if (!insertingSlotsRecurringDates) return createResponse(res, "Failed to insert recurring dates.");
+    if (!insertingSlotsRecurringDates) return sendResponse(res, "Failed to insert recurring dates.");
 
     const insertingSlotsQueryValue = `
       WITH slots_info AS (
@@ -94,11 +98,15 @@ export const setRecurringDay = async (req: Request, res: Response) => {
       day
     ]);
 
-    if (!insertingSlots) return createResponse(res, "Failed to insert slots.");
+    if (!insertingSlots) return sendResponse(res, "Failed to insert slots.");
 
     await pool.query("COMMIT");
 
-    validateResult({ res, endpoint: "setRecurringDay", data: insertingSlotsRecurringDates.rows[0] });
+    /** Validate result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "setRecurringDay", data: insertingSlotsRecurringDates.rows[0]
+    });
+    if (validatingResult !== "validated") return;
 
     /** Send response */
     const message: string = "Recurring day has been set.";

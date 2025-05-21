@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 import { Slot } from "../../types";
@@ -9,8 +9,12 @@ export const updateRecurringSlotMinutes = async (req: Request, res: Response) =>
   const { slotId, minutes } = req.body as { slotId: string, minutes: number };
 
   try {
-    validateRequest({res, endpoint: "updateRecurringSlotMinutes", data: { slotId, minutes }});
-    
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "updateRecurringSlotMinutes", data: { slotId, minutes }
+    });
+    if (validatingRequest !== "validated") return;
+
     const queryValue = `
       WITH slot_info AS (
         SELECT 
@@ -73,7 +77,7 @@ export const updateRecurringSlotMinutes = async (req: Request, res: Response) =>
       String(minutes)
     ])
     
-    if (!result) return createResponse(res, "Failed to update recurring slot minutes.");
+    if (!result) return sendResponse(res, "Failed to update recurring slot minutes.");
 
     const slot = {
       id: result.rows[0].id,
@@ -86,7 +90,11 @@ export const updateRecurringSlotMinutes = async (req: Request, res: Response) =>
       updatedAt: result.rows[0].updatedAt
     } as Slot;
 
-    validateResult({ res, endpoint: "updateRecurringSlotMinutes", data: { prevMinutes: result.rows[0].prevMinutes, slot } });
+    /** Validate result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "updateRecurringSlotMinutes", data: { prevMinutes: result.rows[0].prevMinutes, slot }
+    });
+    if (validatingResult !== "validated") return;
 
     /** Send response */
     const message: string = "Recurring slot minutes have been updated.";

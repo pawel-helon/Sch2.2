@@ -3,14 +3,18 @@ import { pool } from "../../index";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 import { Slot } from "../../types";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 
 export const setSlotRecurrence = async (req: Request, res: Response) => {
   const { slotId } = req.body as { slotId: string };
   
   try {
-    validateRequest({ res, endpoint: "setSlotRecurrence", data: slotId });
-    
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "setSlotRecurrence", data: slotId
+    });
+    if (validatingRequest !== "validated") return;
+
     await pool.query("BEGIN");
 
     const updatingInitalSlotQueryValue = `
@@ -24,7 +28,7 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
       slotId
     ]);
 
-    if (!updatingInitalSlot) return createResponse(res, "Failed to update initial slot.");
+    if (!updatingInitalSlot) return sendResponse(res, "Failed to update initial slot.");
 
     const insertingSlotsQueryValue = `
       WITH slot_info AS (
@@ -69,11 +73,15 @@ export const setSlotRecurrence = async (req: Request, res: Response) => {
       slotId
     ]);
     
-    if (!insertingSlots) return createResponse(res, "Failed to insert slots.");
+    if (!insertingSlots) return sendResponse(res, "Failed to insert slots.");
 
     await pool.query("COMMIT");
 
-    validateResult({ res, endpoint: "setSlotRecurrence", data: updatingInitalSlot.rows[0] });
+    /** Validate result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "setSlotRecurrence", data: updatingInitalSlot.rows[0]
+    });
+    if (validatingResult !== "validated") return;
 
     /** Send response */
     const message: string = "Recurring slot has been set.";

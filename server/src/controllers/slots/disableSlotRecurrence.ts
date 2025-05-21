@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 import { Slot } from "../../types";
@@ -9,8 +9,11 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
   const { slotId } = req.body as { slotId: string };
   
   try {
-    validateRequest({ res, endpoint: "disableSlotRecurrence", data: slotId });
-    
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "disableSlotRecurrence", data: slotId
+    });
+    if (validatingRequest !== "validated") return;
     await pool.query("BEGIN");
 
     const updatingInitalSlotQueryValue = `
@@ -24,7 +27,7 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
       slotId
     ]);
 
-    if (!updatingInitalSlot) return createResponse(res, "Failed to update initial slot.");
+    if (!updatingInitalSlot) return sendResponse(res, "Failed to update initial slot.");
 
     const deletingSlotsQueryValue = `
       WITH slot_info AS (
@@ -58,11 +61,15 @@ export const disableSlotRecurrence = async (req: Request, res: Response) => {
       slotId
     ]);
 
-    if (!deletingSlots) return createResponse(res, "Failed to delete slots");
+    if (!deletingSlots) return sendResponse(res, "Failed to delete slots");
 
     await pool.query("COMMIT");
 
-    validateResult({ res, endpoint: "disableSlotRecurrence", data: updatingInitalSlot.rows[0] });
+    /** Validate result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "disableSlotRecurrence", data: updatingInitalSlot.rows[0]
+    });
+    if (validatingResult !== "validated") return;
 
     /** Send response */
     const message: string = "Recurring slot have been disabled.";

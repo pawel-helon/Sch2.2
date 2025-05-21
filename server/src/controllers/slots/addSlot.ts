@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 import { Slot } from "../../types";
@@ -9,7 +9,11 @@ export const addSlot = async (req: Request, res: Response) => {
   const { employeeId, day } = req.body as { employeeId: string, day: string};
   
   try {
-    validateRequest({ res, endpoint: "addSlot", data: { employeeId, day } });
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "addSlot", data: { employeeId, day }
+    });
+    if (validatingRequest !== "validated") return;
 
     const queryValue = `
       WITH available_time AS (
@@ -53,9 +57,13 @@ export const addSlot = async (req: Request, res: Response) => {
       day
     ]);
 
-    if (!result) return createResponse(res, "Failed to add slot");
+    if (!result) return sendResponse(res, "Failed to add slot");
     
-    validateResult({ res, endpoint: "addSlot", data: result.rows[0] });
+    /** Validate result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "addSlot", data: result.rows[0]
+    });
+    if (validatingResult !== "validated") return;
 
     /** Send response */
     const message: string = "New slot has been added.";

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 
@@ -8,8 +8,12 @@ export const deleteSession = async (req: Request, res: Response) => {
   const { sessionId } = req.body as { sessionId: string };
 
   try {
-    validateRequest({ res, endpoint: "deleteSession", data: sessionId });
-    
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "deleteSession", data: sessionId
+    });
+    if (validatingRequest !== "validated") return;
+
     const queryValue = `
       WITH session_info AS (
         SELECT s."slotId" AS session_slot_id, sl."startTime" AS session_start_time
@@ -30,10 +34,14 @@ export const deleteSession = async (req: Request, res: Response) => {
       sessionId
     ]);
 
-    if (!result) return createResponse(res, "Failed to delete session.");
+    if (!result) return sendResponse(res, "Failed to delete session.");
 
-    validateResult({ res, endpoint: "deleteSession", data: result.rows[0] });
-
+    /** Validate result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "deleteSession", data: result.rows[0]
+    });
+    if (validatingResult !== "validated") return;
+    
     /** Send response */
     const message: string = "Session has been deleted.";
     const data: { sessionId: string, employeeId: string, startTime: Date } = result.rows[0];

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 import { SlotsRecurringDate } from "../../types";
@@ -9,7 +9,11 @@ export const disableRecurringDay = async (req: Request, res: Response) => {
   const { employeeId, day } = req.body as { employeeId: string, day: string };
 
   try {
-    validateRequest({ res, endpoint: "disableRecurringDay", data: { employeeId, day } });
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "disableRecurringDay", data: { employeeId, day }
+    });
+    if (validatingRequest !== "validated") return;
     
     await pool.query("BEGIN");
 
@@ -47,7 +51,7 @@ export const disableRecurringDay = async (req: Request, res: Response) => {
       day
     ])
 
-    if (!deletingSlotsRecurringDates) return createResponse(res, "Failed to delete slots recurring dates.");
+    if (!deletingSlotsRecurringDates) return sendResponse(res, "Failed to delete slots recurring dates.");
 
     const deletingSlotsQueryValue = `
       WITH slots_info AS (
@@ -83,11 +87,15 @@ export const disableRecurringDay = async (req: Request, res: Response) => {
       day
     ]);
 
-    if (!deletingSlots) return createResponse(res, "Failed to delete slots.");
+    if (!deletingSlots) return sendResponse(res, "Failed to delete slots.");
 
     await pool.query("COMMIT");
 
-    validateResult({ res, endpoint: "disableRecurringDay", data: deletingSlotsRecurringDates.rows[0] });
+    /** Validate result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "disableRecurringDay", data: deletingSlotsRecurringDates.rows[0]
+    });
+    if (validatingResult !== "validated") return;
 
     /** Send response */
     const message: string = "Recurring day has been disabled.";

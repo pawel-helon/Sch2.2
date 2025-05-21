@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 import { NormalizedSlotsRecurringDates } from "../../types";
@@ -9,8 +9,12 @@ export const getWeekSlotsRecurringDates = async (req: Request, res: Response) =>
   const { employeeId, start, end } = req.body as { employeeId: string, start: string, end: string };
 
   try {
-    validateRequest({ res, endpoint: "getWeekSlotsRecurringDates", data: { employeeId, start, end } });
-    
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "getWeekSlotsRecurringDates", data: { employeeId, start, end }
+    });
+    if (validatingRequest !== "validated") return;
+
     const queryValue = `
       SELECT "id", "employeeId", "date"::text
       FROM "SlotsRecurringDates"
@@ -26,7 +30,7 @@ export const getWeekSlotsRecurringDates = async (req: Request, res: Response) =>
       end
     ]);
 
-    if (!result) return createResponse(res, "Failed to fetch slots recurring dates.");
+    if (!result) return sendResponse(res, "Failed to fetch slots recurring dates.");
 
     const normalizedResult = result.rows.reduce(
       (acc: NormalizedSlotsRecurringDates, slot) => {
@@ -37,8 +41,12 @@ export const getWeekSlotsRecurringDates = async (req: Request, res: Response) =>
       { byId: {}, allIds: [] }
     );
 
-    validateResult({ res, endpoint: "getWeekSlotsRecurringDates", data: normalizedResult });
-
+    /** Validate normalized result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "getWeekSlotsRecurringDates", data: normalizedResult
+    });
+    if (validatingResult !== "validated") return;
+    
     /** Send response */
     const message: string = "Slots have been fetched.";
     const data: NormalizedSlotsRecurringDates = normalizedResult;
@@ -50,4 +58,4 @@ export const getWeekSlotsRecurringDates = async (req: Request, res: Response) =>
     console.error("Failed to fetch slots recurring dates: ", error);
     res.status(500).json({ error: "Internal server error." });
   }
-}                               
+}

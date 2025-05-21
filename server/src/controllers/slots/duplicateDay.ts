@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 import { Slot } from "../../types";
@@ -9,8 +9,12 @@ export const duplicateDay = async (req: Request, res: Response) => {
   const { employeeId, day, selectedDays } = req.body as { employeeId: string, day: string, selectedDays: string[] };
 
   try {
-    validateRequest({ res, endpoint: "duplicateDay", data: { employeeId, day, selectedDays } });
-    
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "duplicateDay", data: { employeeId, day, selectedDays }
+    });
+    if (validatingRequest !== "validated") return;
+
     const queryValue = `
       WITH slots_info AS (
         SELECT
@@ -51,9 +55,13 @@ export const duplicateDay = async (req: Request, res: Response) => {
       selectedDays
     ]);
 
-    if (!result) return createResponse(res, "Failed to duplicate day.")
+    if (!result) return sendResponse(res, "Failed to duplicate day.")
 
-    validateResult({ res, endpoint: "duplicateDay", data: result.rows });
+    /** Validate result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "duplicateDay", data: result.rows
+    });
+    if (validatingResult !== "validated") return;
 
     /** Send response */
     const message: string = "Day has been duplicated.";

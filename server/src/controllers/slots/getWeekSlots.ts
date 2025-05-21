@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 import { NormalizedSlots } from "../../types";
@@ -9,8 +9,12 @@ export const getWeekSlots = async (req: Request, res: Response) => {
   const { employeeId, start, end } = req.body as { employeeId: string, start: string, end: string };
 
   try {
-    validateRequest({ res, endpoint: "getWeekSlots", data: { employeeId, start, end } });
-    
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "getWeekSlots", data: { employeeId, start, end }
+    });
+    if (validatingRequest !== "validated") return;
+
     await pool.query("BEGIN");
 
     const deletingPastSlotsQueryValue = `
@@ -24,7 +28,7 @@ export const getWeekSlots = async (req: Request, res: Response) => {
       employeeId
     ]);
 
-    if (!deletingPastSlots) return createResponse(res, "Failed to delete past slots.");
+    if (!deletingPastSlots) return sendResponse(res, "Failed to delete past slots.");
     
     const fetchingSlotsQueryValue = `
       SELECT *
@@ -40,7 +44,7 @@ export const getWeekSlots = async (req: Request, res: Response) => {
       end
     ]);
 
-    if (!fetchingSlots) return createResponse(res, "Failed to fetch slots.");
+    if (!fetchingSlots) return sendResponse(res, "Failed to fetch slots.");
 
     await pool.query("COMMIT");
 
@@ -53,7 +57,11 @@ export const getWeekSlots = async (req: Request, res: Response) => {
       { byId: {}, allIds: [] }
     );
 
-    validateResult({ res, endpoint: "getWeekSlots", data: normalizedResult });
+    /** Validate normalized result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "getWeekSlots", data: normalizedResult
+    });
+    if (validatingResult !== "validated") return;
 
     /** Send response */
     const message: string = "Slots have been fetched.";

@@ -7,6 +7,7 @@ export const validateResponse = (props: ValidationProps) => {
     case 'getSlotsForReschedulingSession': {
       const normalizedSlots: NormalizedSlots = props.data;
       const { byId, allIds } = normalizedSlots;
+      if (!allIds.length) return;
       if (!byId || !allIds || typeof byId !== 'object' || !Object.keys(byId).length || !Array.isArray(allIds)) {
         throw new Error('byId and allIds are required. byId must be a non-empty object, allIds must be an array.');
       }
@@ -35,6 +36,7 @@ export const validateResponse = (props: ValidationProps) => {
     case 'getWeekSlotsRecurringDates': {
       const normalizedSlotsRecurringDates: NormalizedSlotsRecurringDates = props.data;
       const { byId, allIds } = normalizedSlotsRecurringDates;
+      if (!allIds.length) return;
       if (!byId || !allIds || typeof byId !== 'object' || !Object.keys(byId).length || !Array.isArray(allIds)) {
         throw new Error('byId and allIds are required. byId must be a non-empty object, allIds must be an array.');
       }
@@ -50,6 +52,7 @@ export const validateResponse = (props: ValidationProps) => {
     case 'getWeekSessions': {
       const normalizedSessions: NormalizedSessions = props.data;
       const { byId, allIds } = normalizedSessions;
+      if (!allIds.length) return;
       if (!byId || !allIds || typeof byId !== 'object' || !Object.keys(byId).length || !Array.isArray(allIds)) {
         throw new Error('byId and allIds are required. byId must be a non-empty object, allIds must be an array.');
       }

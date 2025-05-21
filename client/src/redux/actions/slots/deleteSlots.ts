@@ -30,7 +30,7 @@ const deleteSlots = api.injectEndpoints({
         try {
           const res = await queryFulfilled;
           const { message, data } = res.data;
-          
+
           /** Return on failed action. */
           if (message !== 'Slot(s) have been deleted.') {
             dispatch(infoAdded({ message: 'Failed to delete slots.' }));

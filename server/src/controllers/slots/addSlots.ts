@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 import { Slot } from "../../types";
@@ -9,8 +9,12 @@ export const addSlots = async (req: Request, res: Response) => {
   const { slots } = req.body as { slots: Slot[] };
   
   try {
-    validateRequest({ res, endpoint: "addSlots", data: slots });
-    
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "addSlots", data: slots
+    });
+    if (validatingRequest !== "validated") return;
+
     const slots_id = slots.map(slot => slot.id);
     const slots_type = slots.map(slot => slot.type);
     const slots_start_time = slots.map(slot => slot.startTime);
@@ -53,9 +57,13 @@ export const addSlots = async (req: Request, res: Response) => {
       slots_created_at
     ]);
 
-    if (!result) return createResponse(res, "Failed to restore slots");
+    if (!result) return sendResponse(res, "Failed to restore slots");
 
-    validateResult({ res, endpoint: "addSlots", data: result.rows });
+    /** Validate result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "addSlots", data: result.rows
+    });
+    if (validatingResult !== "validated") return;
 
     /** Send response */
     const message: string = "Slots have been restored.";

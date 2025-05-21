@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 import { NormalizedSlots } from "../../types";
@@ -9,8 +9,12 @@ export const getSlotsForReschedulingSession = async (req: Request, res: Response
   const { employeeId } = req.body as { employeeId: string };
 
   try {
-    validateRequest({ res, endpoint: "getSlotsForReschedulingSession", data: employeeId });
-    
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "getSlotsForReschedulingSession", data: employeeId
+    });
+    if (validatingRequest !== "validated") return;
+
     const queryValue = `
       SELECT *
       FROM "Slots"
@@ -24,7 +28,7 @@ export const getSlotsForReschedulingSession = async (req: Request, res: Response
       employeeId,
     ]);
 
-    if (!result) return createResponse(res, "Failed to fetch slots.");
+    if (!result) return sendResponse(res, "Failed to fetch slots.");
 
     const normalizedResult = result.rows.reduce(
       (acc: NormalizedSlots, slot) => {
@@ -35,7 +39,11 @@ export const getSlotsForReschedulingSession = async (req: Request, res: Response
       { byId: {}, allIds: [] }
     );
 
-    validateResult({ res, endpoint: "getSlotsForReschedulingSession", data: normalizedResult });
+    /** Validate normalized result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "getSlotsForReschedulingSession", data: normalizedResult
+    });
+    if (validatingResult !== "validated") return;
     
     /** Send response */
     const message: string = "Slots have been fetched.";

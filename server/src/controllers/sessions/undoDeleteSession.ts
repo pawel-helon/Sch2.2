@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../index";
-import { createResponse } from "../../utils/createResponse";
+import { sendResponse } from "../../utils/sendResponse";
 import { validateRequest } from "../../utils/validation/validateRequest";
 import { validateResult } from "../../utils/validation/validateResult";
 import { Session } from "../../types";
@@ -9,7 +9,11 @@ export const undoDeleteSession = async (req: Request, res: Response) => {
   const { session } = req.body as { session: Session };
   
   try {
-    validateRequest({ res, endpoint: "undoDeleteSession", data: session });
+    /** Validate request data. */
+    const validatingRequest = await validateRequest({
+      res, endpoint: "undoDeleteSession", data: session
+    });
+    if (validatingRequest !== "validated") return;
     
     const queryValue = `
       WITH slot_info AS (
@@ -50,9 +54,13 @@ export const undoDeleteSession = async (req: Request, res: Response) => {
       session.createdAt,
     ]);
 
-    if (!result) return createResponse(res, "Failed to restore session.");
+    if (!result) return sendResponse(res, "Failed to restore session.");
 
-    validateResult({ res, endpoint: "undoDeleteSession", data: result.rows[0] });
+    /** Validate result. */
+    const validatingResult = await validateResult({
+      res, endpoint: "undoDeleteSession", data: result.rows[0]
+    });
+    if (validatingResult !== "validated") return;
 
     /** Send response */
     const message: string = "Session has been restored.";
